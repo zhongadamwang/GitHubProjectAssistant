@@ -1,0 +1,29 @@
+{
+  "project_id": "DEMO-FILE-OUTPUT-001",
+  "processing_session": {
+    "timestamp": "2026-02-08T14:02:16.342692",
+    "version": "1.0",
+    "tool_version": "requirements-ingest-v2.1",
+    "user": "awang",
+    "method": "traditional_script"
+  },
+  "input_files": [
+    {
+      "file_path": "C:\\Users\\awang\\AppData\\Local\\Temp\\tmp_72a4ddz.md",
+      "file_size": 923,
+      "file_hash": "902db177eda4c7ce",
+      "processed_successfully": true,
+      "requirements_extracted": 5
+    }
+  ],
+  "processing_stats": {
+    "total_files": 1,
+    "successful_files": 1,
+    "failed_files": 0,
+    "total_requirements": 5,
+    "avg_confidence": 0.88,
+    "processing_time_seconds": 0.0
+  },
+  "errors": [],
+  "warnings": []
+}

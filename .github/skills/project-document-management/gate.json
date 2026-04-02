@@ -1,0 +1,57 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S18",
+  "skill_name": "project-document-management",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard", 
+  "description": "Validates project structure has been properly initialized",
+  "checks": [
+    {
+      "id": "project_structure_exists",
+      "type": "folder_structure",
+      "severity": "hard",
+      "description": "Core project folders must exist",
+      "base_path": "OrgDocument/projects/*/",
+      "required_folders": ["artifacts", "tasks", "artifacts/Analysis", "artifacts/Requirements"],
+      "remediation": "Run project-document-management to create project structure"
+    },
+    {
+      "id": "core_files_exist",
+      "type": "artifact_existence", 
+      "severity": "hard",
+      "description": "Core project files must exist",
+      "artifacts": [
+        "OrgDocument/projects/*/main.md",
+        "OrgDocument/projects/*/README.md", 
+        "OrgDocument/projects/*/project-metadata.json"
+      ],
+      "remediation": "Ensure project initialization completed successfully"
+    },
+    {
+      "id": "metadata_valid",
+      "type": "json_schema", 
+      "severity": "hard",
+      "description": "Project metadata must have valid structure",
+      "file": "OrgDocument/projects/*/project-metadata.json",
+      "required_fields": ["project_id", "archetype", "created", "evolution_history"],
+      "remediation": "Check project-document-management completed initialization"
+    },
+    {
+      "id": "registry_updated",
+      "type": "content_pattern",
+      "severity": "soft", 
+      "description": "Project should be registered in projects.md",
+      "file": "OrgDocument/projects/projects.md", 
+      "must_contain_pattern": "\\|\\s*\\d+\\s*\\|.*\\|.*\\|.*\\|",
+      "remediation": "Add project entry to OrgDocument/projects/projects.md registry"
+    }
+  ],
+  "quality_score_weight": 0.08,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard",
+    "compliance": "soft"
+  }
+}

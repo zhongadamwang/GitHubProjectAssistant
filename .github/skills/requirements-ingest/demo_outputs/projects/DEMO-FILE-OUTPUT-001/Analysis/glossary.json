@@ -1,0 +1,24 @@
+{
+  "project_id": "DEMO-FILE-OUTPUT-001",
+  "extracted_terms": [
+    {
+      "term": "The",
+      "frequency": 2,
+      "contexts": [
+        "Authentication\n- The system shall authenticate users within 3 seconds using OAuth2\n- Multi-factor authentication must be required for admin accounts  \n- Session timeout shall occur after 30 minutes of inactivity",
+        "Performance  \n- Product search results must load within 200ms\n- The platform shall support 10,000 concurrent users\n- Database queries must complete within 100ms for 95th percentile"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "term": "Multi",
+      "frequency": 2,
+      "contexts": [
+        "Authentication\n- The system shall authenticate users within 3 seconds using OAuth2\n- Multi-factor authentication must be required for admin accounts  \n- Session timeout shall occur after 30 minutes of inactivity",
+        "Out of Scope\n- Mobile application development\n- Multi-language support for Phase 1"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "suggested_definitions": []
+}

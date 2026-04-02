@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S06",
+  "skill_name": "domain-alignentities",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates domain concepts have been aligned with organizational standards",
+  "checks": [
+    {
+      "id": "alignment_analysis_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce domain alignment analysis",
+      "artifacts": [
+        "artifacts/Domain/domain-alignment-analysis.md"
+      ],
+      "remediation": "Run domain-alignentities to map concepts to organizational standards"
+    },
+    {
+      "id": "mapping_documentation",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should document concept mappings",
+      "file": "artifacts/Domain/domain-alignment-analysis.md",
+      "must_contain": ["## Concept Mappings", "## Conflicts Identified", "## Alignment Recommendations"],
+      "remediation": "Complete mapping of new concepts to existing organizational entities"
+    },
+    {
+      "id": "standardization_guidance",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should provide standardization guidance",
+      "file": "artifacts/Domain/domain-alignment-analysis.md",
+      "must_contain": ["## Standardization Plan"],
+      "remediation": "Provide guidance for standardizing terminology across organization"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

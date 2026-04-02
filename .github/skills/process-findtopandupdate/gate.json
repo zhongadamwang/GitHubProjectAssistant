@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S19",
+  "skill_name": "process-findtopandupdate",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates top-level requirements have been identified and updated",
+  "checks": [
+    {
+      "id": "updated_requirements_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce updated top-level requirements",
+      "artifacts": [
+        "artifacts/Requirements/top-level-requirements-updated.md"
+      ],
+      "remediation": "Run process-findtopandupdate to identify and update top requirements"
+    },
+    {
+      "id": "hierarchy_consistency",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should maintain consistency across hierarchy levels",
+      "file": "artifacts/Requirements/top-level-requirements-updated.md",
+      "must_contain": ["## Hierarchy Consistency Check", "## Updated Requirements"],
+      "remediation": "Verify changes maintain consistency between high-level and detailed requirements"
+    },
+    {
+      "id": "orgmodel_coherence",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should preserve organizational model coherence",
+      "file": "artifacts/Requirements/top-level-requirements-updated.md",
+      "must_contain": ["✅ OrgModel Coherence"],
+      "remediation": "Ensure updates maintain organizational model coherence"
+    }
+  ],
+  "quality_score_weight": 0.06,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

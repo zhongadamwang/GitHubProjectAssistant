@@ -1,0 +1,13 @@
+# Process W5H Analysis Skill Dependencies
+# Minimal dependencies for core functionality
+
+# Core text processing
+markdown>=3.4.0
+
+# Optional: Enhanced analysis capabilities  
+spacy>=3.4.0
+textstat>=0.7.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0

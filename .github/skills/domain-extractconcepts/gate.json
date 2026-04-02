@@ -1,0 +1,58 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S06",
+  "skill_name": "domain-extractconcepts", 
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates domain concepts have been properly extracted and categorized",
+  "checks": [
+    {
+      "id": "domain_concepts_exist",
+      "type": "artifact_existence", 
+      "severity": "hard",
+      "description": "Domain concepts file must exist",
+      "artifacts": [
+        "artifacts/Analysis/domain-concepts.json"
+      ],
+      "remediation": "Run domain-extractconcepts skill to generate domain model"
+    },
+    {
+      "id": "entities_identified",
+      "type": "json_schema",
+      "severity": "hard", 
+      "description": "Domain concepts must include entities and relationships",
+      "file": "artifacts/Analysis/domain-concepts.json",
+      "required_fields": ["entities", "relationships", "business_rules"],
+      "remediation": "Verify requirements contain sufficient domain information"
+    },
+    {
+      "id": "entity_count",
+      "type": "threshold",
+      "severity": "soft",
+      "description": "Should identify reasonable number of entities",
+      "file": "artifacts/Analysis/domain-concepts.json", 
+      "json_path": "$.entities.length",
+      "min_value": 2,
+      "max_value": 25,
+      "remediation": "Review domain scope - very few entities may indicate insufficient analysis"
+    },
+    {
+      "id": "categorization_complete",
+      "type": "field_completeness",
+      "severity": "soft",
+      "description": "Entities should have category classifications",
+      "file": "artifacts/Analysis/domain-concepts.json",
+      "json_path": "$.entities[*].category",
+      "min_percent_complete": 80,
+      "remediation": "Review entity categorizations for completeness"
+    }
+  ],
+  "quality_score_weight": 0.12,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "soft"
+  }
+}

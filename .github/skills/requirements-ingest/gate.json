@@ -1,0 +1,59 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S01",
+  "skill_name": "requirements-ingest",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates that requirements have been properly ingested and structured",
+  "checks": [
+    {
+      "id": "artifacts_exist",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Required output artifacts must exist",
+      "artifacts": [
+        "artifacts/Requirements/requirements.md",
+        "artifacts/Requirements/requirements.json"
+      ],
+      "remediation": "Re-run requirements-ingest skill to generate missing artifacts"
+    },
+    {
+      "id": "requirements_content",
+      "type": "file_content",
+      "severity": "hard", 
+      "description": "Requirements file must have substantive content",
+      "file": "artifacts/Requirements/requirements.md",
+      "min_lines": 10,
+      "must_contain": ["# Requirements", "## Functional Requirements", "## Non-Functional Requirements"],
+      "remediation": "Verify input requirements are complete and re-run ingestion"
+    },
+    {
+      "id": "json_structure", 
+      "type": "json_schema",
+      "severity": "hard",
+      "description": "Requirements JSON must have valid structure",
+      "file": "artifacts/Requirements/requirements.json",
+      "required_fields": ["functional_requirements", "non_functional_requirements", "metadata"],
+      "remediation": "Check that requirements parsing completed successfully"
+    },
+    {
+      "id": "requirement_count",
+      "type": "threshold",
+      "severity": "soft",
+      "description": "Should have reasonable number of requirements",
+      "file": "artifacts/Requirements/requirements.json",
+      "json_path": "$.functional_requirements.length",
+      "min_value": 3,
+      "max_value": 50,
+      "remediation": "Review scope - very few or very many requirements may indicate scoping issues"
+    }
+  ],
+  "quality_score_weight": 0.15,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard", 
+    "compliance": "soft"
+  }
+}

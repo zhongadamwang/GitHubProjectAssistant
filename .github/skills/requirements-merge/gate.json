@@ -1,0 +1,47 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S24",
+  "skill_name": "requirements-merge",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates requirements have been merged without conflicts",
+  "checks": [
+    {
+      "id": "merged_requirements_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce merged requirements document",
+      "artifacts": [
+        "artifacts/Requirements/merged-requirements.md"
+      ],
+      "remediation": "Run requirements-merge to consolidate source requirements"
+    },
+    {
+      "id": "conflict_resolution",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should document any resolved conflicts",
+      "file": "artifacts/Requirements/merged-requirements.md",
+      "must_contain": ["## Conflicts Resolved", "## Source Traceability"],
+      "remediation": "Document conflict resolution approach and source mappings"
+    },
+    {
+      "id": "source_traceability",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should maintain traceability to source documents",
+      "file": "artifacts/Requirements/merged-requirements.md",
+      "must_contain_pattern": "Source: [A-Za-z0-9\_\-]+\.md",
+      "min_matches": 1,
+      "remediation": "Add source attribution for each merged requirement"
+    }
+  ],
+  "quality_score_weight": 0.06,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S17",
+  "skill_name": "model-integration",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates systematic integration of domain models",
+  "checks": [
+    {
+      "id": "integration_plan_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce model integration plan",
+      "artifacts": [
+        "artifacts/Analysis/model-integration-plan.md"
+      ],
+      "remediation": "Run model-integration to create systematic integration plan"
+    },
+    {
+      "id": "minimal_disruption_analysis",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should analyze minimal disruption approach",
+      "file": "artifacts/Analysis/model-integration-plan.md",
+      "must_contain": ["## Disruption Assessment", "## Integration Strategy"],
+      "remediation": "Document minimal disruption integration approach"
+    },
+    {
+      "id": "conflict_resolution",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should address model conflicts",
+      "file": "artifacts/Analysis/model-integration-plan.md",
+      "must_contain_pattern": "Conflict Resolution:",
+      "remediation": "Address conflicts between new and existing models"
+    }
+  ],
+  "quality_score_weight": 0.07,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S28",
+  "skill_name": "change-impact-analysis",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates comprehensive change impact analysis has been performed",
+  "checks": [
+    {
+      "id": "impact_report_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Change impact report must exist",
+      "artifacts": [
+        "artifacts/Analysis/change-impact-analysis.md"
+      ],
+      "remediation": "Run change-impact-analysis to assess change propagation"
+    },
+    {
+      "id": "hierarchy_impact_traced",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Must trace impact across hierarchy levels",
+      "file": "artifacts/Analysis/change-impact-analysis.md",
+      "must_contain": ["## Impact Tree", "## Affected Artifacts", "## Priority Assessment"],
+      "remediation": "Complete hierarchy impact tracing for all affected levels"
+    },
+    {
+      "id": "what_if_analysis",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include what-if scenario analysis",
+      "file": "artifacts/Analysis/change-impact-analysis.md",
+      "must_contain": ["## What-If Scenarios"],
+      "remediation": "Add what-if analysis for alternative change approaches"
+    }
+  ],
+  "quality_score_weight": 0.10,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "hard"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S15",
+  "skill_name": "plan-derivetasks",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates tasks have been derived from requirements and goals",
+  "checks": [
+    {
+      "id": "tasks_folder_exists",
+      "type": "folder_structure", 
+      "severity": "hard",
+      "description": "Tasks folder must be populated",
+      "base_path": "OrgDocument/projects/*/tasks/",
+      "folder_pattern": "*",
+      "min_files": 3,
+      "file_extensions": [".md"],
+      "remediation": "Run plan-derivetasks to generate task files from requirements"
+    },
+    {
+      "id": "task_files_valid", 
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Task files must have proper structure",
+      "file": "OrgDocument/projects/*/tasks/T*-*.md",
+      "must_contain": ["**Task ID**:", "**Priority**:", "**Effort**:", "## Acceptance Criteria"],
+      "remediation": "Ensure task template structure is followed"
+    },
+    {
+      "id": "task_tracking_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Task tracking file must exist",
+      "artifacts": [
+        "OrgDocument/projects/*/tasks/task-tracking.md"
+      ],
+      "remediation": "Generate task tracking summary file"
+    },
+    {
+      "id": "minimum_task_count",
+      "type": "file_count",
+      "severity": "soft",
+      "description": "Should have reasonable number of tasks", 
+      "pattern": "OrgDocument/projects/*/tasks/T*-*.md",
+      "min_count": 3,
+      "max_count": 50,
+      "remediation": "Review scope - very few or many tasks may indicate scoping issues"
+    }
+  ],
+  "quality_score_weight": 0.12,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard",
+    "compliance": "soft"
+  }
+}

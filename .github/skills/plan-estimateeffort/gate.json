@@ -1,0 +1,47 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S16", 
+  "skill_name": "plan-estimateeffort",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates effort estimates have been provided for all tasks",
+  "checks": [
+    {
+      "id": "estimates_in_task_files",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Task files must have effort estimates",
+      "file": "OrgDocument/projects/*/tasks/T*-*.md",
+      "must_contain_pattern": "\\*\\*Estimated Effort\\*\\*:.+(\\d+[-–]\\d+\\s+(days?|hours?)|\\d+\\s+(days?|hours?))",
+      "min_matches": 1,
+      "remediation": "Add effort estimates to all task files"
+    },
+    {
+      "id": "estimation_summary_exists", 
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should have estimation summary",
+      "artifacts": [
+        "artifacts/Analysis/effort-estimates.json"
+      ],
+      "remediation": "Generate effort estimation summary for project planning"
+    },
+    {
+      "id": "confidence_levels_provided",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include confidence levels", 
+      "file": "OrgDocument/projects/*/tasks/T*-*.md",
+      "must_contain_pattern": "(confidence|certainty|risk).*((high|medium|low)|(\\d+%))",
+      "remediation": "Consider adding confidence levels to effort estimates"
+    }
+  ],
+  "quality_score_weight": 0.08,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard", 
+    "compliance": "soft"
+  }
+}

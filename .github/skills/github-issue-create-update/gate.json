@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S20",
+  "skill_name": "github-issue-create-update",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates GitHub issue has been created or updated from task markdown",
+  "checks": [
+    {
+      "id": "sync_log_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should log GitHub sync operations",
+      "artifacts": [
+        "artifacts/Integration/github-sync-log.md"
+      ],
+      "remediation": "Run github-issue-create-update to sync task to GitHub"
+    },
+    {
+      "id": "issue_created_or_updated",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should confirm GitHub issue operation",
+      "file": "artifacts/Integration/github-sync-log.md",
+      "must_contain_pattern": "Issue #\\d+ (created|updated)",
+      "remediation": "Verify GitHub authentication and issue creation/update"
+    },
+    {
+      "id": "field_mapping_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should map all task fields to issue",
+      "file": "artifacts/Integration/github-sync-log.md",
+      "must_contain": ["Field Mapping:", "Sync Status:"],
+      "remediation": "Ensure complete field mapping from task to GitHub issue"
+    }
+  ],
+  "quality_score_weight": 0.04,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

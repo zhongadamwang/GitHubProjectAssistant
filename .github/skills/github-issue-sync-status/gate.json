@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S21",
+  "skill_name": "github-issue-sync-status",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates local task status has been synced from GitHub issue",
+  "checks": [
+    {
+      "id": "status_sync_log_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should log status sync operations",
+      "artifacts": [
+        "artifacts/Integration/status-sync-log.md"
+      ],
+      "remediation": "Run github-issue-sync-status to update local task from GitHub"
+    },
+    {
+      "id": "conflict_resolution",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should handle sync conflicts appropriately",
+      "file": "artifacts/Integration/status-sync-log.md",
+      "must_contain": ["Conflict Resolution:", "Sync Status:"],
+      "remediation": "Resolve conflicts between local and GitHub issue state"
+    },
+    {
+      "id": "metadata_preserved",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should preserve local file format and metadata",
+      "file": "artifacts/Integration/status-sync-log.md",
+      "must_contain": ["✅ Local Format Preserved"],
+      "remediation": "Ensure local task file format and metadata are maintained"
+    }
+  ],
+  "quality_score_weight": 0.04,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

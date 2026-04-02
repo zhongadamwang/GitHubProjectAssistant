@@ -1,0 +1,38 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S22",
+  "skill_name": "project-planning-tracking",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates project planning and tracking structures are established",
+  "checks": [
+    {
+      "id": "planning_documents_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should create project planning documents",
+      "artifacts": [
+        "artifacts/Planning/project-plan.md",
+        "artifacts/Planning/milestone-tracking.md"
+      ],
+      "remediation": "Run project-planning-tracking to establish project structure"
+    },
+    {
+      "id": "milestone_tracking",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should track project milestones",
+      "file": "artifacts/Planning/milestone-tracking.md",
+      "must_contain": ["## Milestones", "## Progress Tracking"],
+      "remediation": "Define and track project milestones with progress indicators"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

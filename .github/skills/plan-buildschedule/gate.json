@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S14",
+  "skill_name": "plan-buildschedule",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates project schedule has been built with dependencies and milestones",
+  "checks": [
+    {
+      "id": "schedule_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce project schedule",
+      "artifacts": [
+        "artifacts/Planning/project-schedule.md"
+      ],
+      "remediation": "Run plan-buildschedule to generate project timeline"
+    },
+    {
+      "id": "gantt_representation",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include Gantt chart representation",
+      "file": "artifacts/Planning/project-schedule.md",
+      "must_contain": ["```mermaid", "gantt"],
+      "remediation": "Add Gantt diagram to visualize project timeline"
+    },
+    {
+      "id": "critical_path_analysis",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should identify critical path",
+      "file": "artifacts/Planning/project-schedule.md",
+      "must_contain": ["## Critical Path", "## Dependencies"],
+      "remediation": "Complete critical path analysis and dependency mapping"
+    }
+  ],
+  "quality_score_weight": 0.06,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

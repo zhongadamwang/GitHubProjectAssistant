@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S18",
+  "skill_name": "process-merge",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates process models have been merged with minimal disruption",
+  "checks": [
+    {
+      "id": "merge_analysis_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce process merge analysis",
+      "artifacts": [
+        "artifacts/Analysis/process-merge-analysis.md"
+      ],
+      "remediation": "Run process-merge to analyze integration approaches"
+    },
+    {
+      "id": "overlap_analysis",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should identify minimum overlap requirements",
+      "file": "artifacts/Analysis/process-merge-analysis.md",
+      "must_contain": ["## Overlap Analysis", "## Integration Strategy"],
+      "remediation": "Document minimum sub-process overlap identification"
+    },
+    {
+      "id": "coherence_maintained",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should verify model coherence is maintained",
+      "file": "artifacts/Analysis/process-merge-analysis.md",
+      "must_contain": ["✅ Model Coherence Check"],
+      "remediation": "Validate that merged models maintain EDP coherence"
+    }
+  ],
+  "quality_score_weight": 0.07,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

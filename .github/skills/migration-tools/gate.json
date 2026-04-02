@@ -1,0 +1,48 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S29",
+  "skill_name": "migration-tools",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates migration from flat to hierarchical format completed",
+  "checks": [
+    {
+      "id": "enhanced_diagrams_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce enhanced collaboration diagrams",
+      "artifacts": [
+        "collaboration-diagrams-enhanced.md",
+        "collaboration-diagrams-enhanced.json"
+      ],
+      "remediation": "Run migration-tools to upgrade flat diagrams to hierarchical"
+    },
+    {
+      "id": "boundary_groupings_added",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include boundary groupings",
+      "file": "collaboration-diagrams-enhanced.md",
+      "must_contain": ["subgraph", "Boundary"],
+      "remediation": "Apply boundary detection heuristics to create groupings"
+    },
+    {
+      "id": "preservation_check",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should preserve existing traceability",
+      "file": "collaboration-diagrams-enhanced.md",
+      "must_contain_pattern": "REQ-\\d{3}",
+      "min_matches": 1,
+      "remediation": "Ensure all requirement links are preserved during migration"
+    }
+  ],
+  "quality_score_weight": 0.06,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

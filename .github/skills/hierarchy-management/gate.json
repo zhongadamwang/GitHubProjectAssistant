@@ -1,0 +1,70 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S10", 
+  "skill_name": "hierarchy-management",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates hierarchical decomposition has been completed correctly",
+  "checks": [
+    {
+      "id": "boundary_folders_created",
+      "type": "folder_structure",
+      "severity": "hard",
+      "description": "Boundary folders must exist for control participants",
+      "base_path": "orgModel/*/",
+      "folder_pattern": "*-*Boundary/",
+      "min_folders": 1,
+      "remediation": "Ensure control-type participants exist in collaboration.md for decomposition"
+    },
+    {
+      "id": "hierarchy_metadata_exists",
+      "type": "artifact_existence", 
+      "severity": "hard",
+      "description": "Hierarchy metadata must be created",
+      "artifacts": [
+        "orgModel/*/hierarchy-metadata.json"
+      ],
+      "remediation": "Hierarchy-management should generate metadata file during decomposition"
+    },
+    {
+      "id": "boundary_files_complete",
+      "type": "artifact_existence",
+      "severity": "hard", 
+      "description": "Each boundary folder must have required files",
+      "artifacts": [
+        "orgModel/*/*Boundary/collaboration.md",
+        "orgModel/*/*Boundary/main.md",
+        "orgModel/*/*Boundary/process.md", 
+        "orgModel/*/*Boundary/domain-model.md"
+      ],
+      "remediation": "Run documentation-automation after hierarchy decomposition"
+    },
+    {
+      "id": "metadata_structure_valid",
+      "type": "json_schema",
+      "severity": "hard",
+      "description": "Hierarchy metadata must have valid structure",
+      "file": "orgModel/*/hierarchy-metadata.json", 
+      "required_fields": ["hierarchy_tree", "level_mappings", "decomposition_history"],
+      "remediation": "Check hierarchy-management completed successfully"
+    },
+    {
+      "id": "parent_links_updated",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Parent main.md should link to boundary folders",
+      "file": "orgModel/*/main.md",
+      "must_contain_pattern": "\\[\\d+-.*Boundary\\]\\(\\d+-.*Boundary/main\\.md\\)",
+      "min_matches": 1,
+      "remediation": "Update navigation links in parent main.md to reference boundary folders"
+    }
+  ],
+  "quality_score_weight": 0.20,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft", 
+    "compliance": "hard"
+  }
+}

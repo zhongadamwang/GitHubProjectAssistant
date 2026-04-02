@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S16",
+  "skill_name": "orgmodel-update",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates organizational model updates have been applied",
+  "checks": [
+    {
+      "id": "update_log_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should document organizational model changes",
+      "artifacts": [
+        "artifacts/Changes/orgmodel-update-log.md"
+      ],
+      "remediation": "Run orgmodel-update to sync organizational model changes"
+    },
+    {
+      "id": "coherence_maintained",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should verify model coherence",
+      "file": "artifacts/Changes/orgmodel-update-log.md",
+      "must_contain": ["✅ Coherence Check", "Updated Documents:"],
+      "remediation": "Verify organizational model coherence after updates"
+    },
+    {
+      "id": "integration_impact",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should assess impact on existing processes",
+      "file": "artifacts/Changes/orgmodel-update-log.md",
+      "must_contain_pattern": "Impact Analysis:",
+      "remediation": "Document integration impact of organizational model changes"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "hard"
+  }
+}

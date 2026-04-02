@@ -1,0 +1,59 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S13",
+  "skill_name": "edps-compliance",
+  "version": "1.0.0", 
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates EDPS methodology compliance across project artifacts",
+  "checks": [
+    {
+      "id": "compliance_report_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "EDPS compliance report must exist",
+      "artifacts": [
+        "artifacts/Testing/edps-compliance-report.md",
+        "artifacts/Testing/edps-compliance-report.json"
+      ],
+      "remediation": "Run edps-compliance skill to validate methodology adherence"
+    },
+    {
+      "id": "no_critical_failures",
+      "type": "json_query", 
+      "severity": "hard",
+      "description": "Must have no critical compliance failures",
+      "file": "artifacts/Testing/edps-compliance-report.json",
+      "json_path": "$.summary.critical_failures",
+      "max_value": 0,
+      "remediation": "Fix critical EDPS compliance violations before proceeding"
+    },
+    {
+      "id": "boundary_validation_passed",
+      "type": "json_query",
+      "severity": "hard",
+      "description": "Boundary validation rules must pass", 
+      "file": "artifacts/Testing/edps-compliance-report.json",
+      "json_path": "$.checks.boundary_validation.VR_1.passed",
+      "expected_value": true,
+      "remediation": "Ensure boundary validation rules VR-1 through VR-4 are satisfied"
+    },
+    {
+      "id": "overall_compliance_score", 
+      "type": "json_query",
+      "severity": "soft",
+      "description": "Should have good overall compliance score",
+      "file": "artifacts/Testing/edps-compliance-report.json",
+      "json_path": "$.summary.compliance_score",
+      "min_value": 80,
+      "remediation": "Review and address compliance warnings to improve score"
+    }
+  ],
+  "quality_score_weight": 0.20,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "hard"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S03",
+  "skill_name": "goals-extract",
+  "version": "1.0.0",
+  "gate_type": "completion", 
+  "severity": "hard",
+  "description": "Validates business goals and success criteria have been extracted",
+  "checks": [
+    {
+      "id": "goals_file_exists", 
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Goals analysis file must exist",
+      "artifacts": [
+        "artifacts/Analysis/goals-analysis.json"
+      ],
+      "remediation": "Run goals-extract skill on requirements to identify business goals"
+    },
+    {
+      "id": "goals_structure_valid",
+      "type": "json_schema",
+      "severity": "hard",
+      "description": "Goals file must have valid structure", 
+      "file": "artifacts/Analysis/goals-analysis.json",
+      "required_fields": ["business_goals", "success_criteria", "constraints", "assumptions"],
+      "remediation": "Verify requirements contain sufficient goal information"
+    },
+    {
+      "id": "measurable_criteria",
+      "type": "field_completeness",
+      "severity": "soft",
+      "description": "Success criteria should be measurable",
+      "file": "artifacts/Analysis/goals-analysis.json",
+      "json_path": "$.success_criteria[*].metric",
+      "min_percent_complete": 60,
+      "remediation": "Review success criteria to ensure they include measurable metrics"
+    }
+  ],
+  "quality_score_weight": 0.10,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard", 
+    "compliance": "soft"
+  }
+}

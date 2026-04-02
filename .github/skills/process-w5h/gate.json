@@ -1,0 +1,47 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S04",
+  "skill_name": "process-w5h",
+  "version": "1.0.0",
+  "gate_type": "completion", 
+  "severity": "hard",
+  "description": "Validates W5H analysis has been completed comprehensively",
+  "checks": [
+    {
+      "id": "w5h_analysis_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "W5H analysis file must exist",
+      "artifacts": [
+        "artifacts/Analysis/w5h-analysis.json"
+      ],
+      "remediation": "Run process-w5h skill to analyze requirements comprehensively"
+    },
+    {
+      "id": "all_dimensions_covered",
+      "type": "json_schema",
+      "severity": "hard", 
+      "description": "All W5H dimensions must be analyzed",
+      "file": "artifacts/Analysis/w5h-analysis.json",
+      "required_fields": ["who", "what", "when", "where", "why", "how"],
+      "remediation": "Ensure comprehensive analysis covers all W5H dimensions"
+    },
+    {
+      "id": "sufficient_detail",
+      "type": "field_completeness",
+      "severity": "soft",
+      "description": "W5H analysis should have sufficient detail",
+      "file": "artifacts/Analysis/w5h-analysis.json",
+      "json_path": "$.*.details",
+      "min_percent_complete": 70,
+      "remediation": "Add more detail to W5H analysis dimensions"
+    }
+  ],
+  "quality_score_weight": 0.08,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "soft"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S15",
+  "skill_name": "change-management",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates change tracking and documentation is complete",
+  "checks": [
+    {
+      "id": "change_document_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Change document must be created",
+      "artifacts": [
+        "artifacts/Changes/change-document.md"
+      ],
+      "remediation": "Run change-management to document tracked changes"
+    },
+    {
+      "id": "structured_format",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Must follow structured change format",
+      "file": "artifacts/Changes/change-document.md",
+      "must_contain": ["## Change ID", "## Impact Analysis", "## Approval Status"],
+      "remediation": "Ensure change document follows structured template"
+    },
+    {
+      "id": "referencing_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include automated referencing",
+      "file": "artifacts/Changes/change-document.md",
+      "must_contain_pattern": "Reference: [A-Z]{3}\\-\\d{3}",
+      "remediation": "Add automated cross-references to related artifacts"
+    }
+  ],
+  "quality_score_weight": 0.09,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "hard"
+  }
+}

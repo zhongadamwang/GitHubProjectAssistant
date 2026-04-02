@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S31",
+  "skill_name": "edps-workflow-orchestrator",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates workflow orchestration has been properly configured and executed",
+  "checks": [
+    {
+      "id": "workflow_state_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Should maintain workflow state tracking",
+      "artifacts": [
+        "artifacts/Orchestration/project-state.json"
+      ],
+      "remediation": "Run edps-workflow-orchestrator to initialize or update workflow state"
+    },
+    {
+      "id": "dag_prerequisites_validated",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Should validate DAG prerequisite dependencies",
+      "file": "artifacts/Orchestration/project-state.json",
+      "must_contain": ["prerequisitesValidated": true],
+      "remediation": "Ensure all workflow prerequisite dependencies are satisfied"
+    },
+    {
+      "id": "archetype_workflow_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should complete workflow archetype execution",
+      "file": "artifacts/Orchestration/project-state.json",
+      "must_contain": ["workflowArchetype"],
+      "remediation": "Complete execution of selected workflow archetype (standard/rapid/compliance)"
+    }
+  ],
+  "quality_score_weight": 0.15,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "hard",
+    "compliance": "hard"
+  }
+}

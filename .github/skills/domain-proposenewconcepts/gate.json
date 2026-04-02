@@ -1,0 +1,37 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S7",
+  "skill_name": "domain-proposenewconcepts",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates new domain concepts have been proposed to address gaps",
+  "checks": [
+    {
+      "id": "concept_proposals_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should propose new domain concepts",
+      "artifacts": [
+        "artifacts/Domain/concept-proposals.md"
+      ],
+      "remediation": "Run domain-proposenewconcepts to identify conceptual gaps"
+    },
+    {
+      "id": "gap_analysis_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should identify and address domain gaps",
+      "file": "artifacts/Domain/concept-proposals.md",
+      "must_contain": ["## Gap Analysis", "## Proposed Concepts", "## Impact Assessment"],
+      "remediation": "Complete gap analysis and propose concepts to address missing functionality"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

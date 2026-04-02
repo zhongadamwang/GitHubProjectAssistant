@@ -1,0 +1,59 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S12",
+  "skill_name": "hierarchy-validation", 
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates structural integrity of process hierarchy",
+  "checks": [
+    {
+      "id": "validation_report_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Validation report must be generated",
+      "artifacts": [
+        "artifacts/Testing/hierarchy-validation-report.md",
+        "artifacts/Testing/hierarchy-validation-report.json"
+      ],
+      "remediation": "Run hierarchy-validation to generate structural integrity report"
+    },
+    {
+      "id": "no_critical_violations",
+      "type": "json_query",
+      "severity": "hard", 
+      "description": "Must have no critical violations",
+      "file": "artifacts/Testing/hierarchy-validation-report.json",
+      "json_path": "$.summary.critical_violations",
+      "max_value": 0,
+      "remediation": "Fix critical hierarchy violations before proceeding"
+    },
+    {
+      "id": "cross_reference_integrity",
+      "type": "json_query",
+      "severity": "hard",
+      "description": "Cross-reference links must be valid",
+      "file": "artifacts/Testing/hierarchy-validation-report.json", 
+      "json_path": "$.checks.cross_reference_integrity.passed",
+      "expected_value": true,
+      "remediation": "Fix broken cross-reference navigation links"
+    },
+    {
+      "id": "warning_count_acceptable",
+      "type": "json_query",
+      "severity": "soft",
+      "description": "Should have minimal warnings",
+      "file": "artifacts/Testing/hierarchy-validation-report.json",
+      "json_path": "$.summary.warnings", 
+      "max_value": 5,
+      "remediation": "Review and address hierarchy warnings for optimal structure"
+    }
+  ],
+  "quality_score_weight": 0.15,
+  "bypass_allowed": false,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "hard"
+  }
+}

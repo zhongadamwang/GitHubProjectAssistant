@@ -1,0 +1,58 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S11",
+  "skill_name": "documentation-automation",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates process documentation has been auto-generated",
+  "checks": [
+    {
+      "id": "documentation_files_generated", 
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Core documentation files must exist",
+      "artifacts": [
+        "orgModel/*/main.md",
+        "orgModel/*/process.md", 
+        "orgModel/*/collaboration.md",
+        "orgModel/*/domain-model.md"
+      ],
+      "remediation": "Run documentation-automation to generate level-appropriate docs"
+    },
+    {
+      "id": "no_stub_content",
+      "type": "content_pattern",
+      "severity": "hard", 
+      "description": "Generated files must not contain stubs",
+      "file": "orgModel/*/main.md",
+      "must_not_contain": ["[TO BE GENERATED - invoke documentation-automation]"],
+      "remediation": "Complete documentation generation process"
+    },
+    {
+      "id": "mermaid_diagrams_valid",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Process and domain diagrams must be valid",
+      "file": "orgModel/*/process.md",
+      "must_contain": ["```mermaid", "flowchart", "graph"],
+      "remediation": "Ensure process diagrams are properly generated"
+    },
+    {
+      "id": "navigation_links_present",
+      "type": "content_pattern", 
+      "severity": "soft",
+      "description": "Should have navigation breadcrumbs",
+      "file": "orgModel/*/main.md",
+      "must_contain_pattern": "\\[.*\\]\\(\\.\\.\/.*\\.md\\)",
+      "remediation": "Add navigation links to parent and child processes"
+    }
+  ],
+  "quality_score_weight": 0.10,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft",
+    "compliance": "hard"
+  }
+}

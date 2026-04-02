@@ -1,0 +1,74 @@
+{
+  "project_id": "DEMO-FILE-OUTPUT-001",
+  "generated_at": "2026-02-08T13:20:40.542720",
+  "version": "1.0",
+  "total_requirements": 5,
+  "requirements": [
+    {
+      "id": "R-8550",
+      "source_file": "tmpad1prjkc.md",
+      "location_hint": "section 3, sent 1",
+      "text": "Authentication\n- The system shall authenticate users within 3 seconds using OAuth2\n- Multi-factor authentication must be required for admin accounts  \n- Session timeout shall occur after 30 minutes of inactivity",
+      "tags": [
+        "functional"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "R-7969",
+      "source_file": "tmpad1prjkc.md",
+      "location_hint": "section 4, sent 1",
+      "text": "Performance  \n- Product search results must load within 200ms\n- The platform shall support 10,000 concurrent users\n- Database queries must complete within 100ms for 95th percentile",
+      "tags": [
+        "functional",
+        "nonfunctional"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "R-4409",
+      "source_file": "tmpad1prjkc.md",
+      "location_hint": "section 5, sent 1",
+      "text": "Security Constraints\n- All payment data must comply with PCI DSS Level 1\n- Customer data shall be encrypted using AES-256 encryption\n- Budget for security infrastructure cannot exceed $50,000",
+      "tags": [
+        "functional",
+        "nonfunctional",
+        "constraint"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "id": "R-2285",
+      "source_file": "tmpad1prjkc.md",
+      "location_hint": "section 6, sent 3",
+      "text": "Assumptions\n- Users have modern browsers supporting ES6+ JavaScript\n- Third-party payment gateway availability is 99 9%\n- Development team is experienced with React and Node js",
+      "tags": [
+        "functional",
+        "nonfunctional"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "R-7792",
+      "source_file": "tmpad1prjkc.md",
+      "location_hint": "section 7, sent 1",
+      "text": "Out of Scope\n- Mobile application development\n- Multi-language support for Phase 1",
+      "tags": [
+        "out-of-scope"
+      ],
+      "confidence": 0.7
+    }
+  ],
+  "glossary_suspects": [
+    "Multi",
+    "The"
+  ],
+  "processing_summary": {
+    "total_files": 1,
+    "successful_files": 1,
+    "failed_files": 0,
+    "total_requirements": 5,
+    "avg_confidence": 0.88,
+    "processing_time_seconds": 0.0
+  }
+}

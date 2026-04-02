@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S9",
+  "skill_name": "process-scopemin",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates minimum viable scope has been identified",
+  "checks": [
+    {
+      "id": "scoped_requirements_exist",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should produce scoped requirements set",
+      "artifacts": [
+        "artifacts/Requirements/scoped-requirements.md"
+      ],
+      "remediation": "Run process-scopemin to identify MVP boundaries"
+    },
+    {
+      "id": "core_vs_optional_classification",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should classify core vs optional features",
+      "file": "artifacts/Requirements/scoped-requirements.md",
+      "must_contain": ["## Core Features", "## Optional Features", "## MVP Boundary"],
+      "remediation": "Complete classification of essential vs. optional requirements"
+    },
+    {
+      "id": "iterative_development_plan",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should provide iterative development guidance",
+      "file": "artifacts/Requirements/scoped-requirements.md",
+      "must_contain": ["## Iteration Plan"],
+      "remediation": "Define iterative development sequence for scoped requirements"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "soft",
+    "compliance": "bypass"
+  }
+}

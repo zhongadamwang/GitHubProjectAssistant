@@ -1,0 +1,67 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S09",
+  "skill_name": "diagram-generatecollaboration",
+  "version": "1.0.0", 
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates collaboration diagrams have been generated with proper EDPS structure",
+  "checks": [
+    {
+      "id": "collaboration_diagram_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Collaboration diagram must exist",
+      "artifacts": [
+        "orgModel/*/collaboration.md"
+      ],
+      "remediation": "Run diagram-generatecollaboration to create sequence diagrams"
+    },
+    {
+      "id": "mermaid_syntax_valid",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Must contain valid Mermaid sequence diagram",
+      "file": "orgModel/*/collaboration.md", 
+      "must_contain": ["```mermaid", "sequenceDiagram"],
+      "must_not_contain": ["[TO BE GENERATED]"],
+      "remediation": "Verify diagram generation completed successfully"
+    },
+    {
+      "id": "participants_declared",
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Must have participant declarations with EDPS stereotypes",
+      "file": "orgModel/*/collaboration.md",
+      "must_contain_pattern": "participant\\s+\\w+@\\{\\s*\"type\":\\s*\"(actor|boundary|control|entity)\"",
+      "min_matches": 2,
+      "remediation": "Ensure domain concepts include sufficient participants for diagram generation"
+    },
+    {
+      "id": "message_flows_exist", 
+      "type": "content_pattern",
+      "severity": "hard",
+      "description": "Must have message flows between participants",
+      "file": "orgModel/*/collaboration.md",
+      "must_contain_pattern": "\\w+\\s*-[->]\\w*>\\s*\\w+:",
+      "min_matches": 3,
+      "remediation": "Review requirements to ensure sufficient interaction detail for message flows"
+    },
+    {
+      "id": "boundary_compliance",
+      "type": "content_pattern", 
+      "severity": "soft",
+      "description": "Should use boundary groupings for EDPS v2",
+      "file": "orgModel/*/collaboration.md",
+      "must_contain": ["box"],
+      "remediation": "Consider using boundary groupings for better process organization"
+    }
+  ],
+  "quality_score_weight": 0.18,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard", 
+    "rapid": "hard",
+    "compliance": "hard"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S27",
+  "skill_name": "integration-testing",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "hard",
+  "description": "Validates end-to-end integration testing has been completed",
+  "checks": [
+    {
+      "id": "test_report_exists",
+      "type": "artifact_existence",
+      "severity": "hard",
+      "description": "Integration test report must exist",
+      "artifacts": [
+        "artifacts/Testing/integration-test-report.md"
+      ],
+      "remediation": "Run integration-testing to validate skill workflows"
+    },
+    {
+      "id": "all_tests_passed",
+      "type": "content_pattern", 
+      "severity": "hard",
+      "description": "All integration tests must pass",
+      "file": "artifacts/Testing/integration-test-report.md",
+      "must_contain": ["✅"],
+      "must_not_contain": ["❌ FAILED", "⚠️ ERROR"],
+      "remediation": "Fix failing integration tests before completing workflow"
+    },
+    {
+      "id": "workflow_coverage_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should test multiple workflow scenarios", 
+      "file": "artifacts/Testing/integration-test-report.md",
+      "must_contain_pattern": "Test-\\d+\\.\\d+:",
+      "min_matches": 3,
+      "remediation": "Expand integration testing to cover more workflow scenarios"
+    }
+  ],
+  "quality_score_weight": 0.12,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "hard",
+    "rapid": "soft", 
+    "compliance": "hard"
+  }
+}

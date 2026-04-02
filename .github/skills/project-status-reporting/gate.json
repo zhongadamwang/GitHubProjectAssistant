@@ -1,0 +1,37 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S23",
+  "skill_name": "project-status-reporting",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates comprehensive project status reports are generated",
+  "checks": [
+    {
+      "id": "status_report_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should generate project status report",
+      "artifacts": [
+        "artifacts/Reporting/project-status-report.md"
+      ],
+      "remediation": "Run project-status-reporting to generate current status"
+    },
+    {
+      "id": "dashboard_data",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include dashboard and metrics",
+      "file": "artifacts/Reporting/project-status-report.md",
+      "must_contain": ["## Executive Dashboard", "## Metrics Summary"],
+      "remediation": "Include comprehensive metrics and dashboard data"
+    }
+  ],
+  "quality_score_weight": 0.04,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}

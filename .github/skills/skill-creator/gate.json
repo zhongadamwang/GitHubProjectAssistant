@@ -1,0 +1,46 @@
+{
+  "$schema": "https://edps.dev/schemas/gate/v1.0.0",
+  "skill_id": "S25",
+  "skill_name": "skill-creator",
+  "version": "1.0.0",
+  "gate_type": "completion",
+  "severity": "soft",
+  "description": "Validates new skill has been properly created following guidelines",
+  "checks": [
+    {
+      "id": "skill_file_exists",
+      "type": "artifact_existence",
+      "severity": "soft",
+      "description": "Should create SKILL.md file",
+      "artifacts": [
+        "SKILL.md"
+      ],
+      "remediation": "Run skill-creator to generate new skill implementation"
+    },
+    {
+      "id": "skill_structure_complete",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should follow skill template structure",
+      "file": "SKILL.md",
+      "must_contain": ["# Skill:", "## Purpose", "## Implementation", "## Integration Points"],
+      "remediation": "Ensure skill follows standard template structure"
+    },
+    {
+      "id": "example_usage_provided",
+      "type": "content_pattern",
+      "severity": "soft",
+      "description": "Should include usage examples",
+      "file": "SKILL.md",
+      "must_contain": ["## Example Usage"],
+      "remediation": "Add concrete usage examples and scenarios"
+    }
+  ],
+  "quality_score_weight": 0.05,
+  "bypass_allowed": true,
+  "workflow_archetypes": {
+    "standard": "soft",
+    "rapid": "bypass",
+    "compliance": "soft"
+  }
+}
