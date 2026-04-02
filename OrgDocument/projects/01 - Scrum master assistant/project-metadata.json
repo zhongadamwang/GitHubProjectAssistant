@@ -1,0 +1,21 @@
+{
+  "project_id": "PRJ-01",
+  "project_name": "Scrum master assistant",
+  "project_number": "01",
+  "archetype": "standard",
+  "created": "2026-04-02",
+  "last_updated": "2026-04-02",
+  "status": "Initialized",
+  "version": "1.0.0",
+  "evolution_history": [
+    {
+      "version": "1.0.0",
+      "date": "2026-04-02",
+      "change": "Initial project structure created",
+      "archetype": "standard",
+      "changed_by": "project-document-management"
+    }
+  ],
+  "linked_orgmodel": "OrgDocument/orgModel/01 - Scrum Master Support Process",
+  "skills_used": []
+}
