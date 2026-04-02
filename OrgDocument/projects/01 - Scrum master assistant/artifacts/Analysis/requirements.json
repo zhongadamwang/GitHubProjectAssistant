@@ -1,0 +1,113 @@
+{
+  "project_id": "PRJ-01",
+  "generated_at": "2026-04-02T14:30:00Z",
+  "total_requirements": 12,
+  "requirements": [
+    {
+      "id": "R-001",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Data Integration Model section",
+      "text": "System will periodically pull project and issue data from GitHub account through API",
+      "tags": ["functional", "integration"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-002", 
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Data Synchronization subsection",
+      "text": "System will obtain GitHub data in read-only mode and periodically update local database",
+      "tags": ["functional", "data"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-003",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md", 
+      "location_hint": "Data Synchronization subsection",
+      "text": "Each data snapshot from synchronization will be preserved as historical version for tracking and auditing",
+      "tags": ["functional", "audit"],
+      "confidence": 0.90
+    },
+    {
+      "id": "R-004",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Data Extension subsection",
+      "text": "System will supplement each GitHub Issue with estimated time, remaining time, and actual time attributes",
+      "tags": ["functional", "extension"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-005",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Project Burndown Chart subsection",
+      "text": "System will render ideal burndown curve based on sum of estimated time for all tasks",
+      "tags": ["functional", "visualization"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-006",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Project Burndown Chart subsection", 
+      "text": "System will render actual burndown curve as team members update remaining time daily",
+      "tags": ["functional", "real-time"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-007",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Project Burndown Chart function",
+      "text": "Burndown chart serves as core dashboard for iteration health to determine project status",
+      "tags": ["functional", "dashboard"],
+      "confidence": 0.90
+    },
+    {
+      "id": "R-008",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Member Efficiency Analysis Chart",
+      "text": "System will quantify estimation accuracy by comparing estimated time vs actual time per member",
+      "tags": ["functional", "analytics"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-009",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Deployment requirements",
+      "text": "System must be easily deployable to shared hosting environments",
+      "tags": ["nonfunctional", "deployment"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-010",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Deployment requirements",
+      "text": "System must support automated releases through GitHub Actions",
+      "tags": ["nonfunctional", "automation"],
+      "confidence": 0.95
+    },
+    {
+      "id": "R-011",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Database requirements",
+      "text": "System should use text databases or embedded databases to avoid complex management",
+      "tags": ["nonfunctional", "architecture"],
+      "confidence": 0.85
+    },
+    {
+      "id": "R-012",
+      "source_file": "04-02_GitHub-Integrated-Scrum-Dashboard-Requirements.md",
+      "location_hint": "Code Quality requirements",
+      "text": "Final code must have high readability, maintainability, and comprehensive documentation",
+      "tags": ["nonfunctional", "quality"],
+      "confidence": 0.95
+    }
+  ],
+  "glossary_suspects": [
+    "GitHub API",
+    "Burndown Chart", 
+    "Sprint",
+    "Iteration",
+    "CI/CD",
+    "GitHub Actions",
+    "Shared Hosting",
+    "Embedded Database"
+  ]
+}

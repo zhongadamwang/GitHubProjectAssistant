@@ -1,0 +1,537 @@
+{
+  "project_id": "PRJ-01",
+  "extraction_metadata": {
+    "generated_at": "2026-04-02T14:40:00Z",
+    "source_files": ["requirements.json", "goals.json"],
+    "total_concepts": 15,
+    "total_entities": 8,
+    "confidence_score": 0.93
+  },
+  "domain_entities": [
+    {
+      "id": "ENT-001",
+      "name": "GitHubProject",
+      "description": "GitHub project containing issues and metadata synchronized to local system",
+      "attributes": [
+        {
+          "name": "project_id",
+          "type": "identifier",
+          "description": "GitHub project unique identifier",
+          "visibility": "public"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Human-readable project name",
+          "visibility": "public"
+        },
+        {
+          "name": "sync_timestamp",
+          "type": "datetime",
+          "description": "Last synchronization time with GitHub",
+          "visibility": "internal"
+        },
+        {
+          "name": "iteration",
+          "type": "string", 
+          "description": "Current sprint/iteration identifier",
+          "visibility": "public"
+        }
+      ],
+      "operations": [
+        {
+          "name": "syncWithGitHub",
+          "description": "Pull latest project and issue data from GitHub API",
+          "parameters": ["api_token"],
+          "return_type": "sync_result",
+          "visibility": "internal"
+        },
+        {
+          "name": "generateBurndown",
+          "description": "Calculate burndown chart data from issue time estimates",
+          "parameters": ["sprint_start_date", "sprint_end_date"],
+          "return_type": "burndown_data",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "Project Management",
+      "source_refs": ["R-001:Data Integration", "R-007:Sprint Health Dashboard"],
+      "confidence": 0.95
+    },
+    {
+      "id": "ENT-002",
+      "name": "EnhancedIssue",
+      "description": "GitHub issue enhanced with local time tracking attributes",
+      "attributes": [
+        {
+          "name": "github_issue_id",
+          "type": "identifier",
+          "description": "Original GitHub issue ID",
+          "visibility": "public"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Issue title from GitHub",
+          "visibility": "public"
+        },
+        {
+          "name": "estimated_time",
+          "type": "number",
+          "description": "Initial time estimate in hours",
+          "visibility": "public"
+        },
+        {
+          "name": "remaining_time",
+          "type": "number",
+          "description": "Current remaining work time in hours",
+          "visibility": "public"
+        },
+        {
+          "name": "actual_time",
+          "type": "number",
+          "description": "Total time actually spent on issue",
+          "visibility": "public"
+        },
+        {
+          "name": "assignee",
+          "type": "string",
+          "description": "GitHub username of assigned team member",
+          "visibility": "public"
+        }
+      ],
+      "operations": [
+        {
+          "name": "updateTimeTracking",
+          "description": "Update estimated, remaining, or actual time values",
+          "parameters": ["time_type", "new_value", "user_id"],
+          "return_type": "void",
+          "visibility": "public"
+        },
+        {
+          "name": "calculateProgress", 
+          "description": "Calculate completion percentage based on time estimates",
+          "parameters": [],
+          "return_type": "percentage",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "Issue Management",
+      "source_refs": ["R-004:Custom Attributes"],
+      "confidence": 0.95
+    },
+    {
+      "id": "ENT-003",
+      "name": "BurndownChart",
+      "description": "Visual representation of sprint progress comparing ideal vs actual work remaining",
+      "attributes": [
+        {
+          "name": "sprint_id",
+          "type": "identifier",
+          "description": "Associated sprint identifier",
+          "visibility": "public"
+        },
+        {
+          "name": "ideal_curve",
+          "type": "array",
+          "description": "Calculated ideal progress points",
+          "visibility": "public"
+        },
+        {
+          "name": "actual_curve",
+          "type": "array", 
+          "description": "Real progress based on remaining time updates",
+          "visibility": "public"
+        },
+        {
+          "name": "generated_at",
+          "type": "datetime",
+          "description": "Chart generation timestamp",
+          "visibility": "internal"
+        }
+      ],
+      "operations": [
+        {
+          "name": "generateIdealCurve",
+          "description": "Calculate ideal burndown based on total estimated time",
+          "parameters": ["total_estimate", "sprint_duration"],
+          "return_type": "curve_points",
+          "visibility": "internal"
+        },
+        {
+          "name": "updateActualCurve",
+          "description": "Update actual progress based on current remaining times",
+          "parameters": ["current_remaining_times"],
+          "return_type": "curve_points",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "Analytics",
+      "source_refs": ["R-005:Burndown Visualization", "R-006:Real-time Progress"],
+      "confidence": 0.95
+    },
+    {
+      "id": "ENT-004",
+      "name": "TeamMember",
+      "description": "Individual contributor with time estimation and tracking capabilities",
+      "attributes": [
+        {
+          "name": "github_username",
+          "type": "string",
+          "description": "GitHub account username",
+          "visibility": "public"
+        },
+        {
+          "name": "display_name",
+          "type": "string",
+          "description": "Human-readable team member name",
+          "visibility": "public"
+        },
+        {
+          "name": "estimation_accuracy_score",
+          "type": "number",
+          "description": "Historical accuracy of time estimates (0-100)",
+          "visibility": "internal"
+        }
+      ],
+      "operations": [
+        {
+          "name": "calculateEstimationAccuracy",
+          "description": "Analyze historical estimate vs actual time patterns",
+          "parameters": ["time_period"],
+          "return_type": "accuracy_metrics",
+          "visibility": "internal"
+        },
+        {
+          "name": "getEfficiencyReport",
+          "description": "Generate member efficiency analysis report",
+          "parameters": ["sprint_id"],
+          "return_type": "efficiency_report",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "Team Analytics",
+      "source_refs": ["R-008:Efficiency Analysis"],
+      "confidence": 0.90
+    },
+    {
+      "id": "ENT-005",
+      "name": "SyncHistory",
+      "description": "Historical record of GitHub synchronization operations",
+      "attributes": [
+        {
+          "name": "sync_id",
+          "type": "identifier",
+          "description": "Unique synchronization operation ID",
+          "visibility": "internal"
+        },
+        {
+          "name": "timestamp",
+          "type": "datetime",
+          "description": "When synchronization occurred",
+          "visibility": "public"
+        },
+        {
+          "name": "data_snapshot",
+          "type": "json",
+          "description": "Complete data state at sync time",
+          "visibility": "internal"
+        },
+        {
+          "name": "changes_detected",
+          "type": "array",
+          "description": "List of changes since last sync",
+          "visibility": "public"
+        }
+      ],
+      "operations": [
+        {
+          "name": "createSnapshot",
+          "description": "Preserve current data state for auditing",
+          "parameters": ["project_data", "issue_data"],
+          "return_type": "snapshot_id",
+          "visibility": "internal"
+        },
+        {
+          "name": "compareSnapshots",
+          "description": "Analyze changes between two sync points",
+          "parameters": ["snapshot_1_id", "snapshot_2_id"],
+          "return_type": "change_report", 
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "Data Management",
+      "source_refs": ["R-003:Historical Data"],
+      "confidence": 0.88
+    },
+    {
+      "id": "ENT-006",
+      "name": "Dashboard",
+      "description": "User interface displaying burndown charts and team analytics",
+      "attributes": [
+        {
+          "name": "refresh_rate",
+          "type": "number",
+          "description": "How frequently dashboard updates in seconds",
+          "visibility": "public"
+        },
+        {
+          "name": "active_sprint",
+          "type": "string",
+          "description": "Currently displayed sprint identifier", 
+          "visibility": "public"
+        }
+      ],
+      "operations": [
+        {
+          "name": "refreshCharts",
+          "description": "Update all dashboard visualizations with latest data",
+          "parameters": [],
+          "return_type": "void",
+          "visibility": "public"
+        },
+        {
+          "name": "exportReport",
+          "description": "Generate downloadable sprint report",
+          "parameters": ["format", "sprint_id"],
+          "return_type": "report_file",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "User Interface",
+      "source_refs": ["R-007:Sprint Health Dashboard"],
+      "confidence": 0.90
+    },
+    {
+      "id": "ENT-007",
+      "name": "GitHubAPIClient",
+      "description": "Service responsible for GitHub API communication and rate limiting",
+      "attributes": [
+        {
+          "name": "api_token",
+          "type": "string",
+          "description": "GitHub personal access token",
+          "visibility": "private"
+        },
+        {
+          "name": "rate_limit_remaining",
+          "type": "number",
+          "description": "Current API calls remaining in rate limit window",
+          "visibility": "internal"
+        },
+        {
+          "name": "last_request_time",
+          "type": "datetime",
+          "description": "Timestamp of most recent API call",
+          "visibility": "internal"
+        }
+      ],
+      "operations": [
+        {
+          "name": "fetchProjects",
+          "description": "Retrieve all accessible GitHub projects",
+          "parameters": ["organization"],
+          "return_type": "project_list",
+          "visibility": "internal"
+        },
+        {
+          "name": "fetchIssues",
+          "description": "Get issues for specific project with pagination",
+          "parameters": ["project_id", "page_size"],
+          "return_type": "issue_list",
+          "visibility": "internal"
+        },
+        {
+          "name": "checkRateLimit",
+          "description": "Verify API rate limit status before requests",
+          "parameters": [],
+          "return_type": "rate_limit_status",
+          "visibility": "internal"
+        }
+      ],
+      "domain_area": "Integration",
+      "source_refs": ["R-001:Data Integration", "R-002:Data Sync"],
+      "confidence": 0.95
+    },
+    {
+      "id": "ENT-008",
+      "name": "DeploymentConfig",
+      "description": "Configuration and scripts for shared hosting deployment",
+      "attributes": [
+        {
+          "name": "hosting_environment", 
+          "type": "string",
+          "description": "Target shared hosting platform configuration",
+          "visibility": "public"
+        },
+        {
+          "name": "database_path",
+          "type": "string",
+          "description": "File path for lightweight database storage",
+          "visibility": "public"
+        },
+        {
+          "name": "github_actions_workflow",
+          "type": "yaml",
+          "description": "CI/CD pipeline configuration",
+          "visibility": "public"
+        }
+      ],
+      "operations": [
+        {
+          "name": "validateEnvironment",
+          "description": "Check shared hosting compatibility",
+          "parameters": ["host_specs"],
+          "return_type": "compatibility_report",
+          "visibility": "public"
+        },
+        {
+          "name": "deployToProduction",
+          "description": "Execute automated deployment process",
+          "parameters": ["deployment_target"],
+          "return_type": "deployment_status",
+          "visibility": "public"
+        }
+      ],
+      "domain_area": "DevOps",
+      "source_refs": ["R-009:Shared Hosting Deploy", "R-010:CI/CD Integration"],
+      "confidence": 0.85
+    }
+  ],
+  "business_concepts": [
+    {
+      "id": "CON-001",
+      "name": "Sprint Health",
+      "definition": "Overall assessment of sprint progress based on burndown analysis and team metrics",
+      "synonyms": ["iteration health", "sprint status", "project health"],
+      "domain_area": "Agile Management",
+      "source_refs": ["R-007:Sprint Health Dashboard"],
+      "confidence": 0.92
+    },
+    {
+      "id": "CON-002",
+      "name": "Estimation Accuracy",
+      "definition": "Measure of how closely actual time matches initial estimates",
+      "synonyms": ["prediction accuracy", "planning precision"],
+      "domain_area": "Analytics",
+      "source_refs": ["R-008:Efficiency Analysis"],
+      "confidence": 0.90
+    },
+    {
+      "id": "CON-003",
+      "name": "Data Synchronization",
+      "definition": "Process of maintaining consistency between GitHub and local data stores",
+      "synonyms": ["data sync", "API synchronization"],
+      "domain_area": "Integration",
+      "source_refs": ["R-002:Data Sync"],
+      "confidence": 0.95
+    },
+    {
+      "id": "CON-004",
+      "name": "Burndown Analysis",
+      "definition": "Visual and analytical comparison of planned vs actual work progress over time",
+      "synonyms": ["progress tracking", "sprint analysis"],
+      "domain_area": "Analytics",
+      "source_refs": ["R-005:Burndown Visualization", "R-006:Real-time Progress"],
+      "confidence": 0.95
+    },
+    {
+      "id": "CON-005",
+      "name": "Decision Support",
+      "definition": "System capability to provide data-driven insights for project management decisions",
+      "synonyms": ["analytics support", "insight generation"],
+      "domain_area": "Business Intelligence",
+      "source_refs": ["goals.json:goal_statement"],
+      "confidence": 0.88
+    }
+  ],
+  "terminology": [
+    {
+      "term": "GitHub API",
+      "definition": "Application Programming Interface for accessing GitHub project and issue data",
+      "context": "Primary integration point for data synchronization",
+      "domain_area": "Technical Integration",
+      "source_refs": ["R-001:Data Integration"]
+    },
+    {
+      "term": "Burndown Chart",
+      "definition": "Visual representation showing work remaining over time in a sprint",
+      "context": "Core dashboard visualization for sprint health monitoring",
+      "domain_area": "Agile Visualization",
+      "source_refs": ["R-005:Burndown Visualization"]
+    },
+    {
+      "term": "Shared Hosting",
+      "definition": "Web hosting environment where resources are shared among multiple websites",
+      "context": "Target deployment platform with resource constraints",
+      "domain_area": "Infrastructure", 
+      "source_refs": ["R-009:Shared Hosting Deploy"]
+    },
+    {
+      "term": "CI/CD",
+      "definition": "Continuous Integration and Continuous Deployment automation",
+      "context": "GitHub Actions-based automated deployment pipeline",
+      "domain_area": "DevOps",
+      "source_refs": ["R-010:CI/CD Integration"]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "REL-001",
+      "type": "aggregation",
+      "source_entity": "GitHubProject",
+      "target_entity": "EnhancedIssue",
+      "cardinality": "1:many",
+      "description": "Project contains multiple enhanced issues",
+      "source_refs": ["R-001:Data Integration", "R-004:Custom Attributes"]
+    },
+    {
+      "id": "REL-002", 
+      "type": "association",
+      "source_entity": "EnhancedIssue",
+      "target_entity": "TeamMember",
+      "cardinality": "1:1",
+      "description": "Issue is assigned to team member",
+      "source_refs": ["R-008:Efficiency Analysis"]
+    },
+    {
+      "id": "REL-003",
+      "type": "composition",
+      "source_entity": "GitHubProject",
+      "target_entity": "BurndownChart",
+      "cardinality": "1:many",
+      "description": "Project generates burndown charts for each sprint",
+      "source_refs": ["R-005:Burndown Visualization"]
+    },
+    {
+      "id": "REL-004",
+      "type": "dependency",
+      "source_entity": "Dashboard",
+      "target_entity": "BurndownChart",
+      "cardinality": "1:many",
+      "description": "Dashboard displays burndown chart visualizations",
+      "source_refs": ["R-007:Sprint Health Dashboard"]
+    },
+    {
+      "id": "REL-005",
+      "type": "usage",
+      "source_entity": "GitHubAPIClient",
+      "target_entity": "SyncHistory",
+      "cardinality": "1:many",
+      "description": "API client creates sync history records",
+      "source_refs": ["R-002:Data Sync", "R-003:Historical Data"]
+    }
+  ],
+  "domain_areas": {
+    "Project Management": ["GitHubProject"],
+    "Issue Management": ["EnhancedIssue"], 
+    "Analytics": ["BurndownChart", "Estimation Accuracy", "Burndown Analysis"],
+    "Team Analytics": ["TeamMember"],
+    "Data Management": ["SyncHistory"],
+    "User Interface": ["Dashboard"],
+    "Integration": ["GitHubAPIClient", "Data Synchronization"],
+    "DevOps": ["DeploymentConfig"],
+    "Agile Management": ["Sprint Health"],
+    "Business Intelligence": ["Decision Support"]
+  }
+}

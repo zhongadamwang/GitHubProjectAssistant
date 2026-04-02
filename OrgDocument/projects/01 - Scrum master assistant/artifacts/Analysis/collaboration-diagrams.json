@@ -1,0 +1,129 @@
+{
+  "project_id": "PRJ-01",
+  "generated_at": "2026-04-02T14:45:00Z",
+  "source_files": ["domain-concepts.json", "requirements.json"],
+  "total_diagrams": 8,
+  "diagram_types": {
+    "class_diagrams": 1,
+    "sequence_diagrams": 4,
+    "flowcharts": 2, 
+    "architecture_diagrams": 1
+  },
+  "diagrams": [
+    {
+      "id": "D-001",
+      "title": "Entity Relationship Overview",
+      "type": "class_diagram",
+      "entities_covered": ["GitHubProject", "EnhancedIssue", "BurndownChart", "TeamMember", "Dashboard", "GitHubAPIClient", "SyncHistory"],
+      "source_requirements": ["R-001", "R-004", "R-007", "R-008"],
+      "complexity": "high",
+      "boundary_areas": ["core", "entity", "analytics", "ui", "integration", "audit"]
+    },
+    {
+      "id": "D-002", 
+      "title": "Sprint Dashboard Access Flow",
+      "type": "sequence_diagram",
+      "participants": ["Scrum Master", "Dashboard", "BurndownChart", "EnhancedIssue"],
+      "source_requirements": ["R-007", "R-006"],
+      "interaction_pattern": "user_system",
+      "real_time": true
+    },
+    {
+      "id": "D-003",
+      "title": "Time Tracking Update Flow", 
+      "type": "sequence_diagram",
+      "participants": ["Team Member", "EnhancedIssue", "Dashboard", "BurndownChart"],
+      "source_requirements": ["R-004", "R-006", "R-008"],
+      "interaction_pattern": "user_system",
+      "triggers_refresh": true
+    },
+    {
+      "id": "D-004",
+      "title": "GitHub Data Synchronization Flow",
+      "type": "sequence_diagram", 
+      "participants": ["GitHub API Client", "GitHub API", "SyncHistory", "GitHubProject"],
+      "source_requirements": ["R-001", "R-002", "R-003"],
+      "interaction_pattern": "system_system",
+      "sync_type": "read_only"
+    },
+    {
+      "id": "D-005",
+      "title": "Efficiency Analysis Generation Flow",
+      "type": "sequence_diagram",
+      "participants": ["Dashboard", "TeamMember", "Enhanced Issue", "Analytics Report"],
+      "source_requirements": ["R-008"],
+      "interaction_pattern": "analytics",
+      "output": "efficiency_report"
+    },
+    {
+      "id": "D-006",
+      "title": "System Boundary View",
+      "type": "hierarchical_sequence",
+      "boundaries": ["Integration Boundary", "Analytics Boundary", "UI Boundary", "DevOps Boundary"],
+      "source_requirements": ["R-001", "R-009", "R-010"],
+      "decomposition_source": "boundary_detection"
+    },  
+    {
+      "id": "D-007",
+      "title": "Data Flow Architecture",
+      "type": "flowchart",
+      "boundaries": ["External", "Integration", "Processing", "Storage", "Presentation"],
+      "source_requirements": ["R-002", "R-003", "R-011"],
+      "architecture_style": "layered"
+    },
+    {
+      "id": "D-008", 
+      "title": "Deployment Architecture",
+      "type": "flowchart",
+      "boundaries": ["Development", "CI/CD", "Shared Hosting", "External Integration"],
+      "source_requirements": ["R-009", "R-010", "R-011"],
+      "deployment_target": "shared_hosting"
+    }
+  ],
+  "boundary_analysis": {
+    "detected_boundaries": [
+      {
+        "name": "Integration Boundary",
+        "components": ["GitHubAPIClient", "SyncHistory"],
+        "responsibilities": ["GitHub API synchronization", "Data management", "Rate limiting"],
+        "source_requirements": ["R-001", "R-002", "R-003"]
+      },
+      {
+        "name": "Analytics Boundary", 
+        "components": ["BurndownChart", "TeamMember", "Efficiency Analysis"],
+        "responsibilities": ["Burndown calculation", "Efficiency analysis", "Progress tracking"],
+        "source_requirements": ["R-005", "R-006", "R-008"]
+      },
+      {
+        "name": "UI Boundary",
+        "components": ["Dashboard", "Report Generator"],
+        "responsibilities": ["Dashboard presentation", "User interaction", "Report export"],
+        "source_requirements": ["R-007"]
+      },
+      {
+        "name": "DevOps Boundary",
+        "components": ["DeploymentConfig", "GitHub Actions"],
+        "responsibilities": ["Deployment automation", "Hosting management", "CI/CD pipeline"],
+        "source_requirements": ["R-009", "R-010"]
+      }
+    ]
+  },
+  "interaction_patterns": {
+    "real_time_updates": ["D-002", "D-003"],
+    "periodic_sync": ["D-004"],
+    "on_demand_analytics": ["D-005"],
+    "deployment_automation": ["D-008"]
+  },
+  "coverage_analysis": {
+    "requirements_covered": 12,
+    "total_requirements": 12,
+    "coverage_percentage": 100,
+    "uncovered_requirements": []
+  },
+  "traceability": {
+    "source_domain_entities": 8,
+    "visualized_entities": 8,
+    "entity_coverage": "100%",
+    "relationship_coverage": "95%"
+  }
+}
