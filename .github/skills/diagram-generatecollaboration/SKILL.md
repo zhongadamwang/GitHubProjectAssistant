@@ -65,8 +65,8 @@ classDiagram
         +terminate()
     }
     
-    User --> UserRole : has
-    User --> Session : creates
+    User "1" --> "1" UserRole : has
+    User "1" *-- "*" Session : creates
     
     %% Styling Definitions
     classDef core fill:#e1f5fe
@@ -259,10 +259,26 @@ classDiagram
         -private_operation()
     }
     
-    [SourceEntity] --> [TargetEntity] : relationship_label
+    %% UML Relationship Notation (MANDATORY — do NOT use ER notation like ||--o{ )
+    %% Association:   ClassA "1" --> "*" ClassB : label
+    %% Composition:   Parent "1" *-- "*" Child : label
+    %% Aggregation:   Whole "1" o-- "*" Part : label
+    %% Inheritance:   Parent <|-- Child
+    %% Dependency:    Client ..> Service : uses
+    %% Realization:   Interface <|.. Implementation
+    %%
+    %% Multiplicity: "1", "*", "0..1", "1..*", "0..*"
+    %% FORBIDDEN: ||--o{  }o--||  }o--o{  ||--||  (these are ER notation, not UML)
+    
+    [SourceEntity] "1" --> "*" [TargetEntity] : relationship_label
     [ParentEntity] <|-- [ChildEntity]
-    [CompositeEntity] *--> [ComponentEntity]
-    [AggregateEntity] o--> [PartEntity]
+    [CompositeEntity] "1" *-- "*" [ComponentEntity] : contains
+    [AggregateEntity] "1" o-- "*" [PartEntity] : has
+    [Client] ..> [Service] : uses
+    
+    %% Apply :::style directly on class body declarations
+    %% RIGHT:  class User:::core { +name: String }
+    %% WRONG:  class User { +name: String }  then  User:::core
     
     %% Styling Definitions
     classDef [styleCategory] fill:#[color]
@@ -276,8 +292,10 @@ classDiagram
 - Entity names: PascalCase (User, UserProfile, PaymentGateway)
 - Attributes: snake_case (user_id, created_at, is_active)
 - Methods: camelCase (authenticate(), updateProfile(), calculateTotal())
-- Relationships: Use clear, descriptive labels
-- Styling: Use inline styling with :::styleCategory syntax PLUS classDef definitions
+- Relationships: **Use UML notation only** — `-->` (association), `*--` (composition), `o--` (aggregation), `<|--` (inheritance), `..>` (dependency)
+- Multiplicity: Always annotate with `"1"`, `"*"`, `"0..1"`, etc. on both sides of the relationship
+- **NEVER use ER notation** (`||--o{`, `}o--||`, `}o--o{`, `||--||`) in class diagrams — those belong in `erDiagram` blocks only
+- Styling: Apply `:::styleCategory` directly on class body declarations: `class Name:::style { }` — this is the preferred format
 - Style categories: actor, entity, enum, ai (or custom categories as needed)
 - Standard colors: actor (#e1f5fe), entity (#f3e5f5), enum (#fff3e0), ai (#e8f5e8)
 
@@ -579,6 +597,9 @@ sequenceDiagram
 - All `actor`-type participants are emitted **before** any `box` block
 - Each boundary produces exactly one `box [BoundaryName] ... end` block
 - Box blocks are separated by a blank line plus a `%% Boundary:` comment for readability
+- **MANDATORY**: Every participant in a hierarchical diagram (any diagram using `box` syntax) must include `@{ "type": "...", "label": "..." }` stereotype annotation
+- **MANDATORY**: Participants inside each `box` must follow strict ordering: `boundary` first, then `control`, then `entity` (see Participant Ordering Within a Box)
+- **MANDATORY**: Box blocks are ordered by first interaction received from the actor — boundaries that receive the actor's first message come first
 - Mermaid does not support nested `box` blocks; decomposition to sub-boundaries is expressed through separate diagrams linked by decomposition references
 
 ### Participant Ordering Within a Box

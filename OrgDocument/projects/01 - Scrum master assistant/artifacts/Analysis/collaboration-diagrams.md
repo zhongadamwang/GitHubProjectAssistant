@@ -74,12 +74,12 @@ classDiagram
         +compareSnapshots()
     }
     
-    GitHubProject ||--o{ EnhancedIssue : contains
-    EnhancedIssue }o--|| TeamMember : assigned_to
-    GitHubProject ||--o{ BurndownChart : generates
-    Dashboard }o--o{ BurndownChart : displays
-    GitHubAPIClient ||--o{ SyncHistory : creates
-    GitHubAPIClient ||--|| GitHubProject : synchronizes
+    GitHubProject "1" *-- "*" EnhancedIssue : contains
+    EnhancedIssue "*" --> "1" TeamMember : assigned_to
+    GitHubProject "1" *-- "*" BurndownChart : generates
+    Dashboard "*" --> "*" BurndownChart : displays
+    GitHubAPIClient "1" --> "*" SyncHistory : creates
+    GitHubAPIClient "1" --> "1" GitHubProject : synchronizes
     
     %% Styling Definitions
     classDef core fill:#e1f5fe
@@ -212,22 +212,22 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User as Scrum Master
+    participant User@{ "type": "actor", "label": "Scrum Master" }
     
-    box Integration Boundary
-        participant Integration as GitHub Integration
+    box UI Boundary
+        participant UI@{ "type": "boundary", "label": "Dashboard UI" }
     end
     
     box Analytics Boundary  
-        participant Analytics as Burndown Analytics
+        participant Analytics@{ "type": "control", "label": "Burndown Analytics" }
     end
     
-    box UI Boundary
-        participant UI as Dashboard UI
+    box Integration Boundary
+        participant Integration@{ "type": "control", "label": "GitHub Integration" }
     end
     
     box DevOps Boundary
-        participant DevOps as Deployment System
+        participant DevOps@{ "type": "control", "label": "Deployment System" }
     end
     
     User->>UI: Access dashboard
@@ -324,7 +324,7 @@ flowchart LR
     subgraph "Shared Hosting Boundary"
         HOST[Shared Host<br/>Resource Constraints]
         APP[Dashboard App<br/>Web Interface]
-        FS[(File System<br/>Text Database)]
+        FS["(File System<br/>Text Database)"]
     end
     
     subgraph "External Integration"
@@ -337,7 +337,7 @@ flowchart LR
     BUILD -->|Deploy| HOST
     HOST --> APP
     APP --> FS
-    APP <-->|API Calls| GITHUB
+    APP <--> |API Calls| GITHUB
     
     classDef dev fill:#e8f5e8
     classDef cicd fill:#fff3e0
@@ -345,7 +345,7 @@ flowchart LR
     classDef external fill:#ffebee
     
     class DEV,REPO dev
-    class GHA,BUILD cicd  
+    class GHA,BUILD cicd
     class HOST,APP,FS hosting
     class GITHUB external
 ```

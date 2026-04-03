@@ -184,6 +184,8 @@ Apply the following structural rules (aligned with `diagram-generatecollaboratio
 - **New boundary-type participant is first recipient**: introduce a new `boundary`-type entry point inside the sub-process box
 - **Add control and entity participants** that represent the internal logic of the decomposed component
 - **Apply EDPS boundary rules**: VR-1 (single external interface), VR-2 (boundary-first reception), VR-3 (control-only decomposition)
+- **MANDATORY participant ordering inside each `box`**: `boundary` first, then `control`, then `entity`
+- **MANDATORY stereotype annotations**: every participant in a diagram using `box` syntax must include `@{ "type": "...", "label": "..." }`
 
 **Template for the new `collaboration.md`:**
 
@@ -378,12 +380,12 @@ classDiagram
         +retrieve()
     }
 
-    %% Relationships
-    [ParentParticipantShort] --> [EntryPoint] : sends [InitialRequest]
-    [EntryPoint] --> [Logic1] : delegates processing
-    [Logic1] --> [DataStore] : reads/writes data
-    [Logic1] --> [EntryPoint] : returns result
-    [EntryPoint] --> [ParentParticipantShort] : responds
+    %% UML Relationships (NOT ER notation — use -->, *--, o--, <|--, ..>)
+    [ParentParticipantShort] "1" --> "1" [EntryPoint] : sends [InitialRequest]
+    [EntryPoint] "1" --> "1" [Logic1] : delegates processing
+    [Logic1] "1" --> "1" [DataStore] : reads/writes data
+    [Logic1] "1" --> "1" [EntryPoint] : returns result
+    [EntryPoint] "1" --> "1" [ParentParticipantShort] : responds
 ```
 
 ## Key Domain Concepts

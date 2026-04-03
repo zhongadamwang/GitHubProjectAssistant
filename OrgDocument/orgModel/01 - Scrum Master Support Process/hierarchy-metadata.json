@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "root_process": "01 - Scrum Master Support Process",
+  "last_updated": "2026-04-02T16:30:00Z",
+  "total_levels": 1,
+  "total_nodes": 1,
+  "hierarchy_tree": {
+    "name": "01 - Scrum Master Support Process",
+    "level": 0,
+    "path": "orgModel/01 - Scrum Master Support Process/",
+    "status": "Active",
+    "collaboration_md": "collaboration.md",
+    "main_md": "main.md",
+    "process_md": "process.md",
+    "domain_model_md": "domain-model.md",
+    "decomposition_candidates": [
+      {
+        "participant": "GitHub Sync Service",
+        "type": "control",
+        "boundary": "Integration Boundary",
+        "status": "Available"
+      },
+      {
+        "participant": "GraphQL Response Parser",
+        "type": "control",
+        "boundary": "Integration Boundary",
+        "status": "Available"
+      },
+      {
+        "participant": "Burndown Service",
+        "type": "control",
+        "boundary": "Analytics Boundary",
+        "status": "Available"
+      },
+      {
+        "participant": "Efficiency Service",
+        "type": "control",
+        "boundary": "Analytics Boundary",
+        "status": "Available"
+      },
+      {
+        "participant": "Time Tracking Service",
+        "type": "control",
+        "boundary": "Analytics Boundary",
+        "status": "Available"
+      },
+      {
+        "participant": "Auth Service",
+        "type": "control",
+        "boundary": "Processing Boundary",
+        "status": "Available"
+      }
+    ],
+    "children": []
+  },
+  "linked_project": {
+    "project_id": "PRJ-01",
+    "project_name": "Scrum master assistant",
+    "project_path": "OrgDocument/projects/01 - Scrum master assistant/"
+  }
+}
