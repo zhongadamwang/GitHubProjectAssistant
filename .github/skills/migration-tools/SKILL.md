@@ -138,12 +138,13 @@ sequenceDiagram
     %% BOUNDARY SUMMARY
     %% Boundary 1: <BoundaryName> — participants: <Alias1>, <Alias2>
     %% Boundary 2: <BoundaryName> — participants: ...
+    %% Stereotypes: <ActorAlias>=actor | <Alias1>=<type>, <Alias2>=<type>
 
-    box rgb(nnn,nnn,nnn) <BoundaryName>
-        participant <Alias1> @{ "type": "<type>", "label": "<Label1>" }
-        participant <Alias2> @{ "type": "<type>", "label": "<Label2>" }
+    box rgb(nnn,nnn,nnn) "<BoundaryName>"
+        participant <Alias1> as "<Label1>"
+        participant <Alias2> as "<Label2>"
     end
-    participant <ActorAlias> @{ "type": "actor", "label": "<ActorLabel>" }
+    participant <ActorAlias> as "<ActorLabel>"
 
     %% --- messages preserved verbatim from original ---
     <all original message lines, alt/loop/note blocks unchanged>

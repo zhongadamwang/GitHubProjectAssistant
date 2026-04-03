@@ -16,26 +16,27 @@ This document defines the participants, their stereotypes, boundary groupings, a
 
 ```mermaid
 sequenceDiagram
-    participant SM@{ "type": "actor", "label": "Scrum Master" }
+    %% Stereotypes: SM=actor | GHClient=boundary, GHSync=control, SyncHist=entity | BurnSvc=control, EffSvc=control, TimeSvc=control | DashUI=boundary | DB=entity
+    participant SM as "Scrum Master"
 
-    box Integration Boundary
-        participant GHClient@{ "type": "boundary", "label": "GitHub API Client" }
-        participant GHSync@{ "type": "control", "label": "GitHub Sync Service" }
-        participant SyncHist@{ "type": "entity", "label": "Sync History" }
+    box "Integration Boundary"
+        participant GHClient as "GitHub API Client"
+        participant GHSync as "GitHub Sync Service"
+        participant SyncHist as "Sync History"
     end
 
-    box Analytics Boundary
-        participant BurnSvc@{ "type": "control", "label": "Burndown Service" }
-        participant EffSvc@{ "type": "control", "label": "Efficiency Service" }
-        participant TimeSvc@{ "type": "control", "label": "Time Tracking Service" }
+    box "Analytics Boundary"
+        participant BurnSvc as "Burndown Service"
+        participant EffSvc as "Efficiency Service"
+        participant TimeSvc as "Time Tracking Service"
     end
 
-    box Presentation Boundary
-        participant DashUI@{ "type": "boundary", "label": "Dashboard UI" }
+    box "Presentation Boundary"
+        participant DashUI as "Dashboard UI"
     end
 
-    box Data Boundary
-        participant DB@{ "type": "entity", "label": "MySQL Database" }
+    box "Data Boundary"
+        participant DB as "MySQL Database"
     end
 
     SM->>DashUI: Access sprint dashboard
@@ -162,18 +163,19 @@ classDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Cron@{ "type": "actor", "label": "cPanel Cron (15min)" }
+    %% Stereotypes: Cron=actor | GHClient=boundary, GHSync=control, Parser=control | DB=entity, Snap=entity, SyncLog=entity
+    participant Cron as "cPanel Cron (15min)"
 
-    box Integration Boundary
-        participant GHClient@{ "type": "boundary", "label": "GitHub API Client" }
-        participant GHSync@{ "type": "control", "label": "GitHub Sync Service" }
-        participant Parser@{ "type": "control", "label": "GraphQL Response Parser" }
+    box "Integration Boundary"
+        participant GHClient as "GitHub API Client"
+        participant GHSync as "GitHub Sync Service"
+        participant Parser as "GraphQL Response Parser"
     end
 
-    box Data Boundary
-        participant DB@{ "type": "entity", "label": "MySQL Database" }
-        participant Snap@{ "type": "entity", "label": "JSON Snapshots" }
-        participant SyncLog@{ "type": "entity", "label": "Sync History" }
+    box "Data Boundary"
+        participant DB as "MySQL Database"
+        participant Snap as "JSON Snapshots"
+        participant SyncLog as "Sync History"
     end
 
     Cron->>GHClient: Trigger sync (cron/sync.php)
@@ -203,18 +205,19 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SM@{ "type": "actor", "label": "Scrum Master" }
+    %% Stereotypes: SM=actor | DashUI=boundary | BurnSvc=control | DB=entity
+    participant SM as "Scrum Master"
 
-    box Presentation Boundary
-        participant DashUI@{ "type": "boundary", "label": "Dashboard UI (Vue 3)" }
+    box "Presentation Boundary"
+        participant DashUI as "Dashboard UI (Vue 3)"
     end
 
-    box Analytics Boundary
-        participant BurnSvc@{ "type": "control", "label": "Burndown Service" }
+    box "Analytics Boundary"
+        participant BurnSvc as "Burndown Service"
     end
 
-    box Data Boundary
-        participant DB@{ "type": "entity", "label": "MySQL Database" }
+    box "Data Boundary"
+        participant DB as "MySQL Database"
     end
 
     SM->>DashUI: Access sprint dashboard
@@ -238,19 +241,20 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant TM@{ "type": "actor", "label": "Team Member" }
+    %% Stereotypes: TM=actor | DashUI=boundary | TimeSvc=control | Issues=entity, TimeLog=entity
+    participant TM as "Team Member"
 
-    box Presentation Boundary
-        participant DashUI@{ "type": "boundary", "label": "Dashboard UI (Vue 3)" }
+    box "Presentation Boundary"
+        participant DashUI as "Dashboard UI (Vue 3)"
     end
 
-    box Analytics Boundary
-        participant TimeSvc@{ "type": "control", "label": "Time Tracking Service" }
+    box "Analytics Boundary"
+        participant TimeSvc as "Time Tracking Service"
     end
 
-    box Data Boundary
-        participant Issues@{ "type": "entity", "label": "Issues Table" }
-        participant TimeLog@{ "type": "entity", "label": "Time Logs (Audit)" }
+    box "Data Boundary"
+        participant Issues as "Issues Table"
+        participant TimeLog as "Time Logs (Audit)"
     end
 
     TM->>DashUI: Edit time fields (estimated, remaining, actual)
@@ -270,18 +274,19 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SM@{ "type": "actor", "label": "Scrum Master" }
+    %% Stereotypes: SM=actor | DashUI=boundary | EffSvc=control | DB=entity
+    participant SM as "Scrum Master"
 
-    box Presentation Boundary
-        participant DashUI@{ "type": "boundary", "label": "Dashboard UI (Vue 3)" }
+    box "Presentation Boundary"
+        participant DashUI as "Dashboard UI (Vue 3)"
     end
 
-    box Analytics Boundary
-        participant EffSvc@{ "type": "control", "label": "Efficiency Service" }
+    box "Analytics Boundary"
+        participant EffSvc as "Efficiency Service"
     end
 
-    box Data Boundary
-        participant DB@{ "type": "entity", "label": "MySQL Database" }
+    box "Data Boundary"
+        participant DB as "MySQL Database"
     end
 
     SM->>DashUI: Navigate to Members view

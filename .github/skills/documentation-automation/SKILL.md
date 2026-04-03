@@ -67,9 +67,9 @@ Four files written or overwritten in `[process-folder]/`:
 
 Parse the `sequenceDiagram` block:
 
-1. For each `participant [Alias]@{ "type": "...", "label": "..." }` declaration, record:
+1. For each `participant [Alias] as "[Label]"` declaration and the `%% Stereotypes:` comment, record:
    - `alias`, `type` (actor | boundary | control | entity), `label`
-   - `box_name`: the `box [Name]` block the participant belongs to (empty string if outside all boxes)
+   - `box_name`: the `box "[Name]"` block the participant belongs to (empty string if outside all boxes)
 2. Build a message list: each `->>`, `-->>`, `-x` arrow becomes `{ from, to, label, async: bool }`.
 3. For each participant, calculate `involvement_count` = number of messages where it is sender or receiver.
 
@@ -308,6 +308,6 @@ After generating all files, confirm:
 - [ ] All four files exist in the target folder
 - [ ] `main.md` breadcrumb depth matches actual folder nesting
 - [ ] `process.md` flowchart entry/terminal nodes match collaboration.md first/last messages
-- [ ] `collaboration.md` every participant has a `@{ "type": "..." }` annotation
+- [ ] `collaboration.md` every participant has a stereotype listed in the `%% Stereotypes:` comment
 - [ ] `domain-model.md` class count equals participant count in collaboration.md
 - [ ] VR-1 and VR-2 status in `main.md` correctly reflects collaboration.md structure

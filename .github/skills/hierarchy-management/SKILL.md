@@ -34,7 +34,7 @@ Decompose `control`-type participants into Level N+1 sub-process diagrams, manag
 Before creating anything:
 
 1. Read the parent `collaboration.md`
-2. Identify the target participant's `@{ "type": "..." }` annotation
+2. Identify the target participant's stereotype from the `%% Stereotypes:` comment
 3. **If type ≠ `control`** → stop and return:
 
 ```json
@@ -185,7 +185,9 @@ Apply the following structural rules (aligned with `diagram-generatecollaboratio
 - **Add control and entity participants** that represent the internal logic of the decomposed component
 - **Apply EDPS boundary rules**: VR-1 (single external interface), VR-2 (boundary-first reception), VR-3 (control-only decomposition)
 - **MANDATORY participant ordering inside each `box`**: `boundary` first, then `control`, then `entity`
-- **MANDATORY stereotype annotations**: every participant in a diagram using `box` syntax must include `@{ "type": "...", "label": "..." }`
+- **MANDATORY stereotype annotations**: include a `%% Stereotypes:` comment listing every participant's type (e.g., `Alias=actor | Alias=boundary, Alias=control | Alias=entity`)
+- **MANDATORY**: Use `participant [Alias] as "[Label]"` syntax — NEVER use `@{ ... }` JSON metadata (not supported by most renderers)
+- **MANDATORY**: Always quote box labels: `box "Name"` not `box Name`
 
 **Template for the new `collaboration.md`:**
 
@@ -198,12 +200,13 @@ Apply the following structural rules (aligned with `diagram-generatecollaboratio
 
 ```mermaid
 sequenceDiagram
-    participant [ParentParticipantShort]@{ "type": "actor", "label": "[ParentParticipant Full Name]" }
+    %% Stereotypes: [ParentParticipantShort]=actor | [EntryPoint]=boundary, [Logic1]=control, [DataStore]=entity
+    participant [ParentParticipantShort] as "[ParentParticipant Full Name]"
 
-    box [ParticipantName] Boundary
-        participant [EntryPoint]@{ "type": "boundary", "label": "[Entry Point Label]" }
-        participant [Logic1]@{ "type": "control", "label": "[Logic Component 1]" }
-        participant [DataStore]@{ "type": "entity", "label": "[Data Store Label]" }
+    box "[ParticipantName] Boundary"
+        participant [EntryPoint] as "[Entry Point Label]"
+        participant [Logic1] as "[Logic Component 1]"
+        participant [DataStore] as "[Data Store Label]"
     end
 
     [ParentParticipantShort]->>[EntryPoint]: [Initial Request]
@@ -671,7 +674,7 @@ Thresholds can be overridden per hierarchy by setting `complexity_thresholds` in
 For a given `collaboration.md`, count:
 
 1. **`interaction_count`** — total number of message arrows (`->>`, `-->>`, `-x`, `-->`, `=>>`, ...) in the Mermaid `sequenceDiagram` block. Each arrow counts as one interaction regardless of direction.
-2. **`participant_count`** — number of `participant` declarations (including those using `@{ }` annotations).
+2. **`participant_count`** — number of `participant` declarations in the Mermaid `sequenceDiagram` block.
 3. **`nesting_depth`** — number of nested `box … end` blocks at the deepest level (a `box` inside a `box` = depth 2).
 
 ### Warning Levels

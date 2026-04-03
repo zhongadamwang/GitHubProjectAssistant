@@ -133,18 +133,19 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User as User
+    %% Stereotypes: User=actor | ECommerce=control | Payment=control | Shipping=control
+    participant User as "User"
     
-    box E-commerce Platform
-        participant ECommerce as E-commerce Platform
+    box "E-commerce Platform"
+        participant ECommerce as "E-commerce Platform"
     end
     
-    box Payment System
-        participant Payment as Payment System
+    box "Payment System"
+        participant Payment as "Payment System"
     end
     
-    box Shipping System
-        participant Shipping as Shipping System
+    box "Shipping System"
+        participant Shipping as "Shipping System"
     end
     
     User->>ECommerce: Place Order
@@ -321,22 +322,27 @@ end
 **Hierarchical Sequence Diagrams (with Boundaries):**
 ```
 sequenceDiagram
-    participant [ActorName]@{ "type": "actor", "label": "[Full Actor Name]" }
+    %% Stereotypes: [ActorAlias]=actor | [BoundaryAlias]=boundary, [ControlAlias]=control, [EntityAlias]=entity
+    participant [ActorName] as "[Full Actor Name]"
     
-    box [BoundaryName]
-        participant [ParticipantName]@{ "type": "[boundary|control|entity]", "label": "[Full Participant Name]" }
-        ...
+    box "[BoundaryName]"
+        participant [BoundaryAlias] as "[Full Participant Name]"
+        participant [ControlAlias] as "[Full Participant Name]"
+        participant [EntityAlias] as "[Full Participant Name]"
     end
     
-    [Actor]->>[Participant]: [Interaction]
+    [ActorName]->>[BoundaryAlias]: [Interaction]
 ```
 
 **Naming and Stereotype Conventions:**
-- Use `@{ "type" : "..." }` syntax to define participant stereotypes
+- Use `participant [Alias] as "[Label]"` syntax for all participants
+- Track stereotypes in a `%% Stereotypes:` comment at the top of the diagram, using the format: `Alias=type` separated by commas within a boundary and `|` between boundaries
+- Valid stereotype types: `actor`, `boundary`, `control`, `entity`
 - **actor**: External participants, cannot be decomposed
 - **boundary**: Entry point to a boundary (e.g., UI, API Gateway)
 - **control**: Decomposable system/service component
 - **entity**: Stable data store or resource
+- Quote box labels: `box "Boundary Name"` for maximum renderer compatibility
 - Boundary names should reflect the encapsulated capability
 - See **Participant Stereotype Classification** section for inference and enforcement rules
 
@@ -364,7 +370,7 @@ Every participant in a hierarchical collaboration diagram must be classified int
 
 ### Stereotype Definitions
 
-| Stereotype | `@{ "type" }` value | Role | Decomposable? |
+| Stereotype | Comment value | Role | Decomposable? |
 |-----------|---------------------|------|---------------|
 | Actor | `actor` | External entity that initiates interactions | No |
 | Boundary | `boundary` | Interface mediator between actors and internal components | No |
@@ -417,7 +423,8 @@ Explicit type specification always takes precedence over inference. Types can be
 
 **Inline annotation (already in diagram):**
 ```
-participant OrderService@{ "type": "control", "label": "Order Service" }
+%% Stereotypes: OrderService=control
+participant OrderService as "Order Service"
 ```
 
 When a manual override conflicts with inferred type, the override wins and a note is added to the diagram metadata:
@@ -431,16 +438,17 @@ When a manual override conflicts with inferred type, the override wins and a not
 
 ### Mermaid Annotation Generation
 
-After classification, every participant definition in the Mermaid output must include the `@{ "type": "..." }` annotation:
+After classification, every participant definition in the Mermaid output must use the standard `participant [Alias] as "[Label]"` syntax, with stereotypes tracked in a `%% Stereotypes:` comment:
 
 ```
 sequenceDiagram
-    participant Customer@{ "type": "actor", "label": "Customer" }
+    %% Stereotypes: Customer=actor | API=boundary, OrderSvc=control, OrderDB=entity
+    participant Customer as "Customer"
     
-    box Order Processing
-        participant API@{ "type": "boundary", "label": "Order API" }
-        participant OrderSvc@{ "type": "control", "label": "Order Service" }
-        participant OrderDB@{ "type": "entity", "label": "Order Database" }
+    box "Order Processing"
+        participant API as "Order API"
+        participant OrderSvc as "Order Service"
+        participant OrderDB as "Order Database"
     end
     
     Customer->>API: Place Order
@@ -449,11 +457,13 @@ sequenceDiagram
 ```
 
 **Generation rules:**
-- Always include both `"type"` and `"label"` keys in the annotation object
-- `"type"` must be one of: `actor`, `boundary`, `control`, `entity`
-- `"label"` should be the human-readable display name
+- Use `participant [Alias] as "[Label]"` for every participant
+- Include a `%% Stereotypes:` comment listing all participants with their types
+- Format: `Alias=type` pairs, separated by commas within a box and `|` between boxes
 - Actors are declared **before** any `box` block
 - Boundary participants are declared **first** inside their `box` block
+- **NEVER** use `@{ "type": "...", "label": "..." }` syntax — it is not supported by most Mermaid renderers (GitHub, Mermaid Live, VS Code preview)
+- Always quote box labels: `box "Name"` not `box Name`
 
 ### Decomposition Rule Enforcement
 
@@ -577,15 +587,17 @@ Every boundary is rendered as a `box` block. External actors are declared **befo
 ```
 sequenceDiagram
 
+    %% Stereotypes: [ActorName]=actor | [BoundaryParticipant]=boundary, [ControlParticipant1]=control, [ControlParticipant2]=control, [EntityParticipant1]=entity
+
     %% External participants (actors) — outside all boundaries
-    participant [ActorName]@{ "type": "actor", "label": "[Human-readable Actor Label]" }
+    participant [ActorName] as "[Human-readable Actor Label]"
 
     %% Boundary: [BoundaryName]
-    box [BoundaryName]
-        participant [BoundaryParticipant]@{ "type": "boundary", "label": "[Label]" }
-        participant [ControlParticipant1]@{ "type": "control", "label": "[Label]" }
-        participant [ControlParticipant2]@{ "type": "control", "label": "[Label]" }
-        participant [EntityParticipant1]@{ "type": "entity", "label": "[Label]" }
+    box "[BoundaryName]"
+        participant [BoundaryParticipant] as "[Label]"
+        participant [ControlParticipant1] as "[Label]"
+        participant [ControlParticipant2] as "[Label]"
+        participant [EntityParticipant1] as "[Label]"
     end
 
     %% Interactions
@@ -595,9 +607,10 @@ sequenceDiagram
 
 **Generation rules:**
 - All `actor`-type participants are emitted **before** any `box` block
-- Each boundary produces exactly one `box [BoundaryName] ... end` block
+- Each boundary produces exactly one `box "[BoundaryName]" ... end` block — always quote the label
 - Box blocks are separated by a blank line plus a `%% Boundary:` comment for readability
-- **MANDATORY**: Every participant in a hierarchical diagram (any diagram using `box` syntax) must include `@{ "type": "...", "label": "..." }` stereotype annotation
+- **MANDATORY**: Include a `%% Stereotypes:` comment listing every participant's type
+- **MANDATORY**: Use `participant [Alias] as "[Label]"` syntax — NEVER use `@{ ... }` JSON metadata
 - **MANDATORY**: Participants inside each `box` must follow strict ordering: `boundary` first, then `control`, then `entity` (see Participant Ordering Within a Box)
 - **MANDATORY**: Box blocks are ordered by first interaction received from the actor — boundaries that receive the actor's first message come first
 - Mermaid does not support nested `box` blocks; decomposition to sub-boundaries is expressed through separate diagrams linked by decomposition references
@@ -614,11 +627,11 @@ Participants inside each `box` block must follow a strict ordering to satisfy ED
 
 **Example of correct ordering:**
 ```
-box Payment Service Boundary
-    participant Gateway@{ "type": "boundary", "label": "Payment Gateway" }
-    participant Processor@{ "type": "control", "label": "Transaction Processor" }
-    participant Validator@{ "type": "control", "label": "Payment Validator" }
-    participant Ledger@{ "type": "entity", "label": "Transaction Ledger" }
+box "Payment Service Boundary"
+    participant Gateway as "Payment Gateway"
+    participant Processor as "Transaction Processor"
+    participant Validator as "Payment Validator"
+    participant Ledger as "Transaction Ledger"
 end
 ```
 
@@ -631,28 +644,29 @@ Multiple non-overlapping boundaries are supported in a single sequence diagram. 
 ```
 sequenceDiagram
 
-    participant Customer@{ "type": "actor", "label": "Customer" }
+    %% Stereotypes: Customer=actor | Web=boundary, Order=control, Inventory=control, CustomerDB=entity | PayAPI=boundary, TxProcessor=control, Ledger=entity | FulfillAPI=boundary, Warehouse=control, Shipment=entity
+    participant Customer as "Customer"
 
     %% Boundary: E-commerce Platform
-    box E-commerce Platform Boundary
-        participant Web@{ "type": "boundary", "label": "Web Frontend" }
-        participant Order@{ "type": "control", "label": "Order Service" }
-        participant Inventory@{ "type": "control", "label": "Inventory Service" }
-        participant CustomerDB@{ "type": "entity", "label": "Customer Database" }
+    box "E-commerce Platform Boundary"
+        participant Web as "Web Frontend"
+        participant Order as "Order Service"
+        participant Inventory as "Inventory Service"
+        participant CustomerDB as "Customer Database"
     end
 
     %% Boundary: Payment System
-    box Payment System Boundary
-        participant PayAPI@{ "type": "boundary", "label": "Payment API" }
-        participant TxProcessor@{ "type": "control", "label": "Transaction Processor" }
-        participant Ledger@{ "type": "entity", "label": "Transaction Ledger" }
+    box "Payment System Boundary"
+        participant PayAPI as "Payment API"
+        participant TxProcessor as "Transaction Processor"
+        participant Ledger as "Transaction Ledger"
     end
 
     %% Boundary: Fulfillment Center
-    box Fulfillment Center Boundary
-        participant FulfillAPI@{ "type": "boundary", "label": "Fulfillment API" }
-        participant Warehouse@{ "type": "control", "label": "Warehouse Manager" }
-        participant Shipment@{ "type": "entity", "label": "Shipment Record" }
+    box "Fulfillment Center Boundary"
+        participant FulfillAPI as "Fulfillment API"
+        participant Warehouse as "Warehouse Manager"
+        participant Shipment as "Shipment Record"
     end
 
     Customer->>Web: Place Order
@@ -690,8 +704,8 @@ Boundary names are derived automatically from context using the following priori
 Boundaries support optional color customization. Colors are applied via Mermaid's `box` color parameter:
 
 ```
-box rgb(235, 245, 255) E-commerce Platform Boundary
-    participant Web@{ "type": "boundary", "label": "Web Frontend" }
+box rgb(235, 245, 255) "E-commerce Platform Boundary"
+    participant Web as "Web Frontend"
     ...
 end
 ```
@@ -743,15 +757,15 @@ sequenceDiagram
     %%         External actor: none (called from E-commerce Platform)
     %% ─────────────────────────────────────────────────────
 
-    participant Customer@{ "type": "actor", "label": "Customer" }
+    participant Customer as "Customer"
 
     %% [B-1] E-commerce Platform Boundary
-    box E-commerce Platform Boundary
+    box "E-commerce Platform Boundary"
         ...
     end
 
     %% [B-2] Payment System Boundary
-    box Payment System Boundary
+    box "Payment System Boundary"
         ...
     end
 ```

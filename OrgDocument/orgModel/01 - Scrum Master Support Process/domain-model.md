@@ -57,7 +57,7 @@ classDiagram
         +github_username: String
         +display_name: String
         +email: String
-        +role: Enum(admin, member)
+        +role: Enum~admin, member~
         +estimation_accuracy_score: Decimal
         +calculateEstimationAccuracy()
         +getEfficiencyReport()
@@ -70,7 +70,7 @@ classDiagram
         +issues_updated: Integer
         +issues_removed: Integer
         +graphql_points_used: Integer
-        +status: Enum(success, failed, partial)
+        +status: Enum~success, failed, partial~
         +createSnapshot()
         +compareSnapshots()
     }

@@ -212,22 +212,23 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User@{ "type": "actor", "label": "Scrum Master" }
+    %% Stereotypes: User=actor | UI=boundary | Analytics=control | Integration=control | DevOps=control
+    participant User as "Scrum Master"
     
-    box UI Boundary
-        participant UI@{ "type": "boundary", "label": "Dashboard UI" }
+    box "UI Boundary"
+        participant UI as "Dashboard UI"
     end
     
-    box Analytics Boundary  
-        participant Analytics@{ "type": "control", "label": "Burndown Analytics" }
+    box "Analytics Boundary"
+        participant Analytics as "Burndown Analytics"
     end
     
-    box Integration Boundary
-        participant Integration@{ "type": "control", "label": "GitHub Integration" }
+    box "Integration Boundary"
+        participant Integration as "GitHub Integration"
     end
     
-    box DevOps Boundary
-        participant DevOps@{ "type": "control", "label": "Deployment System" }
+    box "DevOps Boundary"
+        participant DevOps as "Deployment System"
     end
     
     User->>UI: Access dashboard
@@ -324,7 +325,7 @@ flowchart LR
     subgraph "Shared Hosting Boundary"
         HOST[Shared Host<br/>Resource Constraints]
         APP[Dashboard App<br/>Web Interface]
-        FS["(File System<br/>Text Database)"]
+        FS[(File System<br/>Text Database)]
     end
     
     subgraph "External Integration"
@@ -337,7 +338,7 @@ flowchart LR
     BUILD -->|Deploy| HOST
     HOST --> APP
     APP --> FS
-    APP <--> |API Calls| GITHUB
+    APP <-->|API Calls| GITHUB
     
     classDef dev fill:#e8f5e8
     classDef cicd fill:#fff3e0

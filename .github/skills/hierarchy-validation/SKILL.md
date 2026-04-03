@@ -77,7 +77,7 @@ Authoritatively validate structural integrity, cross-level type consistency, nav
 For each parent `collaboration.md` that has one or more child sub-folders:
 
 #### HV-1 Check
-- Read the parent `collaboration.md` and extract all participants with `@{ "type": "control" }`.
+- Read the parent `collaboration.md` and extract all participants whose stereotype (from the `%% Stereotypes:` comment) is `control`.
 - For each child sub-folder, derive the expected participant name: strip the two-digit ordinal prefix and the `Boundary` suffix, then compare case-insensitively with PascalCase normalization.
 - **FAIL** if no matching `control`-type participant is found in the parent for a given sub-folder.
 
@@ -345,7 +345,7 @@ This enables fast validation after making changes to a single sub-tree without r
 | Rule | Common Fix |
 |------|-----------|
 | HV-1 | Add a `control`-type participant matching the sub-folder name to the parent `collaboration.md`, or delete the orphaned sub-folder after confirming it is unused |
-| HV-2 | Add the parent participant as an external `actor` (outside all `box` blocks) in the child `collaboration.md` with `@{ "type": "actor" }` |
+| HV-2 | Add the parent participant as an external `actor` (outside all `box` blocks) in the child `collaboration.md` and list it as `actor` in the `%% Stereotypes:` comment |
 | HV-3 | Align the `label` of the external actor to match the decomposed participant's label in the parent diagram |
 | HV-4 | Reorder the first message inside the `box` so the first recipient is a `boundary`-type participant |
 | HV-5 | Remove child-level participant declarations from the parent diagram; reference the boundary as a single decomposed control participant |

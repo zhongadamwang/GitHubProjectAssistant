@@ -172,7 +172,7 @@ For each folder containing the change point:
 
 For each file identified in CR-1:
 
-1. In `collaboration.md` files: identify all `boundary`-type participants whose `@{ "note": "..." }` or adjacent comments reference the requirement ID.
+1. In `collaboration.md` files: identify all `boundary`-type participants whose `%% Stereotypes:` comment or adjacent comments reference the requirement ID.
 2. Determine which constraint the requirement imposes (e.g., "single-actor rule", "entry-point restriction").
 3. **Record as HIGH impact** with the specific participant name and the affected constraint type.
 

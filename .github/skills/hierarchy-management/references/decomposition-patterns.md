@@ -41,13 +41,14 @@ Prefer 3–5 participants total in a new sub-process for clarity. Add more only 
 
 ```mermaid
 sequenceDiagram
-    participant Parent@{ "type": "actor", "label": "[Parent System]" }
+    %% Stereotypes: Parent=actor | API=boundary, Validator=control, Processor=control, Repository=entity
+    participant Parent as "[Parent System]"
 
-    box [ServiceName] Boundary
-        participant API@{ "type": "boundary", "label": "[Service] API" }
-        participant Validator@{ "type": "control", "label": "[Service] Validator" }
-        participant Processor@{ "type": "control", "label": "[Service] Processor" }
-        participant Repository@{ "type": "entity", "label": "[Service] Repository" }
+    box "[ServiceName] Boundary"
+        participant API as "[Service] API"
+        participant Validator as "[Service] Validator"
+        participant Processor as "[Service] Processor"
+        participant Repository as "[Service] Repository"
     end
 
     Parent->>API: [Service Request]
@@ -69,13 +70,14 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Parent@{ "type": "actor", "label": "[Parent System]" }
+    %% Stereotypes: Parent=actor | Orchestrator=boundary, Rules=control, Executor=control, StateStore=entity
+    participant Parent as "[Parent System]"
 
-    box [EngineName] Boundary
-        participant Orchestrator@{ "type": "boundary", "label": "[Engine] Orchestrator" }
-        participant Rules@{ "type": "control", "label": "Business Rules" }
-        participant Executor@{ "type": "control", "label": "Task Executor" }
-        participant StateStore@{ "type": "entity", "label": "State Store" }
+    box "[EngineName] Boundary"
+        participant Orchestrator as "[Engine] Orchestrator"
+        participant Rules as "Business Rules"
+        participant Executor as "Task Executor"
+        participant StateStore as "State Store"
     end
 
     Parent->>Orchestrator: Execute [Task]
@@ -96,16 +98,17 @@ Each sub-capability is NOT nested inside the same box; instead generate multiple
 
 ```mermaid
 sequenceDiagram
-    participant Parent@{ "type": "actor", "label": "[Parent]" }
+    %% Stereotypes: Parent=actor | A_API=boundary, A_Logic=control | B_API=boundary, B_Logic=control
+    participant Parent as "[Parent]"
 
-    box Sub-Capability A Boundary
-        participant A_API@{ "type": "boundary", "label": "Capability A API" }
-        participant A_Logic@{ "type": "control", "label": "Capability A Logic" }
+    box "Sub-Capability A Boundary"
+        participant A_API as "Capability A API"
+        participant A_Logic as "Capability A Logic"
     end
 
-    box Sub-Capability B Boundary
-        participant B_API@{ "type": "boundary", "label": "Capability B API" }
-        participant B_Logic@{ "type": "control", "label": "Capability B Logic" }
+    box "Sub-Capability B Boundary"
+        participant B_API as "Capability B API"
+        participant B_Logic as "Capability B Logic"
     end
 
     Parent->>A_API: [Request to A]
@@ -133,13 +136,14 @@ Customer (actor) ->> ECommercePlatform (control): Place Order
 **New Level 1 sub-process (01-EcommercePlatformBoundary/collaboration.md):**
 ```mermaid
 sequenceDiagram
-    participant Customer@{ "type": "actor", "label": "Customer" }
+    %% Stereotypes: Customer=actor | Web=boundary, Cart=control, Order=control, CustomerDB=entity
+    participant Customer as "Customer"
 
-    box E-commerce Platform Boundary
-        participant Web@{ "type": "boundary", "label": "Web Frontend" }
-        participant Cart@{ "type": "control", "label": "Shopping Cart Service" }
-        participant Order@{ "type": "control", "label": "Order Management Service" }
-        participant CustomerDB@{ "type": "entity", "label": "Customer Database" }
+    box "E-commerce Platform Boundary"
+        participant Web as "Web Frontend"
+        participant Cart as "Shopping Cart Service"
+        participant Order as "Order Management Service"
+        participant CustomerDB as "Customer Database"
     end
 
     Customer->>Web: Browse & Place Order
@@ -160,13 +164,14 @@ sequenceDiagram
 **New Level 2 sub-process (01-OrderManagementBoundary/collaboration.md):**
 ```mermaid
 sequenceDiagram
-    participant Platform@{ "type": "actor", "label": "E-commerce Platform" }
+    %% Stereotypes: Platform=actor | API=boundary, Validator=control, Engine=control, Repository=entity
+    participant Platform as "E-commerce Platform"
 
-    box Order Management Service Boundary
-        participant API@{ "type": "boundary", "label": "Order API" }
-        participant Validator@{ "type": "control", "label": "Order Validator" }
-        participant Engine@{ "type": "control", "label": "Order Processing Engine" }
-        participant Repository@{ "type": "entity", "label": "Order Repository" }
+    box "Order Management Service Boundary"
+        participant API as "Order API"
+        participant Validator as "Order Validator"
+        participant Engine as "Order Processing Engine"
+        participant Repository as "Order Repository"
     end
 
     Platform->>API: Create New Order
@@ -187,13 +192,14 @@ sequenceDiagram
 **New Level 3 sub-process (01-OrderProcessingEngineBoundary/collaboration.md):**
 ```mermaid
 sequenceDiagram
-    participant OrderService@{ "type": "actor", "label": "Order Management Service" }
+    %% Stereotypes: OrderService=actor | Workflow=boundary, Rules=control, Calculator=control, StateStore=entity
+    participant OrderService as "Order Management Service"
 
-    box Order Processing Engine Boundary
-        participant Workflow@{ "type": "boundary", "label": "Workflow Orchestrator" }
-        participant Rules@{ "type": "control", "label": "Business Rules Engine" }
-        participant Calculator@{ "type": "control", "label": "Price Calculator" }
-        participant StateStore@{ "type": "entity", "label": "Order State" }
+    box "Order Processing Engine Boundary"
+        participant Workflow as "Workflow Orchestrator"
+        participant Rules as "Business Rules Engine"
+        participant Calculator as "Price Calculator"
+        participant StateStore as "Order State"
     end
 
     OrderService->>Workflow: Process Order Request
