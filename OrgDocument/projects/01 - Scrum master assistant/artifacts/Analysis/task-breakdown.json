@@ -1,0 +1,451 @@
+{
+  "project_id": "PRJ-01",
+  "project_name": "Scrum Master Assistant",
+  "generated_at": "2026-04-02",
+  "total_tasks": 36,
+  "total_effort_days": 27,
+  "calendar_days_parallel": 20,
+  "phases": [
+    {
+      "phase": 0,
+      "name": "Requirements & Architecture",
+      "status": "completed",
+      "tasks": []
+    },
+    {
+      "phase": 1,
+      "name": "Foundation — Backend Skeleton + Auth + DB",
+      "effort_days": 5,
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T001",
+          "title": "Initialize PHP Backend Project",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": [],
+          "source_requirements": ["R-009", "R-012"],
+          "deliverables": ["backend/composer.json", "directory skeleton", ".env.example"]
+        },
+        {
+          "id": "T002",
+          "title": "Create MySQL Database Schema & Migrations",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T001"],
+          "source_requirements": ["R-003", "R-004", "R-011"],
+          "deliverables": ["database/migrations/*.sql", "database/migrate.php"]
+        },
+        {
+          "id": "T003",
+          "title": "Create Database Seed Script",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T002"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["database/seed.php"]
+        },
+        {
+          "id": "T004",
+          "title": "Set Up Slim 4 Entry Point & Core Middleware",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T001"],
+          "source_requirements": ["R-009", "R-012"],
+          "deliverables": ["public/index.php", "public/.htaccess", "config/settings.php", "config/container.php", "src/Middleware/CorsMiddleware.php", "src/Middleware/JsonResponseMiddleware.php"]
+        },
+        {
+          "id": "T005",
+          "title": "Implement Authentication System",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1.5,
+          "dependencies": ["T002", "T003", "T004"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["src/Services/AuthService.php", "src/Controllers/AuthController.php", "src/Middleware/AuthMiddleware.php", "src/Middleware/AdminMiddleware.php", "src/Repositories/UserRepository.php", "src/Models/User.php"],
+          "risks": ["Session cookie not sent cross-origin in dev — configure Vite proxy"]
+        },
+        {
+          "id": "T006",
+          "title": "Configure Route Definitions",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T004", "T005"],
+          "source_requirements": ["R-012"],
+          "deliverables": ["config/routes.php"]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "GitHub GraphQL Integration",
+      "effort_days": 5,
+      "dependencies": ["Phase 1"],
+      "tasks": [
+        {
+          "id": "T007",
+          "title": "Write GraphQL Query Templates",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T001"],
+          "source_requirements": ["R-001", "ADR-4"],
+          "deliverables": ["src/GraphQL/queries.php"]
+        },
+        {
+          "id": "T008",
+          "title": "Implement GitHubGraphQLService",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1.5,
+          "dependencies": ["T007"],
+          "source_requirements": ["R-001", "R-002", "ADR-4"],
+          "deliverables": ["src/Services/GitHubGraphQLService.php"],
+          "risks": ["GitHub API schema changes — pin to known fields, add response validation"]
+        },
+        {
+          "id": "T009",
+          "title": "Implement GraphQL ResponseParser",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T007"],
+          "source_requirements": ["R-001", "R-004"],
+          "deliverables": ["src/GraphQL/ResponseParser.php", "src/Models/Project.php", "src/Models/Issue.php"]
+        },
+        {
+          "id": "T010",
+          "title": "Build Sync Logic with Diff & Snapshot",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1.5,
+          "dependencies": ["T008", "T009", "T002"],
+          "source_requirements": ["R-001", "R-002", "R-003", "R-004"],
+          "deliverables": ["src/Services/GitHubSyncService.php", "src/Repositories/ProjectRepository.php", "src/Repositories/IssueRepository.php", "src/Repositories/SyncHistoryRepository.php", "src/Controllers/SyncController.php"]
+        },
+        {
+          "id": "T011",
+          "title": "Create Cron Sync Entry Point",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T010"],
+          "source_requirements": ["R-001", "R-002", "ADR-4"],
+          "deliverables": ["cron/sync.php"]
+        },
+        {
+          "id": "T012",
+          "title": "Integration Test: GitHub Sync End-to-End",
+          "category": "Testing",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T010", "T011"],
+          "source_requirements": ["R-001", "R-002", "R-003"],
+          "deliverables": ["Test results log"]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Analytics Engine",
+      "effort_days": 4,
+      "dependencies": ["Phase 1"],
+      "parallel_with": ["Phase 2"],
+      "tasks": [
+        {
+          "id": "T013",
+          "title": "Implement BurndownService",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T002", "T004", "T006"],
+          "source_requirements": ["R-005", "R-006", "R-007"],
+          "deliverables": ["src/Services/BurndownService.php", "src/Controllers/BurndownController.php", "src/Models/BurndownPoint.php"]
+        },
+        {
+          "id": "T014",
+          "title": "Build Daily Burndown Snapshot Job",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T002", "T013"],
+          "source_requirements": ["R-005", "R-006"],
+          "deliverables": ["BurndownService::captureDaily()"]
+        },
+        {
+          "id": "T015",
+          "title": "Implement EfficiencyService",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T002", "T004", "T006"],
+          "source_requirements": ["R-008"],
+          "deliverables": ["src/Services/EfficiencyService.php", "src/Controllers/MemberController.php"]
+        },
+        {
+          "id": "T016",
+          "title": "Implement TimeTrackingService with Audit",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T002", "T005", "T006"],
+          "source_requirements": ["R-004", "R-006"],
+          "deliverables": ["src/Services/TimeTrackingService.php", "src/Controllers/IssueController.php", "src/Controllers/ProjectController.php", "src/Repositories/TimeLogRepository.php"]
+        },
+        {
+          "id": "T017",
+          "title": "Implement Admin User Management Endpoints",
+          "category": "Development",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T005", "T006"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["src/Controllers/AdminController.php"]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Frontend Dashboard",
+      "effort_days": 7,
+      "dependencies": ["Phase 2", "Phase 3"],
+      "tasks": [
+        {
+          "id": "T018",
+          "title": "Initialize Vue 3 + Vite Project",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["Phase 2", "Phase 3"],
+          "source_requirements": ["R-012", "ADR-3"],
+          "deliverables": ["frontend/ project skeleton"]
+        },
+        {
+          "id": "T019",
+          "title": "Build Login View",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T018"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["frontend/src/views/LoginView.vue"]
+        },
+        {
+          "id": "T020",
+          "title": "Build Auth Store & Route Guards",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T019"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["frontend/src/stores/authStore.js", "router guards"]
+        },
+        {
+          "id": "T021",
+          "title": "Build API Service Layer",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T018"],
+          "source_requirements": ["R-012"],
+          "deliverables": ["frontend/src/services/api.js"]
+        },
+        {
+          "id": "T022",
+          "title": "Build Dashboard View with Burndown Chart",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1.5,
+          "dependencies": ["T021"],
+          "source_requirements": ["R-005", "R-006", "R-007"],
+          "deliverables": ["DashboardView.vue", "BurndownChart.vue", "SprintSelector.vue", "dashboardStore.js"]
+        },
+        {
+          "id": "T023",
+          "title": "Build Issues View with Time Editor",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1.5,
+          "dependencies": ["T021"],
+          "source_requirements": ["R-004", "R-006"],
+          "deliverables": ["IssuesView.vue", "IssueTimeEditor.vue", "projectStore.js"]
+        },
+        {
+          "id": "T024",
+          "title": "Build Members View with Efficiency Charts",
+          "category": "Development",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T021"],
+          "source_requirements": ["R-008"],
+          "deliverables": ["MembersView.vue", "EfficiencyChart.vue"]
+        },
+        {
+          "id": "T025",
+          "title": "Build Sync Status View",
+          "category": "Development",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T021", "T020"],
+          "source_requirements": ["R-001", "R-003"],
+          "deliverables": ["SyncView.vue", "SyncStatus.vue"]
+        },
+        {
+          "id": "T026",
+          "title": "Build Admin View (User Management)",
+          "category": "Development",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T020", "T021"],
+          "source_requirements": ["ADR-7"],
+          "deliverables": ["AdminView.vue"]
+        },
+        {
+          "id": "T027",
+          "title": "Implement Auto-Refresh & Polling",
+          "category": "Development",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T022", "T023"],
+          "source_requirements": ["R-006"],
+          "deliverables": ["Polling logic in stores"]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Deployment Pipeline",
+      "effort_days": 3,
+      "dependencies": ["Phase 1"],
+      "parallel_with": ["Phase 4"],
+      "tasks": [
+        {
+          "id": "T028",
+          "title": "Create GitHub Actions Deploy Workflow",
+          "category": "DevOps",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["T001", "T004"],
+          "source_requirements": ["R-009", "R-010", "ADR-6"],
+          "deliverables": [".github/workflows/deploy.yml"],
+          "risks": ["SFTP connection timeout on large uploads"]
+        },
+        {
+          "id": "T029",
+          "title": "Configure cPanel Cron Job",
+          "category": "DevOps",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T011"],
+          "source_requirements": ["R-001", "R-002", "ADR-4"],
+          "deliverables": ["Cron configuration documentation"]
+        },
+        {
+          "id": "T030",
+          "title": "Write Environment Configuration Template",
+          "category": "Documentation",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T001"],
+          "source_requirements": ["R-012"],
+          "deliverables": [".env.example"]
+        },
+        {
+          "id": "T031",
+          "title": "Write Deployment Guide",
+          "category": "Documentation",
+          "priority": "Medium",
+          "effort_days": 1,
+          "dependencies": ["T028", "T029"],
+          "source_requirements": ["R-012"],
+          "deliverables": ["README.md"]
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Polish & Validation",
+      "effort_days": 3,
+      "dependencies": ["Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5"],
+      "tasks": [
+        {
+          "id": "T032",
+          "title": "End-to-End Integration Testing",
+          "category": "Testing",
+          "priority": "High",
+          "effort_days": 1,
+          "dependencies": ["All Phase 1-5 tasks"],
+          "source_requirements": ["All"],
+          "deliverables": ["Test results report"]
+        },
+        {
+          "id": "T033",
+          "title": "Performance Optimization & Testing",
+          "category": "Testing",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T032"],
+          "source_requirements": ["KPI: API <200ms"],
+          "deliverables": ["Performance test results"]
+        },
+        {
+          "id": "T034",
+          "title": "Security Review & Hardening",
+          "category": "Testing",
+          "priority": "High",
+          "effort_days": 0.5,
+          "dependencies": ["T032"],
+          "source_requirements": ["ADR-7", "R-012"],
+          "deliverables": ["Security checklist"]
+        },
+        {
+          "id": "T035",
+          "title": "Error Handling & Resilience",
+          "category": "Development",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T032"],
+          "source_requirements": ["R-012"],
+          "deliverables": ["Error handling code"]
+        },
+        {
+          "id": "T036",
+          "title": "Code Documentation & Comments",
+          "category": "Documentation",
+          "priority": "Medium",
+          "effort_days": 0.5,
+          "dependencies": ["T032"],
+          "source_requirements": ["R-012"],
+          "deliverables": ["Documented codebase"]
+        }
+      ]
+    }
+  ],
+  "critical_path": ["T001", "T002", "T003", "T005", "T006", "T010", "T012", "T018", "T022", "T032"],
+  "parallel_tracks": {
+    "track_a": {"name": "GitHub Integration", "tasks": ["T007", "T008", "T009", "T010", "T011", "T012"]},
+    "track_b": {"name": "Analytics Engine", "tasks": ["T013", "T014", "T015", "T016", "T017"], "parallel_with": "track_a"},
+    "track_c": {"name": "Frontend", "tasks": ["T018", "T019", "T020", "T021", "T022", "T023", "T024", "T025", "T026", "T027"]},
+    "track_d": {"name": "DevOps", "tasks": ["T028", "T029", "T030", "T031"], "parallel_with": "track_c"},
+    "track_e": {"name": "Validation", "tasks": ["T032", "T033", "T034", "T035", "T036"]}
+  },
+  "requirements_coverage": {
+    "R-001": ["T007", "T008", "T010", "T011", "T012", "T025", "T029"],
+    "R-002": ["T008", "T010", "T012", "T029"],
+    "R-003": ["T002", "T010", "T012", "T025"],
+    "R-004": ["T002", "T009", "T010", "T016", "T023"],
+    "R-005": ["T013", "T014", "T022"],
+    "R-006": ["T013", "T014", "T016", "T022", "T023", "T027"],
+    "R-007": ["T013", "T022"],
+    "R-008": ["T015", "T024"],
+    "R-009": ["T001", "T004", "T028"],
+    "R-010": ["T028"],
+    "R-011": ["T002"],
+    "R-012": ["T001", "T004", "T006", "T018", "T021", "T028", "T030", "T031", "T034", "T035", "T036"]
+  }
+}
