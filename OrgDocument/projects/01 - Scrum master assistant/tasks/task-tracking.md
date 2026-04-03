@@ -7,14 +7,14 @@
 ## Current Sprint: Phase 1 — Foundation
 
 ### Active Tasks
-| Task ID | Title | Assignee | Status | Priority | Effort |
-|---------|-------|----------|--------|----------|--------|
-| T001 | Initialize PHP Backend Project | TBD | Not Started | High | 0.5d |
-| T002 | Create MySQL Schema & Migrations | TBD | Not Started | High | 1d |
-| T003 | Create Database Seed Script | TBD | Not Started | High | 0.5d |
-| T004 | Set Up Slim 4 Entry Point & Middleware | TBD | Not Started | High | 1d |
-| T005 | Implement Authentication System | TBD | Not Started | High | 1.5d |
-| T006 | Configure Route Definitions | TBD | Not Started | High | 0.5d |
+| Task ID | Title | Assignee | Status | Priority | Effort | Task File |
+|---------|-------|----------|--------|----------|--------|-----------|
+| T001 | Initialize PHP Backend Project | TBD | Not Started | High | 0.5d | [task-dev-initialize-php-backend.md](task-dev-initialize-php-backend.md) |
+| T002 | Create MySQL Schema & Migrations | TBD | Not Started | High | 1d | [task-dev-mysql-schema-migrations.md](task-dev-mysql-schema-migrations.md) |
+| T003 | Create Database Seed Script | TBD | Not Started | High | 0.5d | [task-dev-database-seed-script.md](task-dev-database-seed-script.md) |
+| T004 | Set Up Slim 4 Entry Point & Middleware | TBD | Not Started | High | 1d | [task-dev-slim4-entry-middleware.md](task-dev-slim4-entry-middleware.md) |
+| T005 | Implement Authentication System | TBD | Not Started | High | 1.5d | [task-dev-authentication-system.md](task-dev-authentication-system.md) |
+| T006 | Configure Route Definitions | TBD | Not Started | High | 0.5d | [task-dev-route-definitions.md](task-dev-route-definitions.md) |
 
 ### Backlog — Phase 2: GitHub GraphQL Integration
 | Task ID | Title | Effort | Priority | Dependencies |

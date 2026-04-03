@@ -1,0 +1,38 @@
+{
+  "T001": {
+    "issueNumber": 1,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/1",
+    "title": "T001: Initialize PHP Backend Project",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-initialize-php-backend.md"
+  },
+  "T002": {
+    "issueNumber": 2,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/2",
+    "title": "T002: Create MySQL Database Schema & Migrations",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-mysql-schema-migrations.md"
+  },
+  "T003": {
+    "issueNumber": 3,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/3",
+    "title": "T003: Create Database Seed Script",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-database-seed-script.md"
+  },
+  "T004": {
+    "issueNumber": 4,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/4",
+    "title": "T004: Set Up Slim 4 Entry Point & Core Middleware",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-slim4-entry-middleware.md"
+  },
+  "T005": {
+    "issueNumber": 5,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/5",
+    "title": "T005: Implement Authentication System",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-authentication-system.md"
+  },
+  "T006": {
+    "issueNumber": 6,
+    "url": "https://github.com/zhongadamwang/GitHubProjectAssistant/issues/6",
+    "title": "T006: Configure Route Definitions",
+    "taskFile": "OrgDocument/projects/01 - Scrum master assistant/tasks/task-dev-route-definitions.md"
+  }
+}
