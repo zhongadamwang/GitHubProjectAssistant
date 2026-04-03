@@ -1,0 +1,195 @@
+{
+  "report_metadata": {
+    "generated": "2026-04-02T16:00:00Z",
+    "scope": "OrgDocument/orgModel/01 - Scrum Master Support Process/",
+    "project_scope": "OrgDocument/projects/01 - Scrum master assistant/",
+    "mode": "relaxed",
+    "schema_version": "1.0"
+  },
+  "summary": {
+    "overall_status": "NEEDS_ATTENTION",
+    "compliance_score": 33.3,
+    "total_checks": 6,
+    "passed": 2,
+    "skipped_checks": 4,
+    "failed_errors": 1,
+    "failed_warnings": 3,
+    "levels_scanned": 1,
+    "diagrams_scanned": 1
+  },
+  "pre_condition": {
+    "hierarchy_validation": "VALID",
+    "reason": "Single Level 0 hierarchy with no sub-process folders — no HV, HX, or HN rules applicable. Trivially valid."
+  },
+  "rule_results": [
+    {
+      "rule_id": "VR-1",
+      "rule_name": "Single External Interface",
+      "group": "A",
+      "severity": "ERROR",
+      "status": "SKIPPED",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "skip_reason": "collaboration.md contains no Mermaid sequence diagrams with box boundaries or participant type annotations. File is in placeholder state with preliminary text-based pseudocode only.",
+      "violations": []
+    },
+    {
+      "rule_id": "VR-2",
+      "rule_name": "Boundary-First Reception",
+      "group": "A",
+      "severity": "ERROR",
+      "status": "SKIPPED",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "skip_reason": "No Mermaid sequence diagrams with box boundaries to validate.",
+      "violations": []
+    },
+    {
+      "rule_id": "VR-3",
+      "rule_name": "Control-Only Decomposition",
+      "group": "A",
+      "severity": "ERROR",
+      "status": "SKIPPED",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "skip_reason": "No sub-process decompositions exist.",
+      "violations": []
+    },
+    {
+      "rule_id": "VR-4",
+      "rule_name": "Cohesive Responsibility",
+      "group": "A",
+      "severity": "WARNING",
+      "status": "SKIPPED",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "skip_reason": "No box boundaries defined to evaluate cohesion.",
+      "violations": []
+    },
+    {
+      "rule_id": "HR-2",
+      "rule_name": "Decomposed Participant Exists",
+      "group": "B",
+      "severity": "ERROR",
+      "status": "PASS",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "violations": [],
+      "note": "No sub-process folders exist — nothing to validate. Trivially passes."
+    },
+    {
+      "rule_id": "HR-6",
+      "rule_name": "Metadata Currency",
+      "group": "B",
+      "severity": "WARNING",
+      "status": "FAIL",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/"],
+      "violations": [
+        {
+          "file": "orgModel/01 - Scrum Master Support Process/",
+          "location": "Root process folder",
+          "detail": "hierarchy-metadata.json does not exist at the root scope level.",
+          "remediation": "Run hierarchy-management to generate hierarchy-metadata.json, or create it manually with project metadata, last_updated timestamp, and hierarchy tree structure."
+        }
+      ]
+    },
+    {
+      "rule_id": "EP-1",
+      "rule_name": "Traceability Presence",
+      "group": "C",
+      "severity": "ERROR",
+      "status": "FAIL",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "violations": [
+        {
+          "file": "orgModel/01 - Scrum Master Support Process/collaboration.md",
+          "location": "Entire file",
+          "detail": "No requirements traceability references found. File contains no [R-NNN] inline citations and no **Source Requirements** frontmatter block. The file is still in placeholder state.",
+          "remediation": "Update collaboration.md with proper Mermaid sequence diagrams from the project analysis (artifacts/Analysis/collaboration-diagrams.md contains 8 diagrams with full [R-001]–[R-012] traceability). Add **Source Requirements**: header block listing all traced requirements."
+        }
+      ]
+    },
+    {
+      "rule_id": "EP-2",
+      "rule_name": "Abstraction Level Separation",
+      "group": "C",
+      "severity": "ERROR",
+      "status": "PASS",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "violations": [],
+      "note": "Single level hierarchy — no child levels exist to leak into parent. Trivially passes."
+    },
+    {
+      "rule_id": "EP-3",
+      "rule_name": "Evolution Metadata",
+      "group": "C",
+      "severity": "WARNING",
+      "status": "FAIL",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/main.md"],
+      "violations": [
+        {
+          "file": "orgModel/01 - Scrum Master Support Process/main.md",
+          "location": "Header section",
+          "detail": "Missing **Status** field. The main.md has **Level**, **Parent Process**, **Archetype**, and **Last Updated** but no **Status**: Active | Draft | Deprecated field.",
+          "remediation": "Add **Status**: Draft (or Active once collaboration.md is populated with real diagrams) to the main.md header section."
+        }
+      ]
+    },
+    {
+      "rule_id": "EP-4",
+      "rule_name": "Incremental Refinement Traceability",
+      "group": "C",
+      "severity": "WARNING",
+      "status": "FAIL",
+      "checked_files": ["orgModel/01 - Scrum Master Support Process/collaboration.md"],
+      "violations": [
+        {
+          "file": "orgModel/01 - Scrum Master Support Process/collaboration.md",
+          "location": "Entire file",
+          "detail": "No %% decomposed: annotations present. While no sub-processes currently exist (making this technically N/A), the file is in placeholder state and has not been updated with any analysis results from the project, which is itself a sign of incomplete evolutionary refinement.",
+          "remediation": "Populate collaboration.md with actual Mermaid diagrams from project analysis. If sub-processes are identified later, add %% decomposed: annotations for each decomposed control participant."
+        }
+      ]
+    }
+  ],
+  "cross_artifact_findings": [
+    {
+      "id": "CA-1",
+      "severity": "ERROR",
+      "category": "orgModel-project-sync",
+      "finding": "OrgModel collaboration.md is still a placeholder while the project has 8 fully-traced Mermaid diagrams in artifacts/Analysis/collaboration-diagrams.md.",
+      "impact": "The organizational process model does not reflect the actual analysis work done in the project. EDPS requires the orgModel to evolve incrementally with project findings.",
+      "remediation": "Run orgmodel-update or documentation-automation to propagate the project's collaboration-diagrams.md content into the orgModel collaboration.md with proper EDPS formatting (box boundaries, participant stereotypes, requirement traceability)."
+    },
+    {
+      "id": "CA-2",
+      "severity": "ERROR",
+      "category": "orgModel-project-sync",
+      "finding": "OrgModel domain-model.md is still a placeholder while the project has 8 entities and 15 concepts in artifacts/Analysis/domain-concepts.md.",
+      "impact": "Domain knowledge captured during analysis is not reflected in the organizational model.",
+      "remediation": "Update domain-model.md with entities and relationships from domain-concepts.md/json."
+    },
+    {
+      "id": "CA-3",
+      "severity": "WARNING",
+      "category": "orgModel-project-sync",
+      "finding": "OrgModel process.md is still a placeholder while the project has a defined process flow in the technical architecture.",
+      "impact": "Process definition is scattered across project artifacts rather than centralized in the orgModel.",
+      "remediation": "Update process.md with an activity diagram derived from the project's workflow (sync cycle, dashboard interaction, time tracking)."
+    },
+    {
+      "id": "CA-4",
+      "severity": "WARNING",
+      "category": "project-metadata-stale",
+      "finding": "project-metadata.json status is 'Initialized' and version is '1.0.0', but the project has completed requirements analysis, architecture design, and task planning.",
+      "remediation": "Update project-metadata.json status to 'Planning Complete' and bump version to reflect the evolution (e.g., 1.1.0 for analysis complete, 1.2.0 for architecture, 1.3.0 for task planning)."
+    },
+    {
+      "id": "CA-5",
+      "severity": "WARNING",
+      "category": "project-metadata-stale",
+      "finding": "Project main.md status still says 'Initialized — Awaiting Requirements' while requirements are fully analyzed with 12 structured items.",
+      "remediation": "Update main.md status to 'Planning Complete — Ready for Development' and update the Success Criteria and Timeline sections."
+    }
+  ],
+  "trend": {
+    "previous_score": null,
+    "delta": null,
+    "note": "No previous compliance report found for trend comparison."
+  }
+}
