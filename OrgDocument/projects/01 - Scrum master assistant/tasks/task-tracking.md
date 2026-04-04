@@ -9,7 +9,7 @@
 ### Active Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Task File |
 |---------|-------|----------|--------|----------|--------|-----------|
-| T002 | Create MySQL Schema & Migrations | TBD | Not Started | High | 1d | [task-dev-mysql-schema-migrations.md](task-dev-mysql-schema-migrations.md) |
+| T002 | Create MySQL Schema & Migrations | TBD | Completed | High | 1d | [task-dev-mysql-schema-migrations.md](task-dev-mysql-schema-migrations.md) |
 | T003 | Create Database Seed Script | TBD | Not Started | High | 0.5d | [task-dev-database-seed-script.md](task-dev-database-seed-script.md) |
 | T004 | Set Up Slim 4 Entry Point & Middleware | TBD | Not Started | High | 1d | [task-dev-slim4-entry-middleware.md](task-dev-slim4-entry-middleware.md) |
 | T005 | Implement Authentication System | TBD | Not Started | High | 1.5d | [task-dev-authentication-system.md](task-dev-authentication-system.md) |
@@ -69,6 +69,7 @@
 | Task | Completed Date | Notes |
 |------|---------------|-------|
 | T001 — Initialize PHP Backend Project | 2026-04-03 | `OrgDocument/Solutions/ScrumMasterTool/` scaffold: `composer.json`, `.env.example`, `.gitignore`, full `src/` skeleton; `composer install` pending |
+| T002 — Create MySQL Schema & Migrations | 2026-04-03 | 6 migration SQL files + `migrate.php` idempotent runner; `migrations_log` auto-created; pending live MySQL test run |
 | Project Structure Setup | 2026-04-02 | EDPS project structure initialized |
 | Requirements Translation | 2026-04-02 | Chinese → English translation |
 | Requirements Analysis | 2026-04-02 | 12 structured requirements (R-001–R-012) |
