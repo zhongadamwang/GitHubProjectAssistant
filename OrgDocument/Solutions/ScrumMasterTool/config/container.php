@@ -14,8 +14,15 @@ declare(strict_types=1);
  *   $container = require __DIR__ . '/../config/container.php';
  */
 
+use App\Controllers\AuthController;
+use App\Middleware\AdminMiddleware;
+use App\Middleware\AuthMiddleware;
+use App\Repositories\UserRepository;
+use App\Services\AuthService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Slim\Psr7\Factory\ResponseFactory;
 
 $builder = new ContainerBuilder();
 
@@ -53,6 +60,44 @@ $builder->addDefinitions([
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
     },
+
+    // -------------------------------------------------------------------------
+    // PSR-17 Response Factory (Slim\Psr7 implementation)
+    // -------------------------------------------------------------------------
+    ResponseFactoryInterface::class => static fn(): ResponseFactoryInterface => new ResponseFactory(),
+
+    // -------------------------------------------------------------------------
+    // Repositories
+    // -------------------------------------------------------------------------
+    UserRepository::class => static fn(ContainerInterface $c): UserRepository =>
+        new UserRepository($c->get(PDO::class)),
+
+    // -------------------------------------------------------------------------
+    // Services
+    // -------------------------------------------------------------------------
+    AuthService::class => static fn(ContainerInterface $c): AuthService =>
+        new AuthService(
+            $c->get(UserRepository::class),
+            $c->get('settings')['session'],
+        ),
+
+    // -------------------------------------------------------------------------
+    // Controllers
+    // -------------------------------------------------------------------------
+    AuthController::class => static fn(ContainerInterface $c): AuthController =>
+        new AuthController($c->get(AuthService::class)),
+
+    // -------------------------------------------------------------------------
+    // Middleware
+    // -------------------------------------------------------------------------
+    AuthMiddleware::class => static fn(ContainerInterface $c): AuthMiddleware =>
+        new AuthMiddleware(
+            $c->get(AuthService::class),
+            $c->get(ResponseFactoryInterface::class),
+        ),
+
+    AdminMiddleware::class => static fn(ContainerInterface $c): AdminMiddleware =>
+        new AdminMiddleware($c->get(ResponseFactoryInterface::class)),
 
 ]);
 
