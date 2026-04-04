@@ -26,13 +26,13 @@
 | ~~T012~~ | ~~Integration Test: GitHub Sync E2E~~ | ~~0.5d~~ | ~~High~~ | ~~T010, T011~~ | ~~[task-dev-sync-integration-test.md](task-dev-sync-integration-test.md)~~ |
 
 ### Backlog — Phase 3: Analytics Engine
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T013 | Implement BurndownService | 1d | High | T002, T004, T006 |
-| T014 | Build Daily Burndown Snapshot Job | 0.5d | High | T002, T013 |
-| T015 | Implement EfficiencyService | 1d | High | T002, T004, T006 |
-| T016 | Implement TimeTrackingService with Audit | 1d | High | T002, T005, T006 |
-| T017 | Implement Admin User Management Endpoints | 0.5d | Medium | T005, T006 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T013 | Implement BurndownService | 1d | High | T002, T004, T006 | [task-dev-burndown-service.md](task-dev-burndown-service.md) |
+| T014 | Build Daily Burndown Snapshot Job | 0.5d | High | T002, T013 | [task-dev-burndown-snapshot-job.md](task-dev-burndown-snapshot-job.md) |
+| T015 | Implement EfficiencyService | 1d | High | T002, T004, T006 | [task-dev-efficiency-service.md](task-dev-efficiency-service.md) |
+| T016 | Implement TimeTrackingService with Audit | 1d | High | T002, T005, T006 | [task-dev-time-tracking-service.md](task-dev-time-tracking-service.md) |
+| T017 | Implement Admin User Management Endpoints | 0.5d | Medium | T005, T006 | [task-dev-admin-user-management.md](task-dev-admin-user-management.md) |
 
 ### Backlog — Phase 4: Frontend Dashboard
 | Task ID | Title | Effort | Priority | Dependencies |
