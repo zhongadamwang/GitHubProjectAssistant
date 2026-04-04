@@ -19,7 +19,7 @@
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
 | ~~T007~~ | ~~Write GraphQL Query Templates~~ | ~~0.5d~~ | ~~High~~ | ~~T001~~ | ~~[task-dev-graphql-query-templates.md](task-dev-graphql-query-templates.md)~~ |
-| T008 | Implement GitHubGraphQLService | 1.5d | High | T007 | [task-dev-github-graphql-service.md](task-dev-github-graphql-service.md) |
+| ~~T008~~ | ~~Implement GitHubGraphQLService~~ | ~~1.5d~~ | ~~High~~ | ~~T007~~ | ~~[task-dev-github-graphql-service.md](task-dev-github-graphql-service.md)~~ |
 | T009 | Implement GraphQL ResponseParser | 0.5d | High | T007 | [task-dev-graphql-response-parser.md](task-dev-graphql-response-parser.md) |
 | T010 | Build Sync Logic with Diff & Snapshot | 1.5d | High | T008, T009, T002 | [task-dev-sync-service.md](task-dev-sync-service.md) |
 | T011 | Create Cron Sync Entry Point | 0.5d | High | T010 | [task-dev-cron-sync-entry.md](task-dev-cron-sync-entry.md) |
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T008 — Implement GitHubGraphQLService | 2026-04-03 | `src/Services/GitHubGraphQLService.php` (cURL, retry, pagination, rate-limit), `src/Exceptions/GitHubApiException.php`, `src/Exceptions/RateLimitException.php`; wired into container |
 | T007 — Write GraphQL Query Templates | 2026-04-03 | `src/GraphQL/Queries.php` — `Queries` final class with `FETCH_VIEWER`, `FETCH_PROJECT_FIELDS`, `FETCH_PROJECT_ITEMS` heredoc constants; `get()` + `variables()` static helpers; full inline-fragment coverage for all field value types |
 | T001 — Initialize PHP Backend Project | 2026-04-03 | `OrgDocument/Solutions/ScrumMasterTool/` scaffold: `composer.json`, `.env.example`, `.gitignore`, full `src/` skeleton; `composer install` pending |
 | T002 — Create MySQL Schema & Migrations | 2026-04-03 | 6 migration SQL files + `migrate.php` idempotent runner; `migrations_log` auto-created; pending live MySQL test run |

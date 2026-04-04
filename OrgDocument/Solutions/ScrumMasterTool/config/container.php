@@ -23,6 +23,7 @@ use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Services\GitHubGraphQLService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -79,6 +80,21 @@ $builder->addDefinitions([
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
+    GitHubGraphQLService::class => static function (ContainerInterface $c): GitHubGraphQLService {
+        $github = $c->get('settings')['github'];
+
+        if (empty($github['pat'])) {
+            throw new \RuntimeException(
+                'GITHUB_PAT must be set in .env to use GitHubGraphQLService.'
+            );
+        }
+
+        return new GitHubGraphQLService(
+            pat:      $github['pat'],
+            endpoint: $github['graphql_url'],
+        );
+    },
+
     AuthService::class => static fn(ContainerInterface $c): AuthService =>
         new AuthService(
             $c->get(UserRepository::class),
