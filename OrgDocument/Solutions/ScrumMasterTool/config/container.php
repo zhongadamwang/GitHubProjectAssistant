@@ -21,9 +21,13 @@ use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Repositories\IssueRepository;
+use App\Repositories\ProjectRepository;
+use App\Repositories\SyncHistoryRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\GitHubGraphQLService;
+use App\Services\SyncService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -77,6 +81,15 @@ $builder->addDefinitions([
     UserRepository::class => static fn(ContainerInterface $c): UserRepository =>
         new UserRepository($c->get(PDO::class)),
 
+    ProjectRepository::class => static fn(ContainerInterface $c): ProjectRepository =>
+        new ProjectRepository($c->get(PDO::class)),
+
+    IssueRepository::class => static fn(ContainerInterface $c): IssueRepository =>
+        new IssueRepository($c->get(PDO::class)),
+
+    SyncHistoryRepository::class => static fn(ContainerInterface $c): SyncHistoryRepository =>
+        new SyncHistoryRepository($c->get(PDO::class)),
+
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
@@ -100,6 +113,21 @@ $builder->addDefinitions([
             $c->get(UserRepository::class),
             $c->get('settings')['session'],
         ),
+
+    SyncService::class => static function (ContainerInterface $c): SyncService {
+        $github = $c->get('settings')['github'];
+        $sync   = $c->get('settings')['sync'];
+
+        return new SyncService(
+            gitHub:        $c->get(GitHubGraphQLService::class),
+            projectRepo:   $c->get(ProjectRepository::class),
+            issueRepo:     $c->get(IssueRepository::class),
+            historyRepo:   $c->get(SyncHistoryRepository::class),
+            owner:         $github['org'],
+            projectNumber: $github['project_number'],
+            snapshotDir:   $sync['snapshot_dir'],
+        );
+    },
 
     // -------------------------------------------------------------------------
     // Controllers
