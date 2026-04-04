@@ -1,0 +1,38 @@
+# ScrumMasterTool — Apache front controller rewrite
+# Routes all non-static requests to public/index.php (Slim 4 entry point).
+
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If APP_BASE_PATH is set, the RewriteBase must match it.
+    # For a root install leave as "/". For a subdirectory (e.g. /dashboard)
+    # change to: RewriteBase /dashboard/
+    RewriteBase /
+
+    # Allow existing files and directories to be served directly
+    # (static assets in public/dist/, favicons, etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Route everything else to Slim's front controller
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# -------------------------------------------------------------------------
+# Security hardening
+# -------------------------------------------------------------------------
+
+# Prevent access to hidden files (.env, .git, etc.)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+
+# Suppress server version information
+ServerSignature Off
