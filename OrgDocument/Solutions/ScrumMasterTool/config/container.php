@@ -14,7 +14,11 @@ declare(strict_types=1);
  *   $container = require __DIR__ . '/../config/container.php';
  */
 
+use App\Controllers\AdminController;
 use App\Controllers\AuthController;
+use App\Controllers\IssueController;
+use App\Controllers\ProjectController;
+use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Repositories\UserRepository;
@@ -86,6 +90,12 @@ $builder->addDefinitions([
     // -------------------------------------------------------------------------
     AuthController::class => static fn(ContainerInterface $c): AuthController =>
         new AuthController($c->get(AuthService::class)),
+
+    // Placeholder controllers (Phase 2/3 will replace these with real services)
+    ProjectController::class => static fn(): ProjectController => new ProjectController(),
+    IssueController::class   => static fn(): IssueController   => new IssueController(),
+    SyncController::class    => static fn(): SyncController    => new SyncController(),
+    AdminController::class   => static fn(): AdminController   => new AdminController(),
 
     // -------------------------------------------------------------------------
     // Middleware

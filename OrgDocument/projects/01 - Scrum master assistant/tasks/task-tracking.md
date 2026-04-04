@@ -13,7 +13,7 @@
 
 
 
-| T006 | Configure Route Definitions | TBD | Not Started | High | 0.5d | [task-dev-route-definitions.md](task-dev-route-definitions.md) |
+
 
 ### Backlog — Phase 2: GitHub GraphQL Integration
 | Task ID | Title | Effort | Priority | Dependencies |
@@ -73,6 +73,7 @@
 | T003 — Create Database Seed Script | 2026-04-03 | `database/seed.php` — idempotent admin seeder; bcrypt cost 12; `.env` + CLI arg override; skip-on-duplicate logic |
 | T004 — Set Up Slim 4 Entry Point & Middleware | 2026-04-03 | `public/index.php`, `config/settings.php`, `config/container.php`, `CorsMiddleware`, `JsonResponseMiddleware`, `public/.htaccess`; health route `GET /api/health` |
 | T005 — Implement Authentication System | 2026-04-03 | `User` model, `UserRepository`, `AuthService` (session fixation guard, timing-safe), `AuthController` (login/logout/me), `AuthMiddleware` (401), `AdminMiddleware` (403); container wired |
+| T006 — Configure Route Definitions | 2026-04-03 | `config/routes.php` — 13 endpoints across 3 groups (public/auth/admin); 4 placeholder controllers (501); all wired into container |
 | Project Structure Setup | 2026-04-02 | EDPS project structure initialized |
 | Requirements Translation | 2026-04-02 | Chinese → English translation |
 | Requirements Analysis | 2026-04-02 | 12 structured requirements (R-001–R-012) |
