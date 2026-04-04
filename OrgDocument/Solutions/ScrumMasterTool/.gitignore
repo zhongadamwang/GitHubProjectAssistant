@@ -3,6 +3,7 @@
 
 # Environment — never commit secrets
 .env
+.env.test
 
 # JSON audit snapshots (data/snapshots/ directory contents, keep the directory)
 /data/snapshots/*.json

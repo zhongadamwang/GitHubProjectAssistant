@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+>
+    <testsuites>
+        <testsuite name="Phase1 Integration">
+            <directory>tests/Integration/Phase1</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <!-- Override APP_ENV so settings.php enables debug output during tests -->
+        <env name="APP_ENV"   value="testing" force="true"/>
+        <env name="APP_DEBUG" value="true"    force="true"/>
+    </php>
+
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>
