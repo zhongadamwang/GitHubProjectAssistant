@@ -1,0 +1,20 @@
+# Composer dependencies
+/vendor/
+
+# Environment — never commit secrets
+.env
+
+# JSON audit snapshots (data/snapshots/ directory contents, keep the directory)
+/data/snapshots/*.json
+
+# OS / IDE artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# PHPUnit cache
+.phpunit.cache/
+.phpunit.result.cache

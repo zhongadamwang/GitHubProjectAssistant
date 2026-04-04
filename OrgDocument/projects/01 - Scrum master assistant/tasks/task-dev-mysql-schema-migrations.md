@@ -2,6 +2,7 @@
 
 **Task ID**: T002  
 **Project**: PRJ-01 — Scrum Master Assistant  
+**Target Solution**: ScrumMasterTool (`OrgDocument/Solutions/ScrumMasterTool/`)
 **Created**: 2026-04-02  
 **Assignee**: TBD  
 **Sprint**: Phase 1 — Foundation  
