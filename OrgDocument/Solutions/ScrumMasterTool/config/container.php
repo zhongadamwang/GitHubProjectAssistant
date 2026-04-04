@@ -135,11 +135,16 @@ $builder->addDefinitions([
     AuthController::class => static fn(ContainerInterface $c): AuthController =>
         new AuthController($c->get(AuthService::class)),
 
-    // Placeholder controllers (Phase 2/3 will replace these with real services)
+    // Placeholder controllers (Phase 3 will add real services)
     ProjectController::class => static fn(): ProjectController => new ProjectController(),
     IssueController::class   => static fn(): IssueController   => new IssueController(),
-    SyncController::class    => static fn(): SyncController    => new SyncController(),
     AdminController::class   => static fn(): AdminController   => new AdminController(),
+
+    SyncController::class => static fn(ContainerInterface $c): SyncController =>
+        new SyncController(
+            $c->get(SyncService::class),
+            $c->get(SyncHistoryRepository::class),
+        ),
 
     // -------------------------------------------------------------------------
     // Middleware
