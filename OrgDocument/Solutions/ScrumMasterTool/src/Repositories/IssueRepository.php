@@ -67,14 +67,17 @@ final class IssueRepository
         );
 
         $stmt->execute([
-            'project_id'       => $projectId,
-            'github_issue_id'  => $issue->contentId,
-            'title'            => $issue->title,
-            'status'           => strtolower($issue->state),
-            'assignee'         => $assignee,
-            'labels'           => $labels,
-            'iteration'        => is_string($iteration) ? $iteration : null,
-            'github_updated_at' => $issue->updatedAt,
+            'project_id'        => $projectId,
+            'github_issue_id'   => $issue->contentId,
+            'title'             => $issue->title,
+            'status'            => strtolower($issue->state),
+            'assignee'          => $assignee,
+            'labels'            => $labels,
+            'iteration'         => is_string($iteration) ? $iteration : null,
+            // Normalize ISO 8601 ('2026-04-01T10:00:00Z') to MySQL DATETIME format
+            'github_updated_at' => $issue->updatedAt !== null
+                ? rtrim(str_replace('T', ' ', $issue->updatedAt), 'Z')
+                : null,
         ]);
     }
 

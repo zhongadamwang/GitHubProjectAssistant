@@ -49,7 +49,7 @@ final class SyncHistoryRepository
         );
 
         $stmt->execute([
-            'project_id'          => $record['project_id'],
+            'project_id'          => $record['project_id'] ?? null,
             'synced_at'           => gmdate('Y-m-d H:i:s'),
             'status'              => $record['status'],
             'issues_added'        => $record['issues_added']        ?? 0,

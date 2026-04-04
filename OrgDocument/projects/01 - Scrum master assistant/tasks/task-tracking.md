@@ -23,7 +23,7 @@
 | ~~T009~~ | ~~Implement GraphQL ResponseParser~~ | ~~0.5d~~ | ~~High~~ | ~~T007~~ | ~~[task-dev-graphql-response-parser.md](task-dev-graphql-response-parser.md)~~ |
 | ~~T010~~ | ~~Build Sync Logic with Diff & Snapshot~~ | ~~1.5d~~ | ~~High~~ | ~~T008, T009, T002~~ | ~~[task-dev-sync-service.md](task-dev-sync-service.md)~~ |
 | ~~T011~~ | ~~Create Cron Sync Entry Point~~ | ~~0.5d~~ | ~~High~~ | ~~T010~~ | ~~[task-dev-cron-sync-entry.md](task-dev-cron-sync-entry.md)~~ |
-| T012 | Integration Test: GitHub Sync E2E | 0.5d | High | T010, T011 | [task-dev-sync-integration-test.md](task-dev-sync-integration-test.md) |
+| ~~T012~~ | ~~Integration Test: GitHub Sync E2E~~ | ~~0.5d~~ | ~~High~~ | ~~T010, T011~~ | ~~[task-dev-sync-integration-test.md](task-dev-sync-integration-test.md)~~ |
 
 ### Backlog — Phase 3: Analytics Engine
 | Task ID | Title | Effort | Priority | Dependencies |
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T012 — Integration Test: GitHub Sync E2E | 2026-04-03 | 6 tests (first-run, idempotency, history rows, update detection, snapshot, API-failure, time-field preservation); `GitHubClientInterface` extracted; timestamp normalization fixed; migration 007 |
 | T011 — Create Cron Sync Entry Point | 2026-04-03 | `cron/sync.php` (PID lock, shutdown cleanup, exit codes 0/1/2); `SyncController` real impl (history + trigger); container updated |
 | T010 — Build Sync Logic with Diff & Snapshot | 2026-04-03 | `SyncService`, `SyncResult`, `ProjectRepository`, `IssueRepository`, `SyncHistoryRepository` — full 7-step sync cycle; time fields never overwritten |
 | T009 — Implement GraphQL ResponseParser | 2026-04-03 | `src/GraphQL/ResponseParser.php`, `src/Models/Project.php`, `src/Models/Issue.php` — static parser with `__typename` dispatch + key-presence fallback; `E_USER_WARNING` for unknown types |

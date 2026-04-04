@@ -29,7 +29,7 @@ use App\Repositories\SyncHistoryRepository;
 final class SyncService
 {
     public function __construct(
-        private readonly GitHubGraphQLService  $gitHub,
+        private readonly GitHubClientInterface $gitHub,
         private readonly ProjectRepository     $projectRepo,
         private readonly IssueRepository       $issueRepo,
         private readonly SyncHistoryRepository $historyRepo,
@@ -100,11 +100,15 @@ final class SyncService
             try {
                 $storedUpdatedAt = $this->issueRepo->getStoredUpdatedAt($issue->contentId, $projectId);
 
+                // Normalize GitHub ISO 8601 ('2026-04-01T10:00:00Z') to MySQL
+                // DATETIME format ('2026-04-01 10:00:00') for comparison.
+                $githubTs = $this->normalizeTimestamp($issue->updatedAt);
+
                 if ($storedUpdatedAt === null) {
                     // New issue — not yet in local DB
                     $this->issueRepo->upsertFromGitHub($issue, $projectId);
                     $added++;
-                } elseif ($issue->updatedAt !== null && $issue->updatedAt > $storedUpdatedAt) {
+                } elseif ($githubTs !== null && $githubTs > $storedUpdatedAt) {
                     // GitHub has a newer version
                     $this->issueRepo->upsertFromGitHub($issue, $projectId);
                     $updated++;
@@ -196,7 +200,7 @@ final class SyncService
     ): void {
         try {
             $this->historyRepo->insert([
-                'project_id'     => $projectId ?? 0,
+                'project_id'     => $projectId,
                 'status'         => $status,
                 'issues_added'   => $added,
                 'issues_updated' => $updated,
@@ -207,5 +211,21 @@ final class SyncService
             // Never let history write failures mask the original sync result
             trigger_error('SyncService: sync_history write failed: ' . $e->getMessage(), E_USER_WARNING);
         }
+    }
+
+    /**
+     * Normalise a GitHub ISO 8601 timestamp to MySQL DATETIME format.
+     *
+     * '2026-04-01T10:00:00Z' → '2026-04-01 10:00:00'
+     * Already-normalised values pass through unchanged.
+     * null → null
+     */
+    private function normalizeTimestamp(?string $ts): ?string
+    {
+        if ($ts === null) {
+            return null;
+        }
+
+        return rtrim(str_replace('T', ' ', $ts), 'Z');
     }
 }

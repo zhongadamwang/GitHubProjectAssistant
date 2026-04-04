@@ -24,7 +24,7 @@ use App\GraphQL\Queries;
  * cURL is used directly to avoid Guzzle/HTTPlug dependencies on cPanel
  * shared hosting (ADR-4).
  */
-final class GitHubGraphQLService
+final class GitHubGraphQLService implements GitHubClientInterface
 {
     /** GitHub GraphQL v4 endpoint. */
     private const DEFAULT_ENDPOINT = 'https://api.github.com/graphql';
