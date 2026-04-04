@@ -13,25 +13,25 @@
 Create seed script that initializes the first admin user with bcrypt-hashed password. Ensure idempotent execution (skip if admin exists).
 
 ### Acceptance Criteria
-- [ ] `seed.php` creates admin user with `password_hash()` (bcrypt, cost 12)
-- [ ] Seed is idempotent — does not duplicate if run multiple times
-- [ ] Admin email and password configurable via `.env` or CLI arguments
-- [ ] Outputs confirmation message on success
+- [x] `seed.php` creates admin user with `password_hash()` (bcrypt, cost 12)
+- [x] Seed is idempotent — does not duplicate if run multiple times
+- [x] Admin email and password configurable via `.env` or CLI arguments
+- [x] Outputs confirmation message on success
 
 ### Tasks/Subtasks
-- [ ] Create `database/seed.php` entry point
-- [ ] Load `.env` config for default admin credentials
-- [ ] Connect to MySQL using PDO from container config
-- [ ] Check if admin user already exists (by email)
-- [ ] Insert admin user with hashed password if not exists
-- [ ] Output success/skip message to console
-- [ ] Support CLI argument override: `php seed.php --email=admin@example.com --password=secret`
+- [x] Create `database/seed.php` entry point
+- [x] Load `.env` config for default admin credentials
+- [x] Connect to MySQL using PDO from container config
+- [x] Check if admin user already exists (by email)
+- [x] Insert admin user with hashed password if not exists
+- [x] Output success/skip message to console
+- [x] Support CLI argument override: `php seed.php --email=admin@example.com --password=secret`
 
 ### Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Seed script runs idempotently (safe to re-run)
-- [ ] Admin user can be verified in database
-- [ ] Password is properly bcrypt-hashed (never stored in plaintext)
+- [x] All acceptance criteria met
+- [x] Seed script runs idempotently (safe to re-run)
+- [x] Admin user can be verified in database
+- [x] Password is properly bcrypt-hashed (never stored in plaintext)
 
 ### Dependencies
 - T002 — Database schema must exist (`users` table)
@@ -53,8 +53,8 @@ High — Required before authentication can be tested
 - Source Requirements: ADR-7
 
 ### Progress Updates
-*No updates yet*
+- **2026-04-03**: Implemented `database/seed.php`. Idempotent admin seeder with bcrypt cost 12, `.env` + CLI arg support, email validation, and skip-on-duplicate logic.
 
 ---
-**Status**: Not Started  
-**Last Updated**: 2026-04-02
+**Status**: Completed  
+**Last Updated**: 2026-04-03
