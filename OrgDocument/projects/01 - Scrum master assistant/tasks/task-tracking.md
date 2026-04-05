@@ -54,7 +54,7 @@
 | ~~T028~~ | ~~Create GitHub Actions Deploy Workflow~~ | ~~1d~~ | ~~High~~ | ~~T001, T004, T018~~ | ~~[task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md)~~ |
 | ~~T029~~ | ~~Configure cPanel Cron Job~~ | ~~0.5d~~ | ~~High~~ | ~~T011, T028~~ | ~~[task-dev-cpanel-cron.md](task-dev-cpanel-cron.md)~~ |
 | ~~T030~~ | ~~Write Environment Configuration Template~~ | ~~0.5d~~ | ~~Medium~~ | ~~T001~~ | ~~[task-dev-env-config-template.md](task-dev-env-config-template.md)~~ |
-| T031 | Write Deployment Guide | 1d | Medium | T028, T029 | [task-dev-deployment-guide.md](task-dev-deployment-guide.md) |
+| ~~T031~~ | ~~Write Deployment Guide~~ | ~~1d~~ | ~~Medium~~ | ~~T028, T029~~ | ~~[task-dev-deployment-guide.md](task-dev-deployment-guide.md)~~ |
 
 ### Backlog — Phase 6: Polish & Validation
 | Task ID | Title | Effort | Priority | Dependencies |
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T031 — Write Deployment Guide | 2026-04-05 | `OrgDocument/Solutions/ScrumMasterTool/README.md` created; 8 sections: Project Overview (features list), Tech Stack table, Prerequisites table, Local Development (8 steps), cPanel Manual Deployment (7 steps + SFTP exclude table), GitHub Actions (workflow steps + 9-secret table + manual trigger), Troubleshooting (6 entries), Architecture Reference; all 9 deploy.yml secrets documented |
 | T029 — Configure cPanel Cron Job | 2026-04-05 | `cron/setup.sh` auto-detects PHP 8.2+ binary from 5 EA4 candidate paths, creates `~/logs/` + `data/snapshots/`, runs manual test sync, prints exact cron command; `cron/logrotate.conf` reference config; `deploy.yml` step 5 extended to create dirs via SSH and echo cron command to Actions log; lock file confirmed at `data/sync.lock` (cleaned by `register_shutdown_function`); live cPanel Cron Jobs panel entry requires server access |
 | T030 — Write Environment Configuration Template | 2026-04-05 | Audited all `$_ENV` usage; added `GITHUB_PROJECT_NUMBER` (was missing), `APP_URL`, seed vars (`ADMIN_EMAIL`/`ADMIN_PASSWORD`/`ADMIN_NAME`); added DO-NOT-COMMIT header; production callouts for `APP_ENV` and `SESSION_SECURE`; corrected var name `ADMIN_NAME` (not ADMIN_DISPLAY_NAME) |
 | T028 — Create GitHub Actions Deploy Workflow | 2026-04-05 | `.github/workflows/deploy.yml` at repo root; checkout → Node 20 + npm ci + build → PHP 8.2 + composer install --no-dev → lftp SFTP mirror (excludes .env, tests/, frontend/, snapshots/) → appleboy/ssh-action migrate; `workflow_dispatch` for manual runs; 9 secrets: SFTP_HOST/PORT/USER/PASSWORD, REMOTE_PATH, SSH_HOST/USER/KEY/PORT |
@@ -115,10 +116,10 @@
 ## Progress Summary
 - **Total Tasks**: 36 development tasks (0 active sprint, 8 backlog) + 9 planning tasks completed
 - **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
-- **Phase 5 Progress**: T028 ✅, T029 ✅, T030 ✅ — T031 remaining
-- **Phases Remaining**: Phase 5 (1 task left: T031), Phase 6 (Polish & Validation — 5 tasks)
-- **Critical Path**: T031 (deployment guide) → T032 (E2E testing)
+- **Phase 5 Progress**: T028 ✅, T029 ✅, T030 ✅, T031 ✅ — Phase 5 Complete
+- **Phases Remaining**: Phase 6 (Polish & Validation — 5 tasks)
+- **Critical Path**: T032 (E2E testing) → T033/T034/T035/T036
 
 ## Next Actions
-1. T031 — Write Deployment Guide (T028, T029, T030 all done — ready to draft)
-2. Phase 6: T032–T036 after T031 completes
+1. T032 — End-to-End Integration Testing (all Phase 1–5 complete; detail task file and implement)
+2. T033–T036 — Polish, security review, error handling, documentation (can run in parallel after T032)
