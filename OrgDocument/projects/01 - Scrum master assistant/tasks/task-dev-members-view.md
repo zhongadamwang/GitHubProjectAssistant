@@ -26,10 +26,10 @@ Build the member efficiency analysis page. It shows a grouped bar chart comparin
 - [ ] Empty state shown if no efficiency data exists for the selected filter
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/components/EfficiencyChart.vue` — accepts `members` prop (array of `{login, estimated, actual}`); builds Chart.js grouped bar config; destroys chart in `onUnmounted`
-- [ ] Create `frontend/src/views/MembersView.vue` — iteration filter, `<EfficiencyChart>`, accuracy table with computed ratio and color class
-- [ ] Add `fetchMembers(projectId, iteration)` action to `projectStore.js` (created in T023); or create a separate `membersStore.js` if complexity warrants
-- [ ] Register `/members` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
+- [x] Create `frontend/src/components/EfficiencyChart.vue` — accepts `members` prop (array of `{login, estimated, actual}`); builds Chart.js grouped bar config; destroys chart in `onUnmounted`
+- [x] Create `frontend/src/views/MembersView.vue` — iteration filter, `<EfficiencyChart>`, accuracy table with computed ratio and color class
+- [x] Add `fetchMembers(projectId, iteration)` action to `projectStore.js` (created in T023)
+- [x] Register `/members` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -58,8 +58,8 @@ High — Efficiency analysis is a key product differentiator (R-008)
 - Source Requirements: R-008
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `EfficiencyChart.vue` — Chart.js grouped bar chart (blue = estimated, orange = actual), `onMounted`/`onUnmounted` destroy guard. Created `MembersView.vue` — iteration filter dropdown, `<EfficiencyChart>`, accuracy table with ratio color coding (accurate/over/under/na), divide-by-zero guard (shows "N/A"). `fetchMembers()` added to `projectStore.js`.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

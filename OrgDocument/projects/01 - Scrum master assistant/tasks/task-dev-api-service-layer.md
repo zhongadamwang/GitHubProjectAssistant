@@ -11,9 +11,9 @@
 Create a centralized Axios-based API client used by all Pinia stores and components. The module exposes named async functions that wrap every backend endpoint. A 401 response interceptor auto-triggers logout and redirect to `/login`.
 
 ### Acceptance Criteria
-- [ ] `frontend/src/services/api.js` creates an Axios instance with `baseURL: '/api'` and `withCredentials: true`
-- [ ] Response interceptor: on HTTP 401, calls `authStore.logout()` and navigates to `/login`
-- [ ] Named methods exported (all return unwrapped `response.data`):
+- [x] `frontend/src/services/api.js` creates an Axios instance with `baseURL: '/api'` and `withCredentials: true`
+- [x] Response interceptor: on HTTP 401, calls `authStore.logout()` and navigates to `/login`
+- [x] Named methods exported (all return unwrapped `response.data`):
   - `login(email, password)` → `POST /auth/login`
   - `logout()` → `POST /auth/logout`
   - `getMe()` → `GET /auth/me`
@@ -29,16 +29,16 @@ Create a centralized Axios-based API client used by all Pinia stores and compone
   - `createUser(data)` → `POST /admin/users`
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/services/api.js` — Axios instance with `baseURL` and `withCredentials`
-- [ ] Add response interceptor for 401 → logout + redirect
-- [ ] Implement all 13 named methods with correct HTTP verbs and paths
-- [ ] Export all methods as named exports (and optionally a default `api` instance)
+- [x] Create `frontend/src/services/api.js` — Axios instance with `baseURL` and `withCredentials`
+- [x] Add response interceptor for 401 → logout + redirect
+- [x] Implement all 13 named methods with correct HTTP verbs and paths
+- [x] Export all methods as named exports (and optionally a default `api` instance)
 
 ### Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Each method maps to the correct endpoint defined in `config/routes.php`
-- [ ] 401 response on any call triggers logout and navigates to `/login`
-- [ ] No raw `axios.get(...)` calls in stores or components — all go through `api.js`
+- [x] All acceptance criteria met
+- [x] Each method maps to the correct endpoint defined in `config/routes.php`
+- [x] 401 response on any call triggers logout and navigates to `/login`
+- [x] No raw `axios.get(...)` calls in stores or components — all go through `api.js`
 
 ### Dependencies
 - T018 — Vue 3 Vite project scaffold
@@ -61,8 +61,8 @@ High — Required by all store-level data fetching (T022–T026)
 - Source Requirements: R-012
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `frontend/src/services/api.js` — Axios instance (`baseURL: '/api'`, `withCredentials: true`); 401 interceptor (dynamic import of authStore + router to avoid circular deps); 13 named exports: `login`, `logout`, `getMe`, `getProjects`, `getProject`, `getIssues`, `updateIssueTime`, `getBurndown`, `getMembers`, `getSyncHistory`, `triggerSync`, `getUsers`, `createUser`. All methods unwrap `response.data`. Default axios instance also exported.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

@@ -17,6 +17,19 @@ if (file_exists($envPath . '/.env')) {
     $dotenv->load();
 }
 
+// Serve compiled Vue SPA for all non-API routes so that client-side
+// navigation (Vue Router history mode) works when the page is refreshed.
+$uri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = parse_url($uri, PHP_URL_PATH);
+if (!str_starts_with($path, '/api/')) {
+    $distIndex = __DIR__ . '/dist/index.html';
+    if (is_file($distIndex)) {
+        header('Content-Type: text/html; charset=UTF-8');
+        readfile($distIndex);
+        exit;
+    }
+}
+
 /** @var \Slim\App $app */
 $app = require dirname(__DIR__) . '/bootstrap/app.php';
 

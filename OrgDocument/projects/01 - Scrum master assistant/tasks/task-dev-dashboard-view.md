@@ -27,12 +27,12 @@ Build the main dashboard page. It shows a sprint selector dropdown and a Chart.j
 - [ ] Empty state shown when no burndown data is available yet
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/stores/dashboardStore.js` — `fetchBurndown()`, `refresh()`, state slice
-- [ ] Create `frontend/src/components/BurndownChart.vue` — receives `points` prop; builds Chart.js config; uses `onMounted`/`onUnmounted` to init and destroy chart instance
-- [ ] Create `frontend/src/components/SprintSelector.vue` — `modelValue` + `update:modelValue` for v-model compatibility; emits selected iteration
-- [ ] Create `frontend/src/components/HealthBadge.vue` — computes health status from last actual vs ideal point; renders colored badge
-- [ ] Create `frontend/src/views/DashboardView.vue` — composes above components, calls `dashboardStore.fetchBurndown()` on mount, responds to sprint selection changes
-- [ ] Register `/` route in `frontend/src/router/index.js` pointing to `DashboardView`; mark `requiresAuth: true`
+- [x] Create `frontend/src/stores/dashboardStore.js` — `fetchBurndown()`, `refresh()`, state slice
+- [x] Create `frontend/src/components/BurndownChart.vue` — receives `points` prop; builds Chart.js config; uses `onMounted`/`onUnmounted` to init and destroy chart instance
+- [x] Create `frontend/src/components/SprintSelector.vue` — `modelValue` + `update:modelValue` for v-model compatibility; emits selected iteration
+- [x] Create `frontend/src/components/HealthBadge.vue` — computes health status from last actual vs ideal point; renders colored badge
+- [x] Create `frontend/src/views/DashboardView.vue` — composes above components, calls `dashboardStore.fetchBurndown()` on mount, responds to sprint selection changes
+- [x] Register `/` route in `frontend/src/router/index.js` pointing to `DashboardView`; mark `requiresAuth: true`
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -63,8 +63,8 @@ High — Core dashboard feature; required by T027 (auto-refresh)
 - Source Requirements: R-005, R-006, R-007
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `frontend/src/stores/dashboardStore.js` — Pinia store with `points`, `iteration`, `loading`, `error`, `pollingTimer` state; `health` getter (on-track/at-risk/behind); `fetchBurndown()`, `refresh()`, `startPolling()`, `stopPolling()` actions with in-flight guard. Created `BurndownChart.vue` — Chart.js line chart (ideal: dashed blue, actual: solid red), `onMounted`/`onUnmounted` destroy guard. Created `SprintSelector.vue` — v-model compatible dropdown. Created `HealthBadge.vue` — colored badge for on-track/at-risk/behind. Created `DashboardView.vue` — project + sprint selectors, burndown chart, health badge, loading bar, error banner; `onMounted` starts 30s polling; `onUnmounted` stops polling.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

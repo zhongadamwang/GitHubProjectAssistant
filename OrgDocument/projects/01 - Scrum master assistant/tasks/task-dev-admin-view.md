@@ -24,9 +24,9 @@ Build the admin-only user management page. Admins can view existing users and cr
 - [ ] Loading state on submit button
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/views/AdminView.vue` — `v-if="authStore.isAdmin"` guard; users list from `api.getUsers()` on mount; inline "Add User" form with `ref` state for all fields; submit handler
-- [ ] Register `/admin` route in `frontend/src/router/index.js`; mark `requiresAuth: true, requiresAdmin: true`
-- [ ] Add password strength indicator (optional but recommended for admin UX)
+- [x] Create `frontend/src/views/AdminView.vue` — `v-if="authStore.isAdmin"` guard; users list from `api.getUsers()` on mount; inline "Add User" form with `ref` state for all fields; submit handler
+- [x] Register `/admin` route in `frontend/src/router/index.js`; mark `requiresAuth: true, requiresAdmin: true`
+- [x] Add password strength indicator (optional but recommended for admin UX)
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -55,8 +55,8 @@ Medium — Required for initial system setup (admin creates member accounts)
 - Source Requirements: ADR-7
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `AdminView.vue` — users table (email, display_name, role badge, github_username, last_login_at); "Add User" form with email/display_name/password/role/github_username fields; client-side validation (required, email regex, password min-8); `formError` for 409 duplicate/422 validation; `formSuccess` banner (3s auto-dismiss); new user appended to list on 201 without full reload. Route `/admin` registered with `requiresAuth + requiresAdmin` meta.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

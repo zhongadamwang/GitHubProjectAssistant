@@ -24,10 +24,10 @@ Build the issues management page showing a sortable, filterable table of all pro
 - [ ] Loading skeleton shown while initial fetch is in progress
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/stores/projectStore.js` — `fetchIssues()` action, filter/sort state, `filteredIssues` computed
-- [ ] Create `frontend/src/components/IssueTimeEditor.vue` — three numeric inputs, v-model per field, blur/enter handler calling `api.updateIssueTime`; optimistic update pattern (revert on error)
-- [ ] Create `frontend/src/views/IssuesView.vue` — filter controls, sortable table headers, `<IssueTimeEditor>` per row, footer totals row
-- [ ] Register `/issues` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
+- [x] Create `frontend/src/stores/projectStore.js` — `fetchIssues()` action, filter/sort state, `filteredIssues` computed
+- [x] Create `frontend/src/components/IssueTimeEditor.vue` — three numeric inputs, v-model per field, blur/enter handler calling `api.updateIssueTime`; optimistic update pattern (revert on error)
+- [x] Create `frontend/src/views/IssuesView.vue` — filter controls, sortable table headers, `<IssueTimeEditor>` per row, footer totals row
+- [x] Register `/issues` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -58,8 +58,8 @@ High — Core time-tracking UI feature; required by T027 (auto-refresh)
 - Source Requirements: R-004, R-006
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `frontend/src/stores/projectStore.js` — `issues`, `members`, `projects` state; `filterAssignee`, `filterIteration`, `filterStatus`, `sortKey`, `sortDir` filters; `filteredIssues` computed getter with filter + sort; `uniqueAssignees`/`uniqueIterations` setters; `totals` getter; `fetchIssues()`, `saveIssueTime()` (optimistic update + rollback), `setSort()`, `startPolling()`, `stopPolling()` actions. Created `IssueTimeEditor.vue` — three number inputs (estimated/remaining/actual), saves on blur or Enter, flash-success/flash-error CSS, emits `saved` event, optimistic store update. Created `IssuesView.vue` — assignee/iteration/status filter controls, sortable column headers with indicators, `<IssueTimeEditor>` per row, footer totals row, 60s polling via store.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

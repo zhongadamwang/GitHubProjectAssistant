@@ -68,7 +68,16 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
-| T017 — Implement Admin User Management Endpoints | 2026-04-04 | `UserRepository::findAll()` (no password_hash); `AdminController::listUsers()` (200 + users array); `AdminController::createUser()` (201/409/422, validates email/display_name/password/role); `container.php` AdminController injects UserRepository; 7-test `AdminControllerTest` in Phase3/ |
+| T027 — Implement Auto-Refresh & Polling | 2026-04-05 | `dashboardStore.startPolling(30s)` + `stopPolling()` with in-flight guard; `projectStore.startPolling(60s)` + `stopPolling()`; `DashboardView` mounts/unmounts polling; `IssuesView` mounts/unmounts polling + immediate re-fetch on `IssueTimeEditor` `saved` event |
+| T026 — Build Admin View (User Management) | 2026-04-05 | `AdminView.vue` — users table + Add User form; client-side validation (email, min-8 password); 409/422 error handling; new user appended without reload; route guarded by `requiresAdmin` |
+| T025 — Build Sync Status View | 2026-04-05 | `SyncStatus.vue` (ok/stale/error/unknown indicator); `SyncView.vue` — history table (top 20), summary stats, "Sync Now" button (admin-only, loading spinner, 4s auto-dismiss feedback) |
+| T024 — Build Members View with Efficiency Charts | 2026-04-05 | `EfficiencyChart.vue` (grouped bar: blue=estimated, orange=actual); `MembersView.vue` — iteration filter, chart, accuracy table with ratio color coding (accurate 0.9–1.1/over/under); N/A guard for zero estimates |
+| T023 — Build Issues View with Time Editor | 2026-04-05 | `projectStore.js` (filteredIssues computed, filter/sort state, totals getter, saveIssueTime optimistic update); `IssueTimeEditor.vue` (3 numeric inputs, blur/Enter save, flash-success/error, emits `saved`); `IssuesView.vue` (filter controls, sortable headers, footer totals, 60s polling) |
+| T022 — Build Dashboard View with Burndown Chart | 2026-04-05 | `dashboardStore.js` (fetchBurndown, refresh, health getter, startPolling/stopPolling); `BurndownChart.vue` (ideal dashed blue, actual solid red, Chart.js destroy guard); `SprintSelector.vue`; `HealthBadge.vue`; `DashboardView.vue` |
+| T021 — Build API Service Layer | 2026-04-05 | `frontend/src/services/api.js` — Axios instance (baseURL=/api, withCredentials); 401 interceptor (dynamic import to avoid circular deps); 13 named exports covering all API endpoints |
+| T020 — Build Auth Store & Route Guards | 2026-04-05 | `authStore.js` (Pinia Options API: user state, isAuthenticated/isAdmin getters, login/logout/fetchMe/clearAuth actions); `router.beforeEach()` guards `requiresAuth` + `requiresAdmin` meta |
+| T019 — Build Login View | 2026-04-05 | `LoginView.vue` — email/password form, `@submit.prevent`, 401→"Invalid credentials" / generic fallback, button disabled during request, Enter submits, scoped card layout |
+| T018 — Initialize Vue 3 + Vite Project | 2026-04-05 | `frontend/` scaffold: `package.json`, `vite.config.js` (build.outDir=../public/dist, proxy /api→localhost:8080), `index.html`, `App.vue`, `main.js`; all dirs created; `.gitignore` updated; `public/index.php` SPA fallback added | `UserRepository::findAll()` (no password_hash); `AdminController::listUsers()` (200 + users array); `AdminController::createUser()` (201/409/422, validates email/display_name/password/role); `container.php` AdminController injects UserRepository; 7-test `AdminControllerTest` in Phase3/ |
 | T016 — Implement TimeTrackingService with Audit | 2026-04-04 | `TimeLogRepository` (insert, findByIssue); `TimeTrackingService` (validated partial update, PDO transaction, read-before-write audit); `IssueRepository::findByProject()` (filter builder) + `getCountsByProject()` + `findById()`; `ProjectRepository::findAll()` + `findById()`; `IssueController` (getIssues, updateTime — auth_user from request); `ProjectController` (listProjects, getProject with live counts); `TimeLogRepository`+`TimeTrackingService` wired; `IssueController`/`ProjectController` replaced with injected versions; routes updated; 7-test `TimeTrackingServiceTest` in Phase3/ |
 | T015 — Implement EfficiencyService | 2026-04-04 | `IssueRepository::aggregateEfficiencyByMember()` + `aggregateEfficiencyByMemberAndIteration()`; `EfficiencyService` (getMemberEfficiency, getMemberTrend, null-safe ratio); `MemberController` (GET /api/projects/{id}/members); container+routes wired; 9-test `EfficiencyServiceTest` in Phase3/ |
 | T014 — Build Daily Burndown Snapshot Job | 2026-04-04 | `IssueRepository::aggregateTimeByIteration()` (GROUP BY iteration, COALESCE for NULLs); `BurndownService::captureDaily()` full impl (replaces stub); `BurndownService` constructor now injects `IssueRepository`; `SyncService` step 6b hook with try/catch guard; `container.php` updated for both services; 5-test `CaptureDailyTest` suite (value mapping, idempotency, multi-iteration, empty project, UTC date) |
@@ -101,13 +110,12 @@
 | *No blocked tasks* | - | - | - |
 
 ## Progress Summary
-- **Total Tasks**: 36 development tasks (6 active sprint, 30 backlog) + 9 planning tasks completed
-- **Sprint Progress**: Phase 1 ready to start (6 tasks, 5 days effort)
-- **Velocity**: N/A (first development sprint)
-- **Critical Path**: T001 → T002 → T005 → T006 → T010 → T012 → T018 → T022 → T032
+- **Total Tasks**: 36 development tasks (0 active sprint, 10 backlog) + 9 planning tasks completed
+- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
+- **Phases Remaining**: Phase 5 (Deployment Pipeline — 4 tasks), Phase 6 (Polish & Validation — 5 tasks)
+- **Critical Path**: T028 (GitHub Actions deploy) → T031 (Deployment Guide) → T032 (E2E testing)
 
 ## Next Actions
-1. Assign Phase 1 tasks to developer(s)
-2. Start T001 (Initialize PHP Backend Project) and T004 (Slim 4 Entry Point) in parallel
-3. Set up development MySQL database
-4. Obtain GitHub PAT with `read:project` and `repo` scopes for integration testing
+1. Start Phase 5: T028 (GitHub Actions Deploy Workflow) + T030 (Env Config Template) in parallel
+2. Run `npm install` in `frontend/` and verify `npm run build` succeeds
+3. Verify full stack works end-to-end with a local MySQL + PHP dev server before deploying

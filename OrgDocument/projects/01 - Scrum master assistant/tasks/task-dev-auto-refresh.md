@@ -20,11 +20,11 @@ Add background polling to the Dashboard and Issues views. The Dashboard burndown
 - [ ] No duplicate requests: if a previous poll fetch is still in-flight when the next interval fires, skip the new request
 
 ### Tasks/Subtasks
-- [ ] Update `frontend/src/stores/dashboardStore.js` — add `startPolling(intervalMs)` and `stopPolling()` methods using `setInterval`; track `pollingTimer` ref; guard against in-flight duplicates via `loading` flag
-- [ ] Update `frontend/src/views/DashboardView.vue` — call `dashboardStore.startPolling(30000)` in `onMounted`; call `dashboardStore.stopPolling()` in `onUnmounted`
-- [ ] Update `frontend/src/stores/projectStore.js` — add `startPolling(intervalMs)` / `stopPolling()` with same pattern (60-second default)
-- [ ] Update `frontend/src/views/IssuesView.vue` — mount/unmount polling; listen for `saved` event from `IssueTimeEditor` to trigger immediate `fetchIssues()`
-- [ ] Update `frontend/src/components/IssueTimeEditor.vue` — emit `saved` event on successful API response
+- [x] Update `frontend/src/stores/dashboardStore.js` — add `startPolling(intervalMs)` and `stopPolling()` methods using `setInterval`; track `pollingTimer` ref; guard against in-flight duplicates via `loading` flag
+- [x] Update `frontend/src/views/DashboardView.vue` — call `dashboardStore.startPolling(30000)` in `onMounted`; call `dashboardStore.stopPolling()` in `onUnmounted`
+- [x] Update `frontend/src/stores/projectStore.js` — add `startPolling(intervalMs)` / `stopPolling()` with same pattern (60-second default)
+- [x] Update `frontend/src/views/IssuesView.vue` — mount/unmount polling; listen for `saved` event from `IssueTimeEditor` to trigger immediate `fetchIssues()`
+- [x] Update `frontend/src/components/IssueTimeEditor.vue` — emit `saved` event on successful API response
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -53,8 +53,8 @@ Medium — Enhances data freshness; not blocking for initial release but require
 - Source Requirements: R-006
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: `dashboardStore.startPolling(projectId, intervalMs=30000)` / `stopPolling()` with `pollingTimer` state and `if (!this.loading)` in-flight guard implemented alongside T022. `projectStore.startPolling(projectId, intervalMs=60000)` / `stopPolling()` with `issuesPollingTimer` and `if (!this.issuesLoading)` guard implemented alongside T023. `DashboardView.onMounted` calls `startPolling(30000)` + `onUnmounted` calls `stopPolling()`. `IssuesView.onMounted` calls `startPolling(60000)` + `onUnmounted` calls `stopPolling()`. `IssueTimeEditor` emits `saved` event; `IssuesView` handles `@saved="onSaved"` triggering immediate `fetchIssues()`.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

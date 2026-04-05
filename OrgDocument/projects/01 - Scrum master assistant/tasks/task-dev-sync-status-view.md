@@ -22,10 +22,10 @@ Build the sync monitoring page. It shows the timestamp and result of the last Gi
 - [ ] History table shows up to 20 most recent entries; sorted newest-first
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/components/SyncStatus.vue` — computed color class based on `lastSyncAt` ISO string and `lastStatus`; emits no events (display-only)
-- [ ] Create `frontend/src/views/SyncView.vue` — fetches `getSyncHistory()` on mount; renders `<SyncStatus>`, summary stats, and history table; conditionally shows "Sync Now" button for admin
-- [ ] Add `triggerSync()` action handler in `SyncView` — calls `api.triggerSync()`, awaits, refreshes history data
-- [ ] Register `/sync` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
+- [x] Create `frontend/src/components/SyncStatus.vue` — computed color class based on `lastSyncAt` ISO string and `lastStatus`; emits no events (display-only)
+- [x] Create `frontend/src/views/SyncView.vue` — fetches `getSyncHistory()` on mount; renders `<SyncStatus>`, summary stats, and history table; conditionally shows "Sync Now" button for admin
+- [x] Add `triggerSync()` action handler in `SyncView` — calls `api.triggerSync()`, awaits, refreshes history data
+- [x] Register `/sync` route in `frontend/src/router/index.js`; mark `requiresAuth: true`
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -54,8 +54,8 @@ Medium — Operational visibility; required for admin monitoring
 - Source Requirements: R-001, R-003
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `SyncStatus.vue` — computed status (ok/stale/error/unknown) from `lastSyncAt` age vs 30-min threshold and `lastStatus`; colored dot + label badge. Created `SyncView.vue` — fetches `getSyncHistory()` on mount (top 20 entries); displays `<SyncStatus>`, summary `<dl>` with last sync timestamp/points/counts; sync history table; "Sync Now" button (admin only, loading spinner, success/error banner with 4s auto-dismiss); refreshes history after successful trigger.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05

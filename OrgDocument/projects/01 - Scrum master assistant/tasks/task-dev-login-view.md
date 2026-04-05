@@ -21,11 +21,11 @@ Create the login page presented to unauthenticated users. The form POSTs credent
 - [ ] No credentials stored in Pinia or localStorage — only HTTP session cookie
 
 ### Tasks/Subtasks
-- [ ] Create `frontend/src/views/LoginView.vue` — form with `v-model` bindings, `ref` for loading/error state, `@submit.prevent` handler
-- [ ] Wire `LoginView` into `frontend/src/router/index.js` at path `/login`
-- [ ] Import API service (`api.login(email, password)`) — method to be created in T021; stub or inline axios call acceptable here
-- [ ] Add redirect logic: `router.push('/')` on success, set `errorMessage` ref on failure
-- [ ] Style: centered card layout, responsive, no external CSS framework required (basic CSS-in-component)
+- [x] Create `frontend/src/views/LoginView.vue` — form with `v-model` bindings, `ref` for loading/error state, `@submit.prevent` handler
+- [x] Wire `LoginView` into `frontend/src/router/index.js` at path `/login`
+- [x] Import API service (`api.login(email, password)`) — method to be created in T021; stub or inline axios call acceptable here
+- [x] Add redirect logic: `router.push('/')` on success, set `errorMessage` ref on failure
+- [x] Style: centered card layout, responsive, no external CSS framework required (basic CSS-in-component)
 
 ### Definition of Done
 - [ ] All acceptance criteria met
@@ -53,8 +53,8 @@ High — Required by T020 (Auth Store) and all authenticated views
 - Source Requirements: ADR-7
 
 ### Progress Updates
-_(none yet)_
+- **2026-04-05**: Created `frontend/src/views/LoginView.vue` — `<script setup>` with `v-model` email/password refs, `loading`/`errorMessage` refs, `@submit.prevent` handler calling `authStore.login()`; 401 → "Invalid email or password", any other error → "Login failed"; button disabled during request; Enter key submits; scoped CSS card layout. Route registered at `/login` in router.
 
 ---
-**Status**: Not Started  
+**Status**: Completed  
 **Last Updated**: 2026-04-05
