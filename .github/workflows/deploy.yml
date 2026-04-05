@@ -1,0 +1,116 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+  # Allow manual trigger from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      SOLUTION_DIR: OrgDocument/Solutions/ScrumMasterTool
+      FRONTEND_DIR: OrgDocument/Solutions/ScrumMasterTool/frontend
+
+    steps:
+      # ─────────────────────────────────────────────────────────────────────
+      # 1. Checkout
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 2. Build Vue 3 frontend (outputs to public/dist/)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: npm ci
+
+      - name: Build Vue frontend
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: npm run build
+        # Output goes to OrgDocument/Solutions/ScrumMasterTool/public/dist/
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 3. Install PHP Composer dependencies (production only)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, curl, mbstring
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: ${{ env.SOLUTION_DIR }}
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 4. Deploy via SFTP (lftp incremental mirror)
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy files to cPanel via SFTP
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+        run: |
+          # Write lftp config to suppress prompts
+          mkdir -p ~/.lftp
+          cat > ~/.lftp/rc << 'EOF'
+          set ssl:verify-certificate false
+          set sftp:auto-confirm yes
+          set net:timeout 30
+          set net:max-retries 3
+          EOF
+
+          LOCAL_SRC="$(pwd)/$SOLUTION_DIR"
+
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" sftp://"$SFTP_HOST":"$SFTP_PORT" << EOF
+          set sftp:connect-program "ssh -a -x -p $SFTP_PORT"
+          mirror \
+            --reverse \
+            --delete \
+            --verbose \
+            --exclude-glob .env \
+            --exclude-glob .env.test \
+            --exclude-glob .env.test.example \
+            --exclude-glob '*.lock' \
+            --exclude-glob '*.sqlite' \
+            --exclude-glob 'data/snapshots/*' \
+            --exclude-glob 'frontend/*' \
+            --exclude-glob 'tests/*' \
+            --exclude-glob 'phpunit.xml' \
+            --exclude-glob 'technical-architecture.md' \
+            "$LOCAL_SRC/" "$REMOTE_PATH/"
+          bye
+          EOF
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 5. Post-deploy: run database migrations via SSH
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Run database migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            php ${{ secrets.REMOTE_PATH }}/database/migrate.php
+            echo "Migration completed at $(date)"

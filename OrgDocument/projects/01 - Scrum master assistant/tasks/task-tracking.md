@@ -51,9 +51,9 @@
 ### Backlog — Phase 5: Deployment Pipeline
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
-| T028 | Create GitHub Actions Deploy Workflow | 1d | High | T001, T004, T018 | [task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md) |
+| ~~T028~~ | ~~Create GitHub Actions Deploy Workflow~~ | ~~1d~~ | ~~High~~ | ~~T001, T004, T018~~ | ~~[task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md)~~ |
 | T029 | Configure cPanel Cron Job | 0.5d | High | T011, T028 | [task-dev-cpanel-cron.md](task-dev-cpanel-cron.md) |
-| T030 | Write Environment Configuration Template | 0.5d | Medium | T001 | [task-dev-env-config-template.md](task-dev-env-config-template.md) |
+| ~~T030~~ | ~~Write Environment Configuration Template~~ | ~~0.5d~~ | ~~Medium~~ | ~~T001~~ | ~~[task-dev-env-config-template.md](task-dev-env-config-template.md)~~ |
 | T031 | Write Deployment Guide | 1d | Medium | T028, T029 | [task-dev-deployment-guide.md](task-dev-deployment-guide.md) |
 
 ### Backlog — Phase 6: Polish & Validation
@@ -68,6 +68,8 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T030 — Write Environment Configuration Template | 2026-04-05 | Audited all `$_ENV` usage; added `GITHUB_PROJECT_NUMBER` (was missing), `APP_URL`, seed vars (`ADMIN_EMAIL`/`ADMIN_PASSWORD`/`ADMIN_NAME`); added DO-NOT-COMMIT header; production callouts for `APP_ENV` and `SESSION_SECURE`; corrected var name `ADMIN_NAME` (not ADMIN_DISPLAY_NAME) |
+| T028 — Create GitHub Actions Deploy Workflow | 2026-04-05 | `.github/workflows/deploy.yml` at repo root; checkout → Node 20 + npm ci + build → PHP 8.2 + composer install --no-dev → lftp SFTP mirror (excludes .env, tests/, frontend/, snapshots/) → appleboy/ssh-action migrate; `workflow_dispatch` for manual runs; 9 secrets: SFTP_HOST/PORT/USER/PASSWORD, REMOTE_PATH, SSH_HOST/USER/KEY/PORT |
 | T027 — Implement Auto-Refresh & Polling | 2026-04-05 | `dashboardStore.startPolling(30s)` + `stopPolling()` with in-flight guard; `projectStore.startPolling(60s)` + `stopPolling()`; `DashboardView` mounts/unmounts polling; `IssuesView` mounts/unmounts polling + immediate re-fetch on `IssueTimeEditor` `saved` event |
 | T026 — Build Admin View (User Management) | 2026-04-05 | `AdminView.vue` — users table + Add User form; client-side validation (email, min-8 password); 409/422 error handling; new user appended without reload; route guarded by `requiresAdmin` |
 | T025 — Build Sync Status View | 2026-04-05 | `SyncStatus.vue` (ok/stale/error/unknown indicator); `SyncView.vue` — history table (top 20), summary stats, "Sync Now" button (admin-only, loading spinner, 4s auto-dismiss feedback) |
@@ -110,12 +112,13 @@
 | *No blocked tasks* | - | - | - |
 
 ## Progress Summary
-- **Total Tasks**: 36 development tasks (0 active sprint, 10 backlog) + 9 planning tasks completed
+- **Total Tasks**: 36 development tasks (0 active sprint, 8 backlog) + 9 planning tasks completed
 - **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
-- **Phases Remaining**: Phase 5 (Deployment Pipeline — 4 tasks), Phase 6 (Polish & Validation — 5 tasks)
-- **Critical Path**: T028 (GitHub Actions deploy) → T031 (Deployment Guide) → T032 (E2E testing)
+- **Phase 5 Progress**: T028 ✅, T030 ✅ — T029 and T031 remaining
+- **Phases Remaining**: Phase 5 (2 tasks left: T029, T031), Phase 6 (Polish & Validation — 5 tasks)
+- **Critical Path**: T029 (cron config) → T031 (deployment guide) → T032 (E2E testing)
 
 ## Next Actions
-1. Start Phase 5: T028 (GitHub Actions Deploy Workflow) + T030 (Env Config Template) in parallel
-2. Run `npm install` in `frontend/` and verify `npm run build` succeeds
-3. Verify full stack works end-to-end with a local MySQL + PHP dev server before deploying
+1. T029 — Configure cPanel Cron Job (requires live cPanel access + deployed files from T028)
+2. T031 — Write Deployment Guide (can draft now that T028 and T030 are done)
+3. Phase 6: T032–T036 after T031 completes
