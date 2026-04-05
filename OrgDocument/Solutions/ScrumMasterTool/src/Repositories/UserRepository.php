@@ -106,4 +106,23 @@ final class UserRepository
 
         return $user;
     }
+
+    /**
+     * Return all users ordered by id ASC, without password_hash.
+     *
+     * Used by AdminController::listUsers() (T017).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function findAll(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT `id`, `email`, `display_name`, `role`,
+                    `github_username`, `created_at`, `updated_at`
+               FROM `users`
+              ORDER BY `id` ASC'
+        );
+
+        return $stmt->fetchAll();
+    }
 }

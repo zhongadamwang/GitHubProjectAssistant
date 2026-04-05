@@ -175,7 +175,8 @@ $builder->addDefinitions([
             $c->get(IssueRepository::class),
             $c->get(TimeTrackingService::class),
         ),
-    AdminController::class   => static fn(): AdminController   => new AdminController(),
+    AdminController::class   => static fn(ContainerInterface $c): AdminController =>
+        new AdminController($c->get(UserRepository::class)),
 
     MemberController::class => static fn(ContainerInterface $c): MemberController =>
         new MemberController($c->get(EfficiencyService::class)),
