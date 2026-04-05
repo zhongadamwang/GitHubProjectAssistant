@@ -71,15 +71,22 @@ try {
     exit(1);
 }
 
-// Run migrations via the existing migrate.php script
+// Run migrations via the existing migrate.php script (exec to avoid exit() calls terminating PHPUnit)
 $migrateScript = __DIR__ . '/../database/migrate.php';
 if (file_exists($migrateScript)) {
-    // Capture output so PHPUnit startup is clean; print only on error
-    ob_start();
-    require $migrateScript;
-    $migrationOutput = ob_get_clean();
-    if (str_contains((string) $migrationOutput, 'ERROR')) {
-        echo $migrationOutput;
+    $phpBin  = PHP_BINARY;
+    // Pass DB_DATABASE/DB_USERNAME/DB_PASSWORD so migrate.php gets the correct variables
+    // regardless of which .env key names are used.
+    $envPrefix = 'DB_HOST=' . escapeshellarg($host)
+        . ' DB_PORT=' . escapeshellarg($port)
+        . ' DB_DATABASE=' . escapeshellarg($dbname)
+        . ' DB_USERNAME=' . escapeshellarg($user)
+        . ' DB_PASSWORD=' . escapeshellarg($pass);
+    $cmd = $envPrefix . ' ' . escapeshellarg($phpBin) . ' ' . escapeshellarg($migrateScript);
+    exec($cmd, $migrationLines, $exitCode);
+    $migrationOutput = implode("\n", $migrationLines);
+    if ($exitCode !== 0 || str_contains($migrationOutput, 'ERROR')) {
+        echo $migrationOutput . "\n";
         exit(1);
     }
     echo "[OK] Migrations applied.\n";

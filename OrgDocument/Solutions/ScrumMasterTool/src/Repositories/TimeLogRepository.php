@@ -18,7 +18,7 @@ use PDO;
  *   new_value   DECIMAL(8,2)
  *   changed_at  DATETIME  DEFAULT CURRENT_TIMESTAMP
  */
-final class TimeLogRepository
+class TimeLogRepository
 {
     public function __construct(private readonly PDO $pdo)
     {

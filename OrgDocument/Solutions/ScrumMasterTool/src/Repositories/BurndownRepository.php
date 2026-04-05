@@ -22,7 +22,7 @@ use PDO;
  *   created_at       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
  *   UNIQUE KEY (project_id, iteration, snapshot_date)
  */
-final class BurndownRepository
+class BurndownRepository
 {
     public function __construct(private readonly PDO $pdo)
     {

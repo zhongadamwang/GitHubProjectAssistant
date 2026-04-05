@@ -23,7 +23,7 @@ use PDO;
  *   iteration         ← Issue::$customFields['iteration'] or null
  *   github_updated_at ← Issue::$updatedAt
  */
-final class IssueRepository
+class IssueRepository
 {
     public function __construct(private readonly PDO $pdo)
     {

@@ -13,7 +13,7 @@ use PDO;
  * password_hash is only returned by the internal findHashByEmail() method
  * which is used exclusively by AuthService for credential verification.
  */
-final class UserRepository
+class UserRepository
 {
     public function __construct(private readonly PDO $pdo)
     {

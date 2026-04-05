@@ -6,6 +6,7 @@ namespace Tests\Integration\Phase3;
 
 use App\Models\BurndownPoint;
 use App\Repositories\BurndownRepository;
+use App\Repositories\IssueRepository;
 use App\Services\BurndownService;
 use PHPUnit\Framework\TestCase;
 
@@ -66,7 +67,7 @@ final class BurndownServiceTest extends TestCase
         ];
 
         $repo    = $this->makeRepo($rows, 'Sprint 1');
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(1, 'Sprint 1');
 
         $this->assertSame('Sprint 1', $result['iteration']);
@@ -95,7 +96,7 @@ final class BurndownServiceTest extends TestCase
     public function testEmptyRowsReturnsEmptyPoints(): void
     {
         $repo    = $this->makeRepo([], 'Sprint 1');
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(1, 'Sprint 1');
 
         $this->assertSame('Sprint 1', $result['iteration']);
@@ -112,7 +113,7 @@ final class BurndownServiceTest extends TestCase
         $repo->method('getLatestIteration')->willReturn(null);
         $repo->method('getPointsForIteration')->willReturn([]);
 
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(1);
 
         $this->assertSame('', $result['iteration']);
@@ -156,7 +157,7 @@ final class BurndownServiceTest extends TestCase
         ];
 
         $repo    = $this->makeRepo($rows, 'Sprint 2');
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(1, 'Sprint 2');
 
         $this->assertCount(3, $result['points']);
@@ -207,7 +208,7 @@ final class BurndownServiceTest extends TestCase
              ->with(7, 'Sprint 3')
              ->willReturn($rows);
 
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(7);   // no iteration passed
 
         $this->assertSame('Sprint 3', $result['iteration']);
@@ -237,7 +238,7 @@ final class BurndownServiceTest extends TestCase
         ];
 
         $repo    = $this->makeRepo($rows, 'Sprint 4');
-        $service = new BurndownService($repo);
+        $service = new BurndownService($repo, $this->makeIssueRepo());
         $result  = $service->getBurndown(1, 'Sprint 4');
 
         $this->assertCount(1, $result['points']);
@@ -261,5 +262,10 @@ final class BurndownServiceTest extends TestCase
         $repo->method('getPointsForIteration')->willReturn($rows);
 
         return $repo;
+    }
+
+    private function makeIssueRepo(): IssueRepository
+    {
+        return $this->createMock(IssueRepository::class);
     }
 }
