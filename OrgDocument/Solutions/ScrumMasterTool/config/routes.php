@@ -33,6 +33,7 @@ use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BurndownController;
 use App\Controllers\IssueController;
+use App\Controllers\MemberController;
 use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
@@ -64,7 +65,7 @@ return static function (App $app): void {
         $group->get('/projects/{id:[0-9]+}',        [ProjectController::class, 'show']);
         $group->get('/projects/{id:[0-9]+}/issues',  [ProjectController::class, 'issues']);
         $group->get('/projects/{id:[0-9]+}/burndown', [BurndownController::class, 'getBurndown']);
-        $group->get('/projects/{id:[0-9]+}/members', [ProjectController::class, 'members']);
+        $group->get('/projects/{id:[0-9]+}/members', [MemberController::class, 'getMembers']);
 
         // Issues
         $group->put('/issues/{id:[0-9]+}/time', [IssueController::class, 'updateTime']);

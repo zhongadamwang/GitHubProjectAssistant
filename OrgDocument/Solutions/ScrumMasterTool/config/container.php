@@ -18,6 +18,7 @@ use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BurndownController;
 use App\Controllers\IssueController;
+use App\Controllers\MemberController;
 use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
@@ -29,6 +30,7 @@ use App\Repositories\SyncHistoryRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\BurndownService;
+use App\Services\EfficiencyService;
 use App\Services\GitHubGraphQLService;
 use App\Services\SyncService;
 use DI\ContainerBuilder;
@@ -148,10 +150,16 @@ $builder->addDefinitions([
             $c->get(IssueRepository::class),
         ),
 
+    EfficiencyService::class => static fn(ContainerInterface $c): EfficiencyService =>
+        new EfficiencyService($c->get(IssueRepository::class)),
+
     // Placeholder controllers (Phase 3 will add real services)
     ProjectController::class => static fn(): ProjectController => new ProjectController(),
     IssueController::class   => static fn(): IssueController   => new IssueController(),
     AdminController::class   => static fn(): AdminController   => new AdminController(),
+
+    MemberController::class => static fn(ContainerInterface $c): MemberController =>
+        new MemberController($c->get(EfficiencyService::class)),
 
     BurndownController::class => static fn(ContainerInterface $c): BurndownController =>
         new BurndownController($c->get(BurndownService::class)),

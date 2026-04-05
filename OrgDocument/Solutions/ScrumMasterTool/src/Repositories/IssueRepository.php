@@ -143,4 +143,82 @@ final class IssueRepository
 
         return $stmt->fetchAll();
     }
+
+    /**
+     * Aggregate efficiency metrics per assignee for closed issues.
+     *
+     * Used by EfficiencyService::getMemberEfficiency() (T015).
+     * Only closed issues contribute; open issues may have incomplete actual_time.
+     * When $iteration is supplied the query is scoped to that sprint only.
+     * COALESCE maps NULL time fields to 0.00.
+     *
+     * @return array<int,array{
+     *   member: string,
+     *   estimated: float,
+     *   actual: float,
+     *   issues_count: int,
+     * }>
+     */
+    public function aggregateEfficiencyByMember(int $projectId, ?string $iteration = null): array
+    {
+        $sql = 'SELECT
+                    `assignee`                              AS member,
+                    COALESCE(SUM(`estimated_time`), 0.0)   AS estimated,
+                    COALESCE(SUM(`actual_time`), 0.0)      AS actual,
+                    COUNT(*)                               AS issues_count
+                  FROM `issues`
+                 WHERE `project_id` = :project_id
+                   AND `status`     = \'closed\'
+                   AND `assignee`   IS NOT NULL';
+
+        $params = ['project_id' => $projectId];
+
+        if ($iteration !== null) {
+            $sql .= ' AND `iteration` = :iteration';
+            $params['iteration'] = $iteration;
+        }
+
+        $sql .= ' GROUP BY `assignee`';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Aggregate efficiency metrics per assignee AND iteration for closed issues.
+     *
+     * Used by EfficiencyService::getMemberTrend() (T015) to build historical
+     * accuracy ratio data.  Results are ordered by assignee ASC, iteration ASC.
+     *
+     * @return array<int,array{
+     *   member: string,
+     *   iteration: string,
+     *   estimated: float,
+     *   actual: float,
+     *   issues_count: int,
+     * }>
+     */
+    public function aggregateEfficiencyByMemberAndIteration(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT
+                 `assignee`                              AS member,
+                 `iteration`,
+                 COALESCE(SUM(`estimated_time`), 0.0)   AS estimated,
+                 COALESCE(SUM(`actual_time`), 0.0)      AS actual,
+                 COUNT(*)                               AS issues_count
+               FROM `issues`
+              WHERE `project_id` = :project_id
+                AND `status`     = \'closed\'
+                AND `assignee`   IS NOT NULL
+                AND `iteration`  IS NOT NULL
+              GROUP BY `assignee`, `iteration`
+              ORDER BY `assignee` ASC, `iteration` ASC'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+
+        return $stmt->fetchAll();
+    }
 }
