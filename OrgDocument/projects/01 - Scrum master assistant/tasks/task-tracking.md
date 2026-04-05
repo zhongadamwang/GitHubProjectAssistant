@@ -31,7 +31,7 @@
 
 | ~~T014~~ | ~~Build Daily Burndown Snapshot Job~~ | ~~0.5d~~ | ~~High~~ | ~~T002, T013~~ | ~~[task-dev-burndown-snapshot-job.md](task-dev-burndown-snapshot-job.md)~~ |
 | ~~T015~~ | ~~Implement EfficiencyService~~ | ~~1d~~ | ~~High~~ | ~~T002, T004, T006~~ | ~~[task-dev-efficiency-service.md](task-dev-efficiency-service.md)~~ |
-| T016 | Implement TimeTrackingService with Audit | 1d | High | T002, T005, T006 | [task-dev-time-tracking-service.md](task-dev-time-tracking-service.md) |
+| ~~T016~~ | ~~Implement TimeTrackingService with Audit~~ | ~~1d~~ | ~~High~~ | ~~T002, T005, T006~~ | ~~[task-dev-time-tracking-service.md](task-dev-time-tracking-service.md)~~ |
 | T017 | Implement Admin User Management Endpoints | 0.5d | Medium | T005, T006 | [task-dev-admin-user-management.md](task-dev-admin-user-management.md) |
 
 ### Backlog — Phase 4: Frontend Dashboard
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T016 — Implement TimeTrackingService with Audit | 2026-04-04 | `TimeLogRepository` (insert, findByIssue); `TimeTrackingService` (validated partial update, PDO transaction, read-before-write audit); `IssueRepository::findByProject()` (filter builder) + `getCountsByProject()` + `findById()`; `ProjectRepository::findAll()` + `findById()`; `IssueController` (getIssues, updateTime — auth_user from request); `ProjectController` (listProjects, getProject with live counts); `TimeLogRepository`+`TimeTrackingService` wired; `IssueController`/`ProjectController` replaced with injected versions; routes updated; 7-test `TimeTrackingServiceTest` in Phase3/ |
 | T015 — Implement EfficiencyService | 2026-04-04 | `IssueRepository::aggregateEfficiencyByMember()` + `aggregateEfficiencyByMemberAndIteration()`; `EfficiencyService` (getMemberEfficiency, getMemberTrend, null-safe ratio); `MemberController` (GET /api/projects/{id}/members); container+routes wired; 9-test `EfficiencyServiceTest` in Phase3/ |
 | T014 — Build Daily Burndown Snapshot Job | 2026-04-04 | `IssueRepository::aggregateTimeByIteration()` (GROUP BY iteration, COALESCE for NULLs); `BurndownService::captureDaily()` full impl (replaces stub); `BurndownService` constructor now injects `IssueRepository`; `SyncService` step 6b hook with try/catch guard; `container.php` updated for both services; 5-test `CaptureDailyTest` suite (value mapping, idempotency, multi-iteration, empty project, UTC date) |
 | T013 — Implement BurndownService | 2026-04-04 | `BurndownPoint` VO; `BurndownRepository` (getPointsForIteration, getLatestIteration, upsertDailySnapshot); `BurndownService` (getBurndown linear ideal + carry-forward actual, captureDaily stub); `BurndownController` (GET /api/projects/{id}/burndown); container+routes wired; 5-test PHPUnit mock suite in Phase3/ |

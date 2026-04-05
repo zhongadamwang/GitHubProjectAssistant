@@ -27,12 +27,14 @@ use App\Repositories\BurndownRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Repositories\TimeLogRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\BurndownService;
 use App\Services\EfficiencyService;
 use App\Services\GitHubGraphQLService;
 use App\Services\SyncService;
+use App\Services\TimeTrackingService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -98,6 +100,9 @@ $builder->addDefinitions([
     BurndownRepository::class => static fn(ContainerInterface $c): BurndownRepository =>
         new BurndownRepository($c->get(PDO::class)),
 
+    TimeLogRepository::class => static fn(ContainerInterface $c): TimeLogRepository =>
+        new TimeLogRepository($c->get(PDO::class)),
+
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
@@ -153,9 +158,23 @@ $builder->addDefinitions([
     EfficiencyService::class => static fn(ContainerInterface $c): EfficiencyService =>
         new EfficiencyService($c->get(IssueRepository::class)),
 
+    TimeTrackingService::class => static fn(ContainerInterface $c): TimeTrackingService =>
+        new TimeTrackingService(
+            $c->get(TimeLogRepository::class),
+            $c->get(PDO::class),
+        ),
+
     // Placeholder controllers (Phase 3 will add real services)
-    ProjectController::class => static fn(): ProjectController => new ProjectController(),
-    IssueController::class   => static fn(): IssueController   => new IssueController(),
+    ProjectController::class => static fn(ContainerInterface $c): ProjectController =>
+        new ProjectController(
+            $c->get(ProjectRepository::class),
+            $c->get(IssueRepository::class),
+        ),
+    IssueController::class => static fn(ContainerInterface $c): IssueController =>
+        new IssueController(
+            $c->get(IssueRepository::class),
+            $c->get(TimeTrackingService::class),
+        ),
     AdminController::class   => static fn(): AdminController   => new AdminController(),
 
     MemberController::class => static fn(ContainerInterface $c): MemberController =>

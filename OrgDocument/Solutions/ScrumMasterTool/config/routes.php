@@ -63,7 +63,7 @@ return static function (App $app): void {
         // Projects
         $group->get('/projects',                    [ProjectController::class, 'index']);
         $group->get('/projects/{id:[0-9]+}',        [ProjectController::class, 'show']);
-        $group->get('/projects/{id:[0-9]+}/issues',  [ProjectController::class, 'issues']);
+        $group->get('/projects/{id:[0-9]+}/issues',  [IssueController::class,   'getIssues']);
         $group->get('/projects/{id:[0-9]+}/burndown', [BurndownController::class, 'getBurndown']);
         $group->get('/projects/{id:[0-9]+}/members', [MemberController::class, 'getMembers']);
 
