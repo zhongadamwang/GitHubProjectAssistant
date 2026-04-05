@@ -16,14 +16,14 @@
 
 
 ### Backlog — Phase 2: GitHub GraphQL Integration
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T007 | Write GraphQL Query Templates | 0.5d | High | T001 |
-| T008 | Implement GitHubGraphQLService | 1.5d | High | T007 |
-| T009 | Implement GraphQL ResponseParser | 0.5d | High | T007 |
-| T010 | Build Sync Logic with Diff & Snapshot | 1.5d | High | T008, T009, T002 |
-| T011 | Create Cron Sync Entry Point | 0.5d | High | T010 |
-| T012 | Integration Test: GitHub Sync E2E | 0.5d | High | T010, T011 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| ~~T007~~ | ~~Write GraphQL Query Templates~~ | ~~0.5d~~ | ~~High~~ | ~~T001~~ | ~~[task-dev-graphql-query-templates.md](task-dev-graphql-query-templates.md)~~ |
+| ~~T008~~ | ~~Implement GitHubGraphQLService~~ | ~~1.5d~~ | ~~High~~ | ~~T007~~ | ~~[task-dev-github-graphql-service.md](task-dev-github-graphql-service.md)~~ |
+| ~~T009~~ | ~~Implement GraphQL ResponseParser~~ | ~~0.5d~~ | ~~High~~ | ~~T007~~ | ~~[task-dev-graphql-response-parser.md](task-dev-graphql-response-parser.md)~~ |
+| ~~T010~~ | ~~Build Sync Logic with Diff & Snapshot~~ | ~~1.5d~~ | ~~High~~ | ~~T008, T009, T002~~ | ~~[task-dev-sync-service.md](task-dev-sync-service.md)~~ |
+| ~~T011~~ | ~~Create Cron Sync Entry Point~~ | ~~0.5d~~ | ~~High~~ | ~~T010~~ | ~~[task-dev-cron-sync-entry.md](task-dev-cron-sync-entry.md)~~ |
+| ~~T012~~ | ~~Integration Test: GitHub Sync E2E~~ | ~~0.5d~~ | ~~High~~ | ~~T010, T011~~ | ~~[task-dev-sync-integration-test.md](task-dev-sync-integration-test.md)~~ |
 
 ### Backlog — Phase 3: Analytics Engine
 | Task ID | Title | Effort | Priority | Dependencies |
@@ -68,6 +68,12 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T012 — Integration Test: GitHub Sync E2E | 2026-04-03 | 6 tests (first-run, idempotency, history rows, update detection, snapshot, API-failure, time-field preservation); `GitHubClientInterface` extracted; timestamp normalization fixed; migration 007 |
+| T011 — Create Cron Sync Entry Point | 2026-04-03 | `cron/sync.php` (PID lock, shutdown cleanup, exit codes 0/1/2); `SyncController` real impl (history + trigger); container updated |
+| T010 — Build Sync Logic with Diff & Snapshot | 2026-04-03 | `SyncService`, `SyncResult`, `ProjectRepository`, `IssueRepository`, `SyncHistoryRepository` — full 7-step sync cycle; time fields never overwritten |
+| T009 — Implement GraphQL ResponseParser | 2026-04-03 | `src/GraphQL/ResponseParser.php`, `src/Models/Project.php`, `src/Models/Issue.php` — static parser with `__typename` dispatch + key-presence fallback; `E_USER_WARNING` for unknown types |
+| T008 — Implement GitHubGraphQLService | 2026-04-03 | `src/Services/GitHubGraphQLService.php` (cURL, retry, pagination, rate-limit), `src/Exceptions/GitHubApiException.php`, `src/Exceptions/RateLimitException.php`; wired into container |
+| T007 — Write GraphQL Query Templates | 2026-04-03 | `src/GraphQL/Queries.php` — `Queries` final class with `FETCH_VIEWER`, `FETCH_PROJECT_FIELDS`, `FETCH_PROJECT_ITEMS` heredoc constants; `get()` + `variables()` static helpers; full inline-fragment coverage for all field value types |
 | T001 — Initialize PHP Backend Project | 2026-04-03 | `OrgDocument/Solutions/ScrumMasterTool/` scaffold: `composer.json`, `.env.example`, `.gitignore`, full `src/` skeleton; `composer install` pending |
 | T002 — Create MySQL Schema & Migrations | 2026-04-03 | 6 migration SQL files + `migrate.php` idempotent runner; `migrations_log` auto-created; pending live MySQL test run |
 | T003 — Create Database Seed Script | 2026-04-03 | `database/seed.php` — idempotent admin seeder; bcrypt cost 12; `.env` + CLI arg override; skip-on-duplicate logic |

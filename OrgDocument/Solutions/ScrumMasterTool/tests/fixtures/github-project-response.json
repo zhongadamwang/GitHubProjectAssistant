@@ -1,0 +1,209 @@
+{
+  "_comment": "Fixture data for SyncIntegrationTest. Matches the shape returned by GitHub GraphQL v4 FETCH_PROJECT_FIELDS and FETCH_PROJECT_ITEMS queries. Contains 5 issues covering all states and field-value types.",
+
+  "project_fields_response": {
+    "data": {
+      "user": {
+        "projectV2": {
+          "id": "PVT_kwTest01",
+          "title": "Sprint Board",
+          "number": 1,
+          "shortDescription": "Integration test project",
+          "createdAt": "2026-01-01T00:00:00Z",
+          "updatedAt": "2026-04-01T10:00:00Z",
+          "creator": { "login": "testowner" },
+          "fields": {
+            "nodes": [
+              { "id": "PVTF_001", "name": "Story Points", "dataType": "NUMBER" },
+              { "id": "PVTF_002", "name": "Sprint Notes",  "dataType": "TEXT"   },
+              {
+                "id": "PVTSSF_001",
+                "name": "Status",
+                "dataType": "SINGLE_SELECT",
+                "options": [
+                  { "id": "OPT_01", "name": "Todo"        },
+                  { "id": "OPT_02", "name": "In Progress" },
+                  { "id": "OPT_03", "name": "Done"        }
+                ]
+              },
+              { "id": "PVTF_003", "name": "Due Date", "dataType": "DATE" }
+            ]
+          }
+        }
+      }
+    }
+  },
+
+  "project_items_nodes": [
+    {
+      "id": "PVTI_1",
+      "createdAt": "2026-01-15T09:00:00Z",
+      "updatedAt": "2026-04-01T10:00:00Z",
+      "content": {
+        "__typename": "Issue",
+        "id": "I_kgDOA1AAAAA",
+        "number": 101,
+        "title": "Set up CI pipeline",
+        "body": "Configure GitHub Actions for automated tests.",
+        "state": "OPEN",
+        "url": "https://github.com/testowner/testrepo/issues/101",
+        "createdAt": "2026-01-15T09:00:00Z",
+        "updatedAt": "2026-04-01T10:00:00Z",
+        "closedAt": null,
+        "assignees": { "nodes": [{ "login": "devuser1", "name": "Dev User 1" }] },
+        "labels":    { "nodes": [{ "name": "ci", "color": "0075ca" }] },
+        "milestone": { "title": "Sprint 1", "dueOn": "2026-04-15T00:00:00Z", "state": "OPEN" }
+      },
+      "fieldValues": {
+        "nodes": [
+          {
+            "__typename": "ProjectV2ItemFieldNumberValue",
+            "number": 5.0,
+            "field": { "id": "PVTF_001", "name": "Story Points" }
+          },
+          {
+            "__typename": "ProjectV2ItemFieldTextValue",
+            "text": "High priority",
+            "field": { "id": "PVTF_002", "name": "Sprint Notes" }
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PVTI_2",
+      "createdAt": "2026-01-15T09:30:00Z",
+      "updatedAt": "2026-04-01T10:00:00Z",
+      "content": {
+        "__typename": "Issue",
+        "id": "I_kgDOA2BBBBB",
+        "number": 102,
+        "title": "Implement login page",
+        "body": "Build the Vue 3 login view.",
+        "state": "OPEN",
+        "url": "https://github.com/testowner/testrepo/issues/102",
+        "createdAt": "2026-01-15T09:30:00Z",
+        "updatedAt": "2026-04-01T10:00:00Z",
+        "closedAt": null,
+        "assignees": { "nodes": [] },
+        "labels":    { "nodes": [{ "name": "frontend", "color": "e4e669" }] },
+        "milestone": null
+      },
+      "fieldValues": {
+        "nodes": [
+          {
+            "__typename": "ProjectV2ItemFieldSingleSelectValue",
+            "name": "In Progress",
+            "optionId": "OPT_02",
+            "field": { "id": "PVTSSF_001", "name": "Status" }
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PVTI_3",
+      "createdAt": "2026-01-16T08:00:00Z",
+      "updatedAt": "2026-04-01T10:00:00Z",
+      "content": {
+        "__typename": "Issue",
+        "id": "I_kgDOA3CCCCC",
+        "number": 103,
+        "title": "Database migrations completed",
+        "body": "All 6 migration files written.",
+        "state": "CLOSED",
+        "url": "https://github.com/testowner/testrepo/issues/103",
+        "createdAt": "2026-01-16T08:00:00Z",
+        "updatedAt": "2026-04-01T10:00:00Z",
+        "closedAt": "2026-04-01T09:00:00Z",
+        "assignees": { "nodes": [{ "login": "devuser1", "name": "Dev User 1" }] },
+        "labels":    { "nodes": [{ "name": "database", "color": "d93f0b" }] },
+        "milestone": { "title": "Sprint 1", "dueOn": "2026-04-15T00:00:00Z", "state": "OPEN" }
+      },
+      "fieldValues": {
+        "nodes": [
+          {
+            "__typename": "ProjectV2ItemFieldDateValue",
+            "date": "2026-04-01",
+            "field": { "id": "PVTF_003", "name": "Due Date" }
+          },
+          {
+            "__typename": "ProjectV2ItemFieldNumberValue",
+            "number": 3.0,
+            "field": { "id": "PVTF_001", "name": "Story Points" }
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PVTI_4",
+      "createdAt": "2026-01-17T10:00:00Z",
+      "updatedAt": "2026-04-01T10:00:00Z",
+      "content": {
+        "__typename": "Issue",
+        "id": "I_kgDOA4DDDDD",
+        "number": 104,
+        "title": "Build burndown chart component",
+        "body": "Implement Chart.js burndown chart.",
+        "state": "OPEN",
+        "url": "https://github.com/testowner/testrepo/issues/104",
+        "createdAt": "2026-01-17T10:00:00Z",
+        "updatedAt": "2026-04-01T10:00:00Z",
+        "closedAt": null,
+        "assignees": {
+          "nodes": [
+            { "login": "devuser1", "name": "Dev User 1" },
+            { "login": "devuser2", "name": "Dev User 2" }
+          ]
+        },
+        "labels": {
+          "nodes": [
+            { "name": "frontend", "color": "e4e669" },
+            { "name": "chart",    "color": "0e8a16" }
+          ]
+        },
+        "milestone": null
+      },
+      "fieldValues": {
+        "nodes": [
+          {
+            "__typename": "ProjectV2ItemFieldSingleSelectValue",
+            "name": "Todo",
+            "optionId": "OPT_01",
+            "field": { "id": "PVTSSF_001", "name": "Status" }
+          },
+          {
+            "__typename": "ProjectV2ItemFieldNumberValue",
+            "number": 8.0,
+            "field": { "id": "PVTF_001", "name": "Story Points" }
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PVTI_5",
+      "createdAt": "2026-01-18T11:00:00Z",
+      "updatedAt": "2026-04-01T10:00:00Z",
+      "content": {
+        "__typename": "Issue",
+        "id": "I_kgDOA5EEEEE",
+        "number": 105,
+        "title": "Write deployment documentation",
+        "body": null,
+        "state": "OPEN",
+        "url": "https://github.com/testowner/testrepo/issues/105",
+        "createdAt": "2026-01-18T11:00:00Z",
+        "updatedAt": "2026-04-01T10:00:00Z",
+        "closedAt": null,
+        "assignees": { "nodes": [] },
+        "labels":    { "nodes": [] },
+        "milestone": null
+      },
+      "fieldValues": {
+        "nodes": []
+      }
+    }
+  ]
+}

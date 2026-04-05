@@ -21,8 +21,13 @@ use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Repositories\IssueRepository;
+use App\Repositories\ProjectRepository;
+use App\Repositories\SyncHistoryRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Services\GitHubGraphQLService;
+use App\Services\SyncService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -76,14 +81,53 @@ $builder->addDefinitions([
     UserRepository::class => static fn(ContainerInterface $c): UserRepository =>
         new UserRepository($c->get(PDO::class)),
 
+    ProjectRepository::class => static fn(ContainerInterface $c): ProjectRepository =>
+        new ProjectRepository($c->get(PDO::class)),
+
+    IssueRepository::class => static fn(ContainerInterface $c): IssueRepository =>
+        new IssueRepository($c->get(PDO::class)),
+
+    SyncHistoryRepository::class => static fn(ContainerInterface $c): SyncHistoryRepository =>
+        new SyncHistoryRepository($c->get(PDO::class)),
+
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
+    GitHubGraphQLService::class => static function (ContainerInterface $c): GitHubGraphQLService {
+        $github = $c->get('settings')['github'];
+
+        if (empty($github['pat'])) {
+            throw new \RuntimeException(
+                'GITHUB_PAT must be set in .env to use GitHubGraphQLService.'
+            );
+        }
+
+        return new GitHubGraphQLService(
+            pat:      $github['pat'],
+            endpoint: $github['graphql_url'],
+        );
+    },
+
     AuthService::class => static fn(ContainerInterface $c): AuthService =>
         new AuthService(
             $c->get(UserRepository::class),
             $c->get('settings')['session'],
         ),
+
+    SyncService::class => static function (ContainerInterface $c): SyncService {
+        $github = $c->get('settings')['github'];
+        $sync   = $c->get('settings')['sync'];
+
+        return new SyncService(
+            gitHub:        $c->get(GitHubGraphQLService::class),
+            projectRepo:   $c->get(ProjectRepository::class),
+            issueRepo:     $c->get(IssueRepository::class),
+            historyRepo:   $c->get(SyncHistoryRepository::class),
+            owner:         $github['org'],
+            projectNumber: $github['project_number'],
+            snapshotDir:   $sync['snapshot_dir'],
+        );
+    },
 
     // -------------------------------------------------------------------------
     // Controllers
@@ -91,11 +135,16 @@ $builder->addDefinitions([
     AuthController::class => static fn(ContainerInterface $c): AuthController =>
         new AuthController($c->get(AuthService::class)),
 
-    // Placeholder controllers (Phase 2/3 will replace these with real services)
+    // Placeholder controllers (Phase 3 will add real services)
     ProjectController::class => static fn(): ProjectController => new ProjectController(),
     IssueController::class   => static fn(): IssueController   => new IssueController(),
-    SyncController::class    => static fn(): SyncController    => new SyncController(),
     AdminController::class   => static fn(): AdminController   => new AdminController(),
+
+    SyncController::class => static fn(ContainerInterface $c): SyncController =>
+        new SyncController(
+            $c->get(SyncService::class),
+            $c->get(SyncHistoryRepository::class),
+        ),
 
     // -------------------------------------------------------------------------
     // Middleware

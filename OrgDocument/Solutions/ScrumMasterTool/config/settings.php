@@ -36,9 +36,10 @@ return [
     // GitHub GraphQL API
     // -------------------------------------------------------------------------
     'github' => [
-        'pat'         => $_ENV['GITHUB_PAT']         ?? '',
-        'org'         => $_ENV['GITHUB_ORG']         ?? '',
-        'graphql_url' => $_ENV['GITHUB_GRAPHQL_URL'] ?? 'https://api.github.com/graphql',
+        'pat'            => $_ENV['GITHUB_PAT']            ?? '',
+        'org'            => $_ENV['GITHUB_ORG']            ?? '',
+        'project_number' => (int) ($_ENV['GITHUB_PROJECT_NUMBER'] ?? 0),
+        'graphql_url'    => $_ENV['GITHUB_GRAPHQL_URL']    ?? 'https://api.github.com/graphql',
     ],
 
     // -------------------------------------------------------------------------
