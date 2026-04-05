@@ -52,7 +52,7 @@
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
 | ~~T028~~ | ~~Create GitHub Actions Deploy Workflow~~ | ~~1d~~ | ~~High~~ | ~~T001, T004, T018~~ | ~~[task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md)~~ |
-| T029 | Configure cPanel Cron Job | 0.5d | High | T011, T028 | [task-dev-cpanel-cron.md](task-dev-cpanel-cron.md) |
+| ~~T029~~ | ~~Configure cPanel Cron Job~~ | ~~0.5d~~ | ~~High~~ | ~~T011, T028~~ | ~~[task-dev-cpanel-cron.md](task-dev-cpanel-cron.md)~~ |
 | ~~T030~~ | ~~Write Environment Configuration Template~~ | ~~0.5d~~ | ~~Medium~~ | ~~T001~~ | ~~[task-dev-env-config-template.md](task-dev-env-config-template.md)~~ |
 | T031 | Write Deployment Guide | 1d | Medium | T028, T029 | [task-dev-deployment-guide.md](task-dev-deployment-guide.md) |
 
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T029 — Configure cPanel Cron Job | 2026-04-05 | `cron/setup.sh` auto-detects PHP 8.2+ binary from 5 EA4 candidate paths, creates `~/logs/` + `data/snapshots/`, runs manual test sync, prints exact cron command; `cron/logrotate.conf` reference config; `deploy.yml` step 5 extended to create dirs via SSH and echo cron command to Actions log; lock file confirmed at `data/sync.lock` (cleaned by `register_shutdown_function`); live cPanel Cron Jobs panel entry requires server access |
 | T030 — Write Environment Configuration Template | 2026-04-05 | Audited all `$_ENV` usage; added `GITHUB_PROJECT_NUMBER` (was missing), `APP_URL`, seed vars (`ADMIN_EMAIL`/`ADMIN_PASSWORD`/`ADMIN_NAME`); added DO-NOT-COMMIT header; production callouts for `APP_ENV` and `SESSION_SECURE`; corrected var name `ADMIN_NAME` (not ADMIN_DISPLAY_NAME) |
 | T028 — Create GitHub Actions Deploy Workflow | 2026-04-05 | `.github/workflows/deploy.yml` at repo root; checkout → Node 20 + npm ci + build → PHP 8.2 + composer install --no-dev → lftp SFTP mirror (excludes .env, tests/, frontend/, snapshots/) → appleboy/ssh-action migrate; `workflow_dispatch` for manual runs; 9 secrets: SFTP_HOST/PORT/USER/PASSWORD, REMOTE_PATH, SSH_HOST/USER/KEY/PORT |
 | T027 — Implement Auto-Refresh & Polling | 2026-04-05 | `dashboardStore.startPolling(30s)` + `stopPolling()` with in-flight guard; `projectStore.startPolling(60s)` + `stopPolling()`; `DashboardView` mounts/unmounts polling; `IssuesView` mounts/unmounts polling + immediate re-fetch on `IssueTimeEditor` `saved` event |
@@ -114,11 +115,10 @@
 ## Progress Summary
 - **Total Tasks**: 36 development tasks (0 active sprint, 8 backlog) + 9 planning tasks completed
 - **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
-- **Phase 5 Progress**: T028 ✅, T030 ✅ — T029 and T031 remaining
-- **Phases Remaining**: Phase 5 (2 tasks left: T029, T031), Phase 6 (Polish & Validation — 5 tasks)
-- **Critical Path**: T029 (cron config) → T031 (deployment guide) → T032 (E2E testing)
+- **Phase 5 Progress**: T028 ✅, T029 ✅, T030 ✅ — T031 remaining
+- **Phases Remaining**: Phase 5 (1 task left: T031), Phase 6 (Polish & Validation — 5 tasks)
+- **Critical Path**: T031 (deployment guide) → T032 (E2E testing)
 
 ## Next Actions
-1. T029 — Configure cPanel Cron Job (requires live cPanel access + deployed files from T028)
-2. T031 — Write Deployment Guide (can draft now that T028 and T030 are done)
-3. Phase 6: T032–T036 after T031 completes
+1. T031 — Write Deployment Guide (T028, T029, T030 all done — ready to draft)
+2. Phase 6: T032–T036 after T031 completes

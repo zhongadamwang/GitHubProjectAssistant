@@ -104,7 +104,7 @@ jobs:
       # ─────────────────────────────────────────────────────────────────────
       # 5. Post-deploy: run database migrations via SSH
       # ─────────────────────────────────────────────────────────────────────
-      - name: Run database migrations
+      - name: Run database migrations & cron pre-flight
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -112,5 +112,21 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            # Run migrations (idempotent)
             php ${{ secrets.REMOTE_PATH }}/database/migrate.php
             echo "Migration completed at $(date)"
+
+            # Ensure log and snapshot directories exist with correct permissions
+            mkdir -p "$HOME/logs"
+            chmod 755 "$HOME/logs"
+            mkdir -p "${{ secrets.REMOTE_PATH }}/data/snapshots"
+            chmod 755 "${{ secrets.REMOTE_PATH }}/data/snapshots"
+            echo "Directories verified."
+
+            # Print the cron command for the operator to configure in cPanel
+            echo ""
+            echo "====== CRON COMMAND (configure in cPanel > Cron Jobs) ======"
+            PHP_BIN=$(which php)
+            echo "  Interval : */15 * * * *"
+            echo "  Command  : $PHP_BIN ${{ secrets.REMOTE_PATH }}/cron/sync.php >> \$HOME/logs/sync.log 2>&1"
+            echo "============================================================"
