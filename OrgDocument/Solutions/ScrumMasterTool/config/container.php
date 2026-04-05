@@ -125,13 +125,14 @@ $builder->addDefinitions([
         $sync   = $c->get('settings')['sync'];
 
         return new SyncService(
-            gitHub:        $c->get(GitHubGraphQLService::class),
-            projectRepo:   $c->get(ProjectRepository::class),
-            issueRepo:     $c->get(IssueRepository::class),
-            historyRepo:   $c->get(SyncHistoryRepository::class),
-            owner:         $github['org'],
-            projectNumber: $github['project_number'],
-            snapshotDir:   $sync['snapshot_dir'],
+            gitHub:           $c->get(GitHubGraphQLService::class),
+            projectRepo:      $c->get(ProjectRepository::class),
+            issueRepo:        $c->get(IssueRepository::class),
+            historyRepo:      $c->get(SyncHistoryRepository::class),
+            burndownService:  $c->get(BurndownService::class),
+            owner:            $github['org'],
+            projectNumber:    $github['project_number'],
+            snapshotDir:      $sync['snapshot_dir'],
         );
     },
 
@@ -142,7 +143,10 @@ $builder->addDefinitions([
         new AuthController($c->get(AuthService::class)),
 
     BurndownService::class => static fn(ContainerInterface $c): BurndownService =>
-        new BurndownService($c->get(BurndownRepository::class)),
+        new BurndownService(
+            $c->get(BurndownRepository::class),
+            $c->get(IssueRepository::class),
+        ),
 
     // Placeholder controllers (Phase 3 will add real services)
     ProjectController::class => static fn(): ProjectController => new ProjectController(),

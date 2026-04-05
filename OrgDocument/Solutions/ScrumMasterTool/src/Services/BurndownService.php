@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\BurndownPoint;
 use App\Repositories\BurndownRepository;
+use App\Repositories\IssueRepository;
 
 /**
  * BurndownService — calculates ideal and actual burndown curves for a sprint.
@@ -20,8 +21,10 @@ use App\Repositories\BurndownRepository;
  */
 final class BurndownService
 {
-    public function __construct(private readonly BurndownRepository $repo)
-    {
+    public function __construct(
+        private readonly BurndownRepository $repo,
+        private readonly IssueRepository    $issueRepo,
+    ) {
     }
 
     /**
@@ -110,15 +113,32 @@ final class BurndownService
     /**
      * Capture today's burndown snapshot for all iterations of a project.
      *
-     * Full implementation is provided in T014 (task-dev-burndown-snapshot-job).
-     * This stub allows SyncService to call captureDaily() without a runtime
-     * error before T014 is implemented.
+     * Aggregates SUM(estimated_time), SUM(remaining_time), and open/closed
+     * counts from the issues table grouped by iteration, then upserts one
+     * row per iteration into burndown_daily for today's date.
+     *
+     * Idempotent: calling twice on the same day overwrites via ON DUPLICATE KEY.
+     * Safe to call when the project has no issues — loop body never executes.
      *
      * @param int $projectId  Local projects.id
      */
     public function captureDaily(int $projectId): void
     {
-        // T014: full implementation adds IssueRepository aggregation and
-        // calls BurndownRepository::upsertDailySnapshot() per iteration.
+        $rows = $this->issueRepo->aggregateTimeByIteration($projectId);
+        $today = (new \DateTimeImmutable('today', new \DateTimeZone('UTC')))->format('Y-m-d');
+
+        foreach ($rows as $row) {
+            $remaining = (float) $row['total_remaining'];
+
+            $this->repo->upsertDailySnapshot($projectId, [
+                'iteration'        => $row['iteration'],
+                'snapshot_date'    => $today,
+                'total_estimated'  => (float) $row['total_estimated'],
+                'ideal_remaining'  => $remaining,
+                'actual_remaining' => $remaining,
+                'open_count'       => (int) $row['open_count'],
+                'closed_count'     => (int) $row['closed_count'],
+            ]);
+        }
     }
 }

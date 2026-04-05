@@ -109,4 +109,38 @@ final class IssueRepository
         $row = $this->findByGitHubId($contentId, $projectId);
         return $row !== null ? ($row['github_updated_at'] ?? null) : null;
     }
+
+    /**
+     * Aggregate time-tracking totals grouped by iteration for a project.
+     *
+     * Used by BurndownService::captureDaily() (T014) to populate burndown_daily.
+     * Only rows where `iteration IS NOT NULL` are included.
+     * COALESCE ensures NULL time fields (unset by team) contribute 0.00.
+     *
+     * @return array<int,array{
+     *   iteration: string,
+     *   total_estimated: float,
+     *   total_remaining: float,
+     *   open_count: int,
+     *   closed_count: int,
+     * }>
+     */
+    public function aggregateTimeByIteration(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT
+                 `iteration`,
+                 COALESCE(SUM(`estimated_time`), 0.0) AS total_estimated,
+                 COALESCE(SUM(`remaining_time`), 0.0) AS total_remaining,
+                 SUM(CASE WHEN `status` = \'open\'   THEN 1 ELSE 0 END) AS open_count,
+                 SUM(CASE WHEN `status` = \'closed\' THEN 1 ELSE 0 END) AS closed_count
+               FROM `issues`
+              WHERE `project_id` = :project_id
+                AND `iteration`  IS NOT NULL
+              GROUP BY `iteration`'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+
+        return $stmt->fetchAll();
+    }
 }

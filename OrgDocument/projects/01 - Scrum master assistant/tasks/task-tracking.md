@@ -1,7 +1,7 @@
 # Task Tracking — Scrum Master Assistant
 
 **Project**: PRJ-01 — Scrum Master Assistant  
-**Last Updated**: 2026-04-03  
+**Last Updated**: 2026-04-04  
 **Status**: Planning Complete — Ready for Phase 1 Development  
 
 ## Current Sprint: Phase 1 — Foundation
@@ -29,7 +29,7 @@
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
 
-| T014 | Build Daily Burndown Snapshot Job | 0.5d | High | T002, T013 | [task-dev-burndown-snapshot-job.md](task-dev-burndown-snapshot-job.md) |
+| ~~T014~~ | ~~Build Daily Burndown Snapshot Job~~ | ~~0.5d~~ | ~~High~~ | ~~T002, T013~~ | ~~[task-dev-burndown-snapshot-job.md](task-dev-burndown-snapshot-job.md)~~ |
 | T015 | Implement EfficiencyService | 1d | High | T002, T004, T006 | [task-dev-efficiency-service.md](task-dev-efficiency-service.md) |
 | T016 | Implement TimeTrackingService with Audit | 1d | High | T002, T005, T006 | [task-dev-time-tracking-service.md](task-dev-time-tracking-service.md) |
 | T017 | Implement Admin User Management Endpoints | 0.5d | Medium | T005, T006 | [task-dev-admin-user-management.md](task-dev-admin-user-management.md) |
@@ -68,6 +68,7 @@
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T014 — Build Daily Burndown Snapshot Job | 2026-04-04 | `IssueRepository::aggregateTimeByIteration()` (GROUP BY iteration, COALESCE for NULLs); `BurndownService::captureDaily()` full impl (replaces stub); `BurndownService` constructor now injects `IssueRepository`; `SyncService` step 6b hook with try/catch guard; `container.php` updated for both services; 5-test `CaptureDailyTest` suite (value mapping, idempotency, multi-iteration, empty project, UTC date) |
 | T013 — Implement BurndownService | 2026-04-04 | `BurndownPoint` VO; `BurndownRepository` (getPointsForIteration, getLatestIteration, upsertDailySnapshot); `BurndownService` (getBurndown linear ideal + carry-forward actual, captureDaily stub); `BurndownController` (GET /api/projects/{id}/burndown); container+routes wired; 5-test PHPUnit mock suite in Phase3/ |
 | T012 — Integration Test: GitHub Sync E2E | 2026-04-03 | 6 tests (first-run, idempotency, history rows, update detection, snapshot, API-failure, time-field preservation); `GitHubClientInterface` extracted; timestamp normalization fixed; migration 007 |
 | T011 — Create Cron Sync Entry Point | 2026-04-03 | `cron/sync.php` (PID lock, shutdown cleanup, exit codes 0/1/2); `SyncController` real impl (history + trigger); container updated |
