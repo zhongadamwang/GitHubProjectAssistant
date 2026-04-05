@@ -36,6 +36,7 @@ final class SyncService
         private readonly string                $owner,
         private readonly int                   $projectNumber,
         private readonly string                $snapshotDir,
+        private readonly ?BurndownService      $burndownService = null,
     ) {
     }
 
@@ -138,6 +139,18 @@ final class SyncService
         } catch (\Throwable $e) {
             // Snapshot failure is non-fatal — sync still succeeded
             trigger_error('SyncService: snapshot write failed: ' . $e->getMessage(), E_USER_WARNING);
+        }
+
+        // ------------------------------------------------------------------
+        // Step 6b — Capture daily burndown snapshot (T014)
+        // ------------------------------------------------------------------
+        if ($this->burndownService !== null) {
+            try {
+                $this->burndownService->captureDaily($projectId);
+            } catch (\Throwable $e) {
+                // captureDaily failure must not abort the sync
+                trigger_error('SyncService: captureDaily failed: ' . $e->getMessage(), E_USER_WARNING);
+            }
         }
 
         // ------------------------------------------------------------------

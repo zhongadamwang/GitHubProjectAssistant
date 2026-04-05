@@ -16,18 +16,25 @@ declare(strict_types=1);
 
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
+use App\Controllers\BurndownController;
 use App\Controllers\IssueController;
+use App\Controllers\MemberController;
 use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Repositories\BurndownRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Repositories\TimeLogRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Services\BurndownService;
+use App\Services\EfficiencyService;
 use App\Services\GitHubGraphQLService;
 use App\Services\SyncService;
+use App\Services\TimeTrackingService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -90,6 +97,12 @@ $builder->addDefinitions([
     SyncHistoryRepository::class => static fn(ContainerInterface $c): SyncHistoryRepository =>
         new SyncHistoryRepository($c->get(PDO::class)),
 
+    BurndownRepository::class => static fn(ContainerInterface $c): BurndownRepository =>
+        new BurndownRepository($c->get(PDO::class)),
+
+    TimeLogRepository::class => static fn(ContainerInterface $c): TimeLogRepository =>
+        new TimeLogRepository($c->get(PDO::class)),
+
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
@@ -114,18 +127,35 @@ $builder->addDefinitions([
             $c->get('settings')['session'],
         ),
 
+    BurndownService::class => static fn(ContainerInterface $c): BurndownService =>
+        new BurndownService(
+            $c->get(BurndownRepository::class),
+            $c->get(IssueRepository::class),
+        ),
+
+    EfficiencyService::class => static fn(ContainerInterface $c): EfficiencyService =>
+        new EfficiencyService($c->get(IssueRepository::class)),
+
+    TimeTrackingService::class => static fn(ContainerInterface $c): TimeTrackingService =>
+        new TimeTrackingService(
+            $c->get(TimeLogRepository::class),
+            $c->get(IssueRepository::class),
+            $c->get(PDO::class),
+        ),
+
     SyncService::class => static function (ContainerInterface $c): SyncService {
         $github = $c->get('settings')['github'];
         $sync   = $c->get('settings')['sync'];
 
         return new SyncService(
-            gitHub:        $c->get(GitHubGraphQLService::class),
-            projectRepo:   $c->get(ProjectRepository::class),
-            issueRepo:     $c->get(IssueRepository::class),
-            historyRepo:   $c->get(SyncHistoryRepository::class),
-            owner:         $github['org'],
-            projectNumber: $github['project_number'],
-            snapshotDir:   $sync['snapshot_dir'],
+            gitHub:          $c->get(GitHubGraphQLService::class),
+            projectRepo:     $c->get(ProjectRepository::class),
+            issueRepo:       $c->get(IssueRepository::class),
+            historyRepo:     $c->get(SyncHistoryRepository::class),
+            owner:           $github['org'],
+            projectNumber:   $github['project_number'],
+            snapshotDir:     $sync['snapshot_dir'],
+            burndownService: $c->get(BurndownService::class),
         );
     },
 
@@ -135,10 +165,29 @@ $builder->addDefinitions([
     AuthController::class => static fn(ContainerInterface $c): AuthController =>
         new AuthController($c->get(AuthService::class)),
 
-    // Placeholder controllers (Phase 3 will add real services)
-    ProjectController::class => static fn(): ProjectController => new ProjectController(),
-    IssueController::class   => static fn(): IssueController   => new IssueController(),
-    AdminController::class   => static fn(): AdminController   => new AdminController(),
+    ProjectController::class => static fn(ContainerInterface $c): ProjectController =>
+        new ProjectController(
+            $c->get(ProjectRepository::class),
+            $c->get(IssueRepository::class),
+        ),
+
+    IssueController::class => static fn(ContainerInterface $c): IssueController =>
+        new IssueController(
+            $c->get(IssueRepository::class),
+            $c->get(TimeTrackingService::class),
+        ),
+
+    BurndownController::class => static fn(ContainerInterface $c): BurndownController =>
+        new BurndownController(
+            $c->get(BurndownService::class),
+            $c->get(BurndownRepository::class),
+        ),
+
+    MemberController::class => static fn(ContainerInterface $c): MemberController =>
+        new MemberController($c->get(EfficiencyService::class)),
+
+    AdminController::class => static fn(ContainerInterface $c): AdminController =>
+        new AdminController($c->get(UserRepository::class)),
 
     SyncController::class => static fn(ContainerInterface $c): SyncController =>
         new SyncController(

@@ -106,4 +106,46 @@ final class UserRepository
 
         return $user;
     }
+
+    /**
+     * Return all users ordered by id ASC.
+     * password_hash is NEVER selected.
+     *
+     * @return array<int, array<string,mixed>>
+     */
+    public function findAll(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT `id`, `email`, `display_name`, `role`, `github_username`, `created_at`
+               FROM `users`
+              ORDER BY `id` ASC'
+        );
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Insert a new user row using a pre-computed hash.
+     * Returns the new local user id.
+     *
+     * Caller is responsible for hashing the password (bcrypt cost ≥ 12).
+     * Throws \PDOException on duplicate email (SQLSTATE 23000) — let the
+     * controller handle the 409 response.
+     */
+    public function createFromHash(
+        string  $email,
+        string  $displayName,
+        string  $passwordHash,
+        string  $role           = 'member',
+        ?string $githubUsername = null,
+    ): int {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO `users` (`email`, `display_name`, `password_hash`, `role`, `github_username`)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([$email, $displayName, $passwordHash, $role, $githubUsername]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
 }
+

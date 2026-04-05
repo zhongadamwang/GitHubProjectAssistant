@@ -109,4 +109,201 @@ final class IssueRepository
         $row = $this->findByGitHubId($contentId, $projectId);
         return $row !== null ? ($row['github_updated_at'] ?? null) : null;
     }
+
+    /**
+     * Aggregate time fields grouped by iteration for burndown snapshot capture.
+     *
+     * Returns one row per distinct non-null iteration value. Null-iteration
+     * issues are grouped under an empty string key.
+     *
+     * @return array<int, array{iteration: string, total_estimated: float, total_remaining: float, open_count: int, closed_count: int}>
+     */
+    public function aggregateTimeByIteration(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                 COALESCE(`iteration`, '') AS `iteration`,
+                 SUM(`estimated_time`)     AS `total_estimated`,
+                 SUM(`remaining_time`)     AS `total_remaining`,
+                 SUM(CASE WHEN `status` = 'open'   THEN 1 ELSE 0 END) AS `open_count`,
+                 SUM(CASE WHEN `status` = 'closed' THEN 1 ELSE 0 END) AS `closed_count`
+               FROM `issues`
+              WHERE `project_id` = ?
+              GROUP BY COALESCE(`iteration`, '')"
+        );
+        $stmt->execute([$projectId]);
+
+        return array_map(static function (array $row): array {
+            return [
+                'iteration'       => (string) $row['iteration'],
+                'total_estimated' => (float)  $row['total_estimated'],
+                'total_remaining' => (float)  $row['total_remaining'],
+                'open_count'      => (int)    $row['open_count'],
+                'closed_count'    => (int)    $row['closed_count'],
+            ];
+        }, $stmt->fetchAll());
+    }
+
+    /**
+     * Return issues for a project with optional filters.
+     *
+     * Supported filter keys: assignee (string), iteration (string), status ('open'|'closed')
+     *
+     * @param  array<string,string> $filters
+     * @return array<int, array<string,mixed>>
+     */
+    public function findByProject(int $projectId, array $filters = []): array
+    {
+        $where  = ['`project_id` = :project_id'];
+        $params = ['project_id' => $projectId];
+
+        if (isset($filters['assignee']) && $filters['assignee'] !== '') {
+            $where[]              = '`assignee` = :assignee';
+            $params['assignee']   = $filters['assignee'];
+        }
+        if (isset($filters['iteration']) && $filters['iteration'] !== '') {
+            $where[]              = '`iteration` = :iteration';
+            $params['iteration']  = $filters['iteration'];
+        }
+        if (isset($filters['status']) && in_array($filters['status'], ['open', 'closed'], true)) {
+            $where[]             = '`status` = :status';
+            $params['status']    = $filters['status'];
+        }
+
+        $sql  = 'SELECT * FROM `issues` WHERE ' . implode(' AND ', $where) . ' ORDER BY `updated_at` DESC';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Return open and closed issue counts for a project.
+     *
+     * @return array{open: int, closed: int}
+     */
+    public function getCountsByProject(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                 SUM(CASE WHEN `status` = 'open'   THEN 1 ELSE 0 END) AS `open`,
+                 SUM(CASE WHEN `status` = 'closed' THEN 1 ELSE 0 END) AS `closed`
+               FROM `issues`
+              WHERE `project_id` = ?"
+        );
+        $stmt->execute([$projectId]);
+        $row = $stmt->fetch();
+
+        return [
+            'open'   => (int) ($row['open']   ?? 0),
+            'closed' => (int) ($row['closed'] ?? 0),
+        ];
+    }
+
+    /**
+     * Fetch a single issue row by local id.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function findById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM `issues` WHERE `id` = ? LIMIT 1');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        return $row !== false ? $row : null;
+    }
+
+    /**
+     * Update time-tracking fields on an issue row.
+     *
+     * Only fields present in $fields are updated.
+     * $fields keys: estimated_time, remaining_time, actual_time
+     *
+     * @param array<string, float> $fields
+     */
+    public function updateTimeFields(int $id, array $fields): void
+    {
+        $allowed = ['estimated_time', 'remaining_time', 'actual_time'];
+        $sets    = [];
+        $params  = [];
+
+        foreach ($allowed as $col) {
+            if (array_key_exists($col, $fields)) {
+                $sets[]      = "`{$col}` = :{$col}";
+                $params[$col] = $fields[$col];
+            }
+        }
+
+        if (empty($sets)) {
+            return;
+        }
+
+        $params['id'] = $id;
+        $sql  = 'UPDATE `issues` SET ' . implode(', ', $sets) . ', `updated_at` = NOW() WHERE `id` = :id';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    /**
+     * Aggregate estimation accuracy per member (closed issues only).
+     *
+     * @param  int         $projectId
+     * @param  string|null $iteration  When provided, filters to that iteration.
+     * @return array<int, array{assignee: string, total_estimated: float, total_actual: float, issues_count: int}>
+     */
+    public function aggregateEfficiencyByMember(int $projectId, ?string $iteration): array
+    {
+        $sql = "SELECT
+                    `assignee`,
+                    SUM(`estimated_time`) AS `total_estimated`,
+                    SUM(`actual_time`)    AS `total_actual`,
+                    COUNT(*)              AS `issues_count`
+                  FROM `issues`
+                 WHERE `project_id` = :project_id
+                   AND `status`     = 'closed'
+                   AND `assignee`   IS NOT NULL";
+
+        $params = ['project_id' => $projectId];
+
+        if ($iteration !== null) {
+            $sql             .= ' AND `iteration` = :iteration';
+            $params['iteration'] = $iteration;
+        }
+
+        $sql .= ' GROUP BY `assignee`';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Aggregate estimation accuracy per member AND iteration (closed issues).
+     *
+     * Used for trend data.
+     *
+     * @return array<int, array{assignee: string, iteration: string, total_estimated: float, total_actual: float, issues_count: int}>
+     */
+    public function aggregateEfficiencyByMemberAndIteration(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                 `assignee`,
+                 COALESCE(`iteration`, '') AS `iteration`,
+                 SUM(`estimated_time`)     AS `total_estimated`,
+                 SUM(`actual_time`)        AS `total_actual`,
+                 COUNT(*)                  AS `issues_count`
+               FROM `issues`
+              WHERE `project_id` = ?
+                AND `status`     = 'closed'
+                AND `assignee`   IS NOT NULL
+              GROUP BY `assignee`, COALESCE(`iteration`, '')"
+        );
+        $stmt->execute([$projectId]);
+
+        return $stmt->fetchAll();
+    }
 }
+
