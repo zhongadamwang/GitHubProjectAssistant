@@ -10,7 +10,7 @@ declare(strict_types=1);
  * Reads all *.sql files from database/migrations/ in alphabetical order and
  * executes any that have not yet been recorded in the `migrations_log` table.
  *
- * Environment: expects DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+ * Environment: expects DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
  * to be set (loaded from ../.env via vlucas/phpdotenv when available).
  */
 
@@ -42,12 +42,12 @@ if (file_exists($envFile) && class_exists(\Dotenv\Dotenv::class)) {
 // ---------------------------------------------------------------------------
 $host     = $_ENV['DB_HOST']     ?? getenv('DB_HOST')     ?: '127.0.0.1';
 $port     = $_ENV['DB_PORT']     ?? getenv('DB_PORT')     ?: '3306';
-$dbname   = $_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: '';
-$username = $_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: '';
-$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$dbname   = $_ENV['DB_NAME']     ?? getenv('DB_NAME')     ?: '';
+$username = $_ENV['DB_USER']     ?? getenv('DB_USER')     ?: '';
+$password = $_ENV['DB_PASS']     ?? getenv('DB_PASS')     ?: '';
 
 if (empty($dbname) || empty($username)) {
-    fwrite(STDERR, "ERROR: DB_DATABASE and DB_USERNAME must be set in the environment.\n");
+    fwrite(STDERR, "ERROR: DB_NAME and DB_USER must be set in the environment.\n");
     exit(1);
 }
 
@@ -118,9 +118,12 @@ foreach ($files as $filepath) {
 
     echo "  RUN   {$filename} … ";
     try {
-        $pdo->beginTransaction();
-        // Execute each statement separated by semicolons
-        foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
+        // DDL statements (CREATE TABLE etc.) cause implicit commits in MySQL,
+        // so we cannot wrap them in a transaction. Execute directly.
+        // Strip SQL line comments before splitting on semicolons to avoid
+        // splitting on semicolons that appear inside comment text.
+        $stripped = preg_replace('/--[^\n]*\n/', "\n", $sql);
+        foreach (array_filter(array_map('trim', explode(';', (string) $stripped))) as $stmt) {
             if ($stmt !== '') {
                 $pdo->exec($stmt);
             }
@@ -128,11 +131,9 @@ foreach ($files as $filepath) {
         // Record as applied
         $insert = $pdo->prepare('INSERT INTO `migrations_log` (`migration`) VALUES (?)');
         $insert->execute([$filename]);
-        $pdo->commit();
         echo "OK\n";
         $applied_count++;
     } catch (\PDOException $e) {
-        $pdo->rollBack();
         $msg = $e->getMessage();
         fwrite(STDERR, "FAILED\nERROR: {$msg}\n");
         exit(1);
@@ -143,4 +144,8 @@ foreach ($files as $filepath) {
 // Summary
 // ---------------------------------------------------------------------------
 echo "\nMigrations complete: {$applied_count} applied, {$skipped_count} skipped.\n";
-exit(0);
+
+// Only exit when run as a standalone CLI script, not when required by tests.
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === realpath(__FILE__)) {
+    exit(0);
+}

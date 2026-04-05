@@ -20,12 +20,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 
 // Autoloader — safe to require multiple times (PHP dedups includes)
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 // ---------------------------------------------------------------------------
 // DI container
 // ---------------------------------------------------------------------------
-$container = require __DIR__ . '/config/container.php';
+$container = require dirname(__DIR__) . '/config/container.php';
 
 // ---------------------------------------------------------------------------
 // Slim application
@@ -57,7 +57,7 @@ if ($basePath !== '') {
 // ---------------------------------------------------------------------------
 // Route definitions
 // ---------------------------------------------------------------------------
-$routesFile = __DIR__ . '/config/routes.php';
+$routesFile = dirname(__DIR__) . '/config/routes.php';
 if (file_exists($routesFile)) {
     /** @psalm-suppress UnresolvableInclude */
     (require $routesFile)($app);
@@ -66,7 +66,7 @@ if (file_exists($routesFile)) {
 // ---------------------------------------------------------------------------
 // Health check — always registered, used as smoke-test endpoint
 // ---------------------------------------------------------------------------
-$app->get('/api/health', static function (Request $request, Response $response): Response {
+$app->get('/api/health', function (Request $request, Response $response): Response {
     $response->getBody()->write(json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR));
     return $response;
 });

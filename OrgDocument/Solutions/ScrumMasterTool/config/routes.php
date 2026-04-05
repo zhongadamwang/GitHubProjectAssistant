@@ -44,7 +44,7 @@ return static function (App $app): void {
     // =========================================================================
     // Public routes — no authentication required
     // =========================================================================
-    $app->group('/api/auth', static function (RouteCollectorProxy $group): void {
+    $app->group('/api/auth', function (RouteCollectorProxy $group): void {
         $group->post('/login', [AuthController::class, 'login']);
     });
 
@@ -52,7 +52,7 @@ return static function (App $app): void {
     // Authenticated routes — valid session required
     // AuthMiddleware fires for every route in this group.
     // =========================================================================
-    $app->group('/api', static function (RouteCollectorProxy $group): void {
+    $app->group('/api', function (RouteCollectorProxy $group): void {
 
         // Auth endpoints
         $group->post('/auth/logout', [AuthController::class, 'logout']);
@@ -77,7 +77,7 @@ return static function (App $app): void {
     // Admin routes — valid session + admin role required
     // AuthMiddleware runs first (outer), AdminMiddleware runs second (inner).
     // =========================================================================
-    $app->group('/api', static function (RouteCollectorProxy $group): void {
+    $app->group('/api', function (RouteCollectorProxy $group): void {
 
         $group->post('/sync/trigger',  [SyncController::class,  'trigger']);
         $group->get('/admin/users',    [AdminController::class, 'listUsers']);
