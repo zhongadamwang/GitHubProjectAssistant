@@ -49,12 +49,12 @@
 | T027 | Implement Auto-Refresh & Polling | 0.5d | Medium | T022, T023 | [task-dev-auto-refresh.md](task-dev-auto-refresh.md) |
 
 ### Backlog — Phase 5: Deployment Pipeline
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T028 | Create GitHub Actions Deploy Workflow | 1d | High | T001, T004 |
-| T029 | Configure cPanel Cron Job | 0.5d | High | T011 |
-| T030 | Write Environment Configuration Template | 0.5d | Medium | T001 |
-| T031 | Write Deployment Guide | 1d | Medium | T028, T029 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T028 | Create GitHub Actions Deploy Workflow | 1d | High | T001, T004, T018 | [task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md) |
+| T029 | Configure cPanel Cron Job | 0.5d | High | T011, T028 | [task-dev-cpanel-cron.md](task-dev-cpanel-cron.md) |
+| T030 | Write Environment Configuration Template | 0.5d | Medium | T001 | [task-dev-env-config-template.md](task-dev-env-config-template.md) |
+| T031 | Write Deployment Guide | 1d | Medium | T028, T029 | [task-dev-deployment-guide.md](task-dev-deployment-guide.md) |
 
 ### Backlog — Phase 6: Polish & Validation
 | Task ID | Title | Effort | Priority | Dependencies |
