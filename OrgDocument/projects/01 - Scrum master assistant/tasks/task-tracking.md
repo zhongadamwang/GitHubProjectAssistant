@@ -35,18 +35,18 @@
 | ~~T017~~ | ~~Implement Admin User Management Endpoints~~ | ~~0.5d~~ | ~~Medium~~ | ~~T005, T006~~ | ~~[task-dev-admin-user-management.md](task-dev-admin-user-management.md)~~ |
 
 ### Backlog — Phase 4: Frontend Dashboard
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T018 | Initialize Vue 3 + Vite Project | 0.5d | High | Phase 2+3 |
-| T019 | Build Login View | 0.5d | High | T018 |
-| T020 | Build Auth Store & Route Guards | 0.5d | High | T019 |
-| T021 | Build API Service Layer | 0.5d | High | T018 |
-| T022 | Build Dashboard View with Burndown Chart | 1.5d | High | T021 |
-| T023 | Build Issues View with Time Editor | 1.5d | High | T021 |
-| T024 | Build Members View with Efficiency Charts | 1d | High | T021 |
-| T025 | Build Sync Status View | 0.5d | Medium | T021, T020 |
-| T026 | Build Admin View (User Management) | 0.5d | Medium | T020, T021 |
-| T027 | Implement Auto-Refresh & Polling | 0.5d | Medium | T022, T023 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T018 | Initialize Vue 3 + Vite Project | 0.5d | High | Phase 2+3 | [task-dev-vue-initialize.md](task-dev-vue-initialize.md) |
+| T019 | Build Login View | 0.5d | High | T018 | [task-dev-login-view.md](task-dev-login-view.md) |
+| T020 | Build Auth Store & Route Guards | 0.5d | High | T019 | [task-dev-auth-store.md](task-dev-auth-store.md) |
+| T021 | Build API Service Layer | 0.5d | High | T018 | [task-dev-api-service-layer.md](task-dev-api-service-layer.md) |
+| T022 | Build Dashboard View with Burndown Chart | 1.5d | High | T021 | [task-dev-dashboard-view.md](task-dev-dashboard-view.md) |
+| T023 | Build Issues View with Time Editor | 1.5d | High | T021 | [task-dev-issues-view.md](task-dev-issues-view.md) |
+| T024 | Build Members View with Efficiency Charts | 1d | High | T021 | [task-dev-members-view.md](task-dev-members-view.md) |
+| T025 | Build Sync Status View | 0.5d | Medium | T021, T020 | [task-dev-sync-status-view.md](task-dev-sync-status-view.md) |
+| T026 | Build Admin View (User Management) | 0.5d | Medium | T020, T021 | [task-dev-admin-view.md](task-dev-admin-view.md) |
+| T027 | Implement Auto-Refresh & Polling | 0.5d | Medium | T022, T023 | [task-dev-auto-refresh.md](task-dev-auto-refresh.md) |
 
 ### Backlog — Phase 5: Deployment Pipeline
 | Task ID | Title | Effort | Priority | Dependencies |
