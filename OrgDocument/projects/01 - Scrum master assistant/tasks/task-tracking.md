@@ -57,13 +57,13 @@
 | ~~T031~~ | ~~Write Deployment Guide~~ | ~~1d~~ | ~~Medium~~ | ~~T028, T029~~ | ~~[task-dev-deployment-guide.md](task-dev-deployment-guide.md)~~ |
 
 ### Backlog — Phase 6: Polish & Validation
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 |
-| T033 | Performance Optimization & Testing | 0.5d | High | T032 |
-| T034 | Security Review & Hardening | 0.5d | High | T032 |
-| T035 | Error Handling & Resilience | 0.5d | Medium | T032 |
-| T036 | Code Documentation & Comments | 0.5d | Medium | T032 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
+| T033 | Performance Optimization & Testing | 0.5d | High | T032 | [task-dev-performance-optimization.md](task-dev-performance-optimization.md) |
+| T034 | Security Review & Hardening | 0.5d | High | T032 | [task-dev-security-review.md](task-dev-security-review.md) |
+| T035 | Error Handling & Resilience | 0.5d | Medium | T032 | [task-dev-error-handling.md](task-dev-error-handling.md) |
+| T036 | Code Documentation & Comments | 0.5d | Medium | T032 | [task-dev-code-documentation.md](task-dev-code-documentation.md) |
 
 ### Completed Tasks
 | Task | Completed Date | Notes |
