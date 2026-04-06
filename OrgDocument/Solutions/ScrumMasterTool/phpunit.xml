@@ -17,6 +17,9 @@
         <testsuite name="Phase3 Unit">
             <directory>tests/Integration/Phase3</directory>
         </testsuite>
+        <testsuite name="Phase6 E2E">
+            <directory>tests/Integration/Phase6</directory>
+        </testsuite>
     </testsuites>
 
     <php>

@@ -56,10 +56,14 @@
 | ~~T030~~ | ~~Write Environment Configuration Template~~ | ~~0.5d~~ | ~~Medium~~ | ~~T001~~ | ~~[task-dev-env-config-template.md](task-dev-env-config-template.md)~~ |
 | ~~T031~~ | ~~Write Deployment Guide~~ | ~~1d~~ | ~~Medium~~ | ~~T028, T029~~ | ~~[task-dev-deployment-guide.md](task-dev-deployment-guide.md)~~ |
 
-### Backlog — Phase 6: Polish & Validation
+### Active Sprint — Phase 6: Polish & Validation
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
 | T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
+
+### Backlog — Phase 6: Polish & Validation
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
 | T033 | Performance Optimization & Testing | 0.5d | High | T032 | [task-dev-performance-optimization.md](task-dev-performance-optimization.md) |
 | T034 | Security Review & Hardening | 0.5d | High | T032 | [task-dev-security-review.md](task-dev-security-review.md) |
 | T035 | Error Handling & Resilience | 0.5d | Medium | T032 | [task-dev-error-handling.md](task-dev-error-handling.md) |
