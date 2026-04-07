@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @component SyncView
+ * @description GitHub sync management view. Shows sync history and — for admin
+ * users — provides a manual trigger button. Uses SyncStatus component to show
+ * the age/status of the last run.
+ */
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
 import SyncStatus from '../components/SyncStatus.vue'

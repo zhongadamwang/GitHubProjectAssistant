@@ -1,4 +1,13 @@
 <script setup>
+/**
+ * @component EfficiencyChart
+ * @description Renders a grouped bar chart comparing estimated vs. actual hours
+ * per team member using Chart.js. Each member gets two adjacent bars so the
+ * estimation accuracy ratio (actual / estimated) is visually apparent.
+ *
+ * @prop {Array<{member: string, estimated: number, actual: number}>} members
+ *   Per-member efficiency records from the `/api/projects/{id}/members` endpoint.
+ */
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Chart, registerables } from 'chart.js'
 
@@ -6,11 +15,7 @@ Chart.register(...registerables)
 
 const props = defineProps({
   // Array of { login, estimated, actual }
-  members: {
-    type: Array,
-    default: () => [],
-  },
-})
+  members:
 
 const canvasRef = ref(null)
 let chartInstance = null

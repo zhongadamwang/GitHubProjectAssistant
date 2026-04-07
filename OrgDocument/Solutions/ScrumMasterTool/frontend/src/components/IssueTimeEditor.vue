@@ -1,4 +1,15 @@
 <script setup>
+/**
+ * @component IssueTimeEditor
+ * @description Inline editor for the three time-tracking fields of a single issue:
+ * estimated, remaining, and actual hours.  Performs an optimistic update via
+ * projectStore and reverts on API error.
+ *
+ * @prop {Object} issue  Full issue row from the API (must have id, estimated_hours,
+ *   remaining_hours, actual_hours).
+ * @emits saved  Emitted after a successful API write so the parent can re-fetch
+ *   or trigger polling.
+ */
 import { ref } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 

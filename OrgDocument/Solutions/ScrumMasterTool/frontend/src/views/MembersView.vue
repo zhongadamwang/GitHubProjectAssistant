@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @component MembersView
+ * @description Member efficiency view. Shows per-member estimated vs. actual
+ * hour comparisons for the active project, optionally scoped to a sprint.
+ * Includes trend charts (EfficiencyChart) and an iteration selector.
+ */
 import { ref, computed, onMounted } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import EfficiencyChart from '../components/EfficiencyChart.vue'

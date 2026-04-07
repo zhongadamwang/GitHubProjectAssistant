@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * @component DashboardView
+ * @description Main sprint dashboard. Displays the burndown chart, sprint health
+ * badge, and a sprint selector for the active project. Polls burndown data every
+ * 30 seconds via dashboardStore. When the selected project or iteration changes,
+ * the store is refreshed and polling restarted.
+ */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import { useDashboardStore } from '../stores/dashboardStore.js'

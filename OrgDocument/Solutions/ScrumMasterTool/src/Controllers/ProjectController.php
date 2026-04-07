@@ -116,31 +116,3 @@ final class ProjectController
         return $response->withStatus(308);
     }
 }
-
-
-    /**
-     * GET /api/projects/{id}/burndown
-     */
-    public function burndown(Request $request, Response $response, array $args): Response
-    {
-        return $this->notImplemented($response);
-    }
-
-    /**
-     * GET /api/projects/{id}/members
-     */
-    public function members(Request $request, Response $response, array $args): Response
-    {
-        return $this->notImplemented($response);
-    }
-
-    // -------------------------------------------------------------------------
-
-    private function notImplemented(Response $response): Response
-    {
-        $response->getBody()->write(
-            json_encode(['error' => 'Not implemented. Available in Phase 2.'], JSON_THROW_ON_ERROR)
-        );
-        return $response->withStatus(501);
-    }
-}

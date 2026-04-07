@@ -1,4 +1,12 @@
 <script setup>
+/**
+ * @component HealthBadge
+ * @description Displays a colour-coded sprint health label.
+ * Health is computed by the dashboard store and derived from the latest
+ * burndown point: actual vs ideal remaining work.
+ *
+ * @prop {'on-track'|'at-risk'|'behind'|null} health  Sprint health classification.
+ */
 import { computed } from 'vue'
 
 const props = defineProps({

@@ -1,4 +1,13 @@
 <script setup>
+/**
+ * @component SprintSelector
+ * @description A `<select>` dropdown for choosing the active sprint / iteration.
+ * Implements the `v-model` pattern via `modelValue` / `update:modelValue`.
+ *
+ * @prop {Array<string>} iterations  List of available iteration names.
+ * @prop {string|null}   modelValue  Currently selected iteration (null = all sprints).
+ * @emits update:modelValue  Emitted with the newly selected iteration string.
+ */
 defineProps({
   iterations: {
     type: Array,

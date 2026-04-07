@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * @component IssuesView
+ * @description Issue list for the active project. Shows all issues with inline
+ * time-tracking editors (IssueTimeEditor). Polls for updates every 60 seconds
+ * and immediately re-fetches when an IssueTimeEditor emits the `saved` event.
+ * Supports filtering by assignee, iteration, and status via projectStore.
+ */
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import IssueTimeEditor from '../components/IssueTimeEditor.vue'

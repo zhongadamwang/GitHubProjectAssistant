@@ -68,6 +68,11 @@ export const useProjectStore = defineStore('project', {
   },
 
   actions: {
+    /**
+     * Fetch all projects from the API and populate `state.projects`.
+     * Automatically sets `activeProjectId` to the first project if none is set.
+     * @returns {Promise<void>}
+     */
     async fetchProjects() {
       try {
         const data = await api.getProjects()
@@ -75,11 +80,17 @@ export const useProjectStore = defineStore('project', {
         if (this.projects.length && !this.activeProjectId) {
           this.activeProjectId = this.projects[0].id
         }
-      } catch (err) {
-        console.error('fetchProjects', err)
+      } catch {
+        // Error surfaced via Axios interceptor → ErrorBanner
       }
     },
 
+    /**
+     * Fetch issues for a project and populate `state.issues`.
+     * Debounced by `issuesLoading` flag to prevent concurrent requests.
+     * @param {number} projectId
+     * @returns {Promise<void>}
+     */
     async fetchIssues(projectId) {
       if (this.issuesLoading) return
       this.issuesLoading = true
@@ -94,6 +105,12 @@ export const useProjectStore = defineStore('project', {
       }
     },
 
+    /**
+     * Fetch member efficiency records for a project, optionally scoped to an iteration.
+     * @param {number}      projectId
+     * @param {string|null} [iteration=null]  Sprint name; null = all iterations.
+     * @returns {Promise<void>}
+     */
     async fetchMembers(projectId, iteration = null) {
       this.membersLoading = true
       this.membersError = null
@@ -107,6 +124,15 @@ export const useProjectStore = defineStore('project', {
       }
     },
 
+    /**
+     * Persist updated time fields for an issue.
+     * Applies an optimistic update to `state.issues` immediately and rolls back
+     * to the previous values if the API call fails.
+     * @param {number} issueId  Local issue ID.
+     * @param {Object} patch    Partial object with any of: estimated_time, remaining_time, actual_time.
+     * @returns {Promise<void>}
+     * @throws Will rethrow the API error after rolling back the optimistic update.
+     */
     // Optimistic update — reverts on error; emits nothing (caller handles event)
     async saveIssueTime(issueId, patch) {
       const idx = this.issues.findIndex((i) => i.id === issueId)
@@ -123,6 +149,11 @@ export const useProjectStore = defineStore('project', {
       }
     },
 
+    /**
+     * Toggle sort direction if the same key is selected; otherwise set a new
+     * sort key with ascending direction.
+     * @param {string} key  Issue field name to sort by.
+     */
     setSort(key) {
       if (this.sortKey === key) {
         this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
@@ -132,6 +163,12 @@ export const useProjectStore = defineStore('project', {
       }
     },
 
+    /**
+     * Start polling issues at the given interval.
+     * Clears any existing timer before starting a new one.
+     * @param {number} projectId
+     * @param {number} [intervalMs=60000]
+     */
     startPolling(projectId, intervalMs = 60000) {
       this.stopPolling()
       this.issuesPollingTimer = setInterval(() => {
@@ -141,6 +178,9 @@ export const useProjectStore = defineStore('project', {
       }, intervalMs)
     },
 
+    /**
+     * Stop the active issues polling timer.
+     */
     stopPolling() {
       if (this.issuesPollingTimer !== null) {
         clearInterval(this.issuesPollingTimer)

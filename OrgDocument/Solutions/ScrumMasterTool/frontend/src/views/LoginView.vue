@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @component LoginView
+ * @description Unauthenticated login form. Submits credentials to the API via
+ * the authStore.login action. On success redirects to the page the user was
+ * trying to access (from `route.query.redirect`) or to the dashboard.
+ */
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore.js'

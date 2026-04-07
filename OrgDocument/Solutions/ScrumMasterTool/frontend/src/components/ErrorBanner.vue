@@ -8,6 +8,14 @@
 </template>
 
 <script setup>
+/**
+ * @component ErrorBanner
+ * @description Displays a dismissible, fixed-position error banner at the top
+ * of the viewport. Listens for the global `app-error` CustomEvent dispatched
+ * by the Axios response interceptor in `services/api.js`. Auto-dismisses after
+ * 8 seconds. Rendered in `App.vue` above `<router-view>` so it is always visible
+ * regardless of the current route.
+ */
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const message = ref('')

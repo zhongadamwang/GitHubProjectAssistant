@@ -1,4 +1,14 @@
 <script setup>
+/**
+ * @component BurndownChart
+ * @description Renders a sprint burndown chart using Chart.js.
+ * Displays two lines: the ideal linear burn-down and the actual remaining work
+ * derived from daily snapshots. Destroys and recreates the Chart.js instance
+ * whenever the `points` prop changes to avoid canvas reuse warnings.
+ *
+ * @prop {Array<{date: string, ideal: number, actual: number}>} points
+ *   Ordered array of burndown data points (one per calendar day).
+ */
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Chart, registerables } from 'chart.js'
 

@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * @component AdminView
+ * @description Admin panel for user management. Lists all registered users and
+ * provides a form to create new accounts (email, display name, password, role,
+ * optional GitHub username). Accessible only to users with the 'admin' role;
+ * the router and AdminMiddleware enforce this at both the frontend and API levels.
+ */
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
 import * as api from '../services/api.js'

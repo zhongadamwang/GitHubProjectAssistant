@@ -1,4 +1,13 @@
 <script setup>
+/**
+ * @component SyncStatus
+ * @description Displays the age and status of the last GitHub sync run.
+ * Derives a traffic-light state (ok / stale / error / unknown) from the
+ * `lastSyncAt` timestamp and `lastStatus` string.
+ *
+ * @prop {string|null} lastSyncAt   ISO 8601 datetime of the last successful sync.
+ * @prop {string|null} lastStatus   Status string from the API ('success'|'partial'|'failed').
+ */
 import { computed } from 'vue'
 
 const props = defineProps({

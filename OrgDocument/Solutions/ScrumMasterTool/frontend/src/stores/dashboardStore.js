@@ -22,6 +22,12 @@ export const useDashboardStore = defineStore('dashboard', {
   },
 
   actions: {
+    /**
+     * Fetch burndown data for a project/iteration and populate `state.points`.
+     * @param {number}      projectId  Local project ID.
+     * @param {string|null} iteration  Sprint name; null resolves the latest sprint.
+     * @returns {Promise<void>}
+     */
     async fetchBurndown(projectId, iteration = null) {
       if (this.loading) return
       this.loading = true
@@ -37,10 +43,22 @@ export const useDashboardStore = defineStore('dashboard', {
       }
     },
 
+    /**
+     * Re-fetch burndown data for the currently displayed iteration.
+     * Used by the polling interval to keep data fresh without changing iteration.
+     * @param {number} projectId
+     * @returns {Promise<void>}
+     */
     async refresh(projectId) {
       await this.fetchBurndown(projectId, this.iteration)
     },
 
+    /**
+     * Start polling burndown data at the given interval.
+     * Any existing timer is cleared first to prevent duplicate intervals.
+     * @param {number} projectId
+     * @param {number} [intervalMs=30000]  Polling interval in milliseconds.
+     */
     startPolling(projectId, intervalMs = 30000) {
       this.stopPolling()
       this.pollingTimer = setInterval(() => {
@@ -50,6 +68,9 @@ export const useDashboardStore = defineStore('dashboard', {
       }, intervalMs)
     },
 
+    /**
+     * Stop the active polling timer and clear the reference.
+     */
     stopPolling() {
       if (this.pollingTimer !== null) {
         clearInterval(this.pollingTimer)
