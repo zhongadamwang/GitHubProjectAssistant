@@ -43,7 +43,12 @@ final class IssueController
             }
         }
 
-        $issues = $this->issueRepo->findByProject($projectId, $filters);
+        try {
+            $issues = $this->issueRepo->findByProject($projectId, $filters);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
 
         // Decode JSON labels column for each row
         $issues = array_map(static function (array $row): array {
@@ -94,6 +99,9 @@ final class IssueController
                 json_encode(['error' => 'Issue not found.'], JSON_THROW_ON_ERROR)
             );
             return $response->withStatus(404);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
         }
 
         // Return the updated issue row

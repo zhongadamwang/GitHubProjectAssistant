@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\ProjectRepository;
 use App\Services\BurndownService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -16,8 +17,10 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 final class BurndownController
 {
-    public function __construct(private readonly BurndownService $burndownService)
-    {
+    public function __construct(
+        private readonly BurndownService   $burndownService,
+        private readonly ProjectRepository $projectRepo,
+    ) {
     }
 
     /**
@@ -50,7 +53,27 @@ final class BurndownController
             $iteration = null;
         }
 
-        $result = $this->burndownService->getBurndown($projectId, $iteration);
+        // Verify project exists
+        try {
+            $project = $this->projectRepo->findById($projectId);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
+
+        if ($project === null) {
+            $response->getBody()->write(
+                json_encode(['error' => 'Project not found.'], JSON_THROW_ON_ERROR)
+            );
+            return $response->withStatus(404);
+        }
+
+        try {
+            $result = $this->burndownService->getBurndown($projectId, $iteration);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
 
         $payload = [
             'project_id' => $projectId,

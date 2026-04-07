@@ -37,7 +37,12 @@ final class AdminController
      */
     public function listUsers(Request $request, Response $response): Response
     {
-        $users = $this->userRepo->findAll();
+        try {
+            $users = $this->userRepo->findAll();
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
 
         $response->getBody()->write(
             json_encode(['users' => $users], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
@@ -86,7 +91,8 @@ final class AdminController
                 return $response->withStatus(409);
             }
 
-            throw $e;
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
         }
 
         $payload = [

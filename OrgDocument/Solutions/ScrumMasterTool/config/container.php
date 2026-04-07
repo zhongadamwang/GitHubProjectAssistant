@@ -182,7 +182,7 @@ $builder->addDefinitions([
         new MemberController($c->get(EfficiencyService::class)),
 
     BurndownController::class => static fn(ContainerInterface $c): BurndownController =>
-        new BurndownController($c->get(BurndownService::class)),
+        new BurndownController($c->get(BurndownService::class), $c->get(ProjectRepository::class)),
 
     SyncController::class => static fn(ContainerInterface $c): SyncController =>
         new SyncController(

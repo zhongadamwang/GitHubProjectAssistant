@@ -8,6 +8,9 @@
 # JSON audit snapshots (data/snapshots/ directory contents, keep the directory)
 /data/snapshots/*.json
 
+# Cron logs (created at runtime; sync-error.log written by cron/sync.php)
+/logs/*.log
+
 # OS / IDE artifacts
 .DS_Store
 Thumbs.db

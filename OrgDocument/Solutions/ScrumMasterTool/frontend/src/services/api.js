@@ -1,5 +1,13 @@
 import axios from 'axios'
 
+/**
+ * Dispatch a global app-error event consumed by ErrorBanner.vue in App.vue.
+ * Keeps Axios interceptors decoupled from the Vue component tree.
+ */
+function dispatchAppError(message) {
+  window.dispatchEvent(new CustomEvent('app-error', { detail: { message } }))
+}
+
 const instance = axios.create({
   baseURL: '/api',
   withCredentials: true,
@@ -10,10 +18,13 @@ const instance = axios.create({
 })
 
 // 401 interceptor — auto-logout and redirect to login
+// Network error interceptor — surface connection problems as banner messages
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+
+    if (status === 401) {
       // Dynamically import to avoid circular dependency at module load time
       const { useAuthStore } = await import('../stores/authStore.js')
       const authStore = useAuthStore()
@@ -21,7 +32,17 @@ instance.interceptors.response.use(
 
       const { default: router } = await import('../router/index.js')
       router.push('/login')
+    } else if (status === 403) {
+      dispatchAppError('You do not have permission to perform this action.')
+    } else if (status === 404) {
+      dispatchAppError('The requested resource was not found.')
+    } else if (status >= 500) {
+      dispatchAppError('Server error. Please try again later.')
+    } else if (!error.response) {
+      // Network error — no response received (offline, DNS failure, server down)
+      dispatchAppError('Network error. Please check your connection and try again.')
     }
+
     return Promise.reject(error)
   }
 )

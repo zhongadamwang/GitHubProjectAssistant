@@ -31,7 +31,12 @@ final class ProjectController
      */
     public function listProjects(Request $request, Response $response): Response
     {
-        $projects = $this->projectRepo->findAll();
+        try {
+            $projects = $this->projectRepo->findAll();
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
 
         $response->getBody()->write(
             json_encode(
@@ -53,7 +58,12 @@ final class ProjectController
     public function getProject(Request $request, Response $response, array $args): Response
     {
         $projectId = (int) ($args['id'] ?? 0);
-        $project   = $this->projectRepo->findById($projectId);
+        try {
+            $project = $this->projectRepo->findById($projectId);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
 
         if ($project === null) {
             $response->getBody()->write(
@@ -62,7 +72,13 @@ final class ProjectController
             return $response->withStatus(404);
         }
 
-        $counts  = $this->issueRepo->getCountsByProject($projectId);
+        try {
+            $counts = $this->issueRepo->getCountsByProject($projectId);
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
+
         $payload = array_merge($project, [
             'open_count'   => $counts['open'],
             'closed_count' => $counts['closed'],

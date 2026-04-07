@@ -63,13 +63,18 @@ final class MemberController
             $iteration = null;
         }
 
-        $members = $this->efficiencyService->getMemberEfficiency($projectId, $iteration);
+        try {
+            $members = $this->efficiencyService->getMemberEfficiency($projectId, $iteration);
 
-        // Build trend map — one entry per distinct member in the result set
-        $trend = [];
-        foreach ($members as $record) {
-            $login = $record['member'];
-            $trend[$login] = $this->efficiencyService->getMemberTrend($projectId, $login);
+            // Build trend map — one entry per distinct member in the result set
+            $trend = [];
+            foreach ($members as $record) {
+                $login = $record['member'];
+                $trend[$login] = $this->efficiencyService->getMemberTrend($projectId, $login);
+            }
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
         }
 
         $payload = [
