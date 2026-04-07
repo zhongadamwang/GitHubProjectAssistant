@@ -65,13 +65,14 @@
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
 | ~~T033~~ | ~~Performance Optimization & Testing~~ | ~~0.5d~~ | ~~High~~ | ~~T032~~ | ~~[task-dev-performance-optimization.md](task-dev-performance-optimization.md)~~ |
-| T034 | Security Review & Hardening | 0.5d | High | T032 | [task-dev-security-review.md](task-dev-security-review.md) |
+| ~~T034~~ | ~~Security Review & Hardening~~ | ~~0.5d~~ | ~~High~~ | ~~T032~~ | ~~[task-dev-security-review.md](task-dev-security-review.md)~~ |
 | T035 | Error Handling & Resilience | 0.5d | Medium | T032 | [task-dev-error-handling.md](task-dev-error-handling.md) |
 | T036 | Code Documentation & Comments | 0.5d | Medium | T032 | [task-dev-code-documentation.md](task-dev-code-documentation.md) |
 
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T034 — Security Review & Hardening | 2026-04-06 | Full OWASP Top 10 audit across all `src/`, `cron/`, `config/`, `public/`, `bootstrap/` files. 17 security items — all PASS, 0 FAIL. No code changes required; existing implementation met all requirements. `security-checklist.md` created with pass/fail/N-A per item, production deployment checklist, and SESSION_SECURE reminder. |
 | T033 — Performance Optimization & Testing | 2026-04-06 | `tests/perf/benchmark.sh` (10 runs/endpoint, min/avg/max TTFB, auto-appends markdown table to `tests/perf/results.md`); `tests/perf/results.md` with code-review audit (10/10 checks ✅); `database/migrations/008_add_performance_indexes.sql` defensive guard (INFORMATION_SCHEMA procedure, MySQL 5.7+/8.0 compatible — all 4 indexes already existed); `JsonResponseMiddleware` updated with `Cache-Control: no-store` + `Pragma: no-cache` + `X-Content-Type-Options: nosniff`; all backend query audits passed (single-query burndown, SQL-level efficiency GROUP BY, bound-param issue filter); Chart.js `destroy()` guard confirmed in both chart components |
 | T031 — Write Deployment Guide | 2026-04-05 | `OrgDocument/Solutions/ScrumMasterTool/README.md` created; 8 sections: Project Overview (features list), Tech Stack table, Prerequisites table, Local Development (8 steps), cPanel Manual Deployment (7 steps + SFTP exclude table), GitHub Actions (workflow steps + 9-secret table + manual trigger), Troubleshooting (6 entries), Architecture Reference; all 9 deploy.yml secrets documented |
 | T029 — Configure cPanel Cron Job | 2026-04-05 | `cron/setup.sh` auto-detects PHP 8.2+ binary from 5 EA4 candidate paths, creates `~/logs/` + `data/snapshots/`, runs manual test sync, prints exact cron command; `cron/logrotate.conf` reference config; `deploy.yml` step 5 extended to create dirs via SSH and echo cron command to Actions log; lock file confirmed at `data/sync.lock` (cleaned by `register_shutdown_function`); live cPanel Cron Jobs panel entry requires server access |
