@@ -213,7 +213,7 @@ final class GitHubGraphQLService implements GitHubClientInterface
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        curl_close($ch);
+        unset($ch);
 
         // cURL-level failure (network error, DNS, timeout, etc.)
         if ($curlErrNo !== 0 || $raw === false) {
