@@ -79,7 +79,7 @@ final class SyncService
         // ------------------------------------------------------------------
         // Step 3 — Parse
         // ------------------------------------------------------------------
-        $projectData = $projectRaw['data']['user']['projectV2'] ?? [];
+        $projectData = $projectRaw['data']['organization']['projectV2'] ?? [];
         $project     = ResponseParser::parseProject($projectData, $this->owner);
         $issues      = ResponseParser::parseIssueNodes($rawNodes);
 
