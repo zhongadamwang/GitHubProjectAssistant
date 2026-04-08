@@ -56,7 +56,7 @@ onUnmounted(() => {
       <h1>Dashboard</h1>
       <div class="controls">
         <select
-          v-if="projectStore.projects.length > 1"
+          v-if="projectStore.projects.length > 0"
           v-model="selectedProjectId"
           @change="dashStore.fetchBurndown(selectedProjectId, selectedIteration)"
         >

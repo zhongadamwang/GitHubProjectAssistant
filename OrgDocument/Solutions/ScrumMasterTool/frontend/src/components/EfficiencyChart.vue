@@ -15,7 +15,11 @@ Chart.register(...registerables)
 
 const props = defineProps({
   // Array of { login, estimated, actual }
-  members:
+  members: {
+    type: Array,
+    default: () => []
+  }
+})
 
 const canvasRef = ref(null)
 let chartInstance = null
