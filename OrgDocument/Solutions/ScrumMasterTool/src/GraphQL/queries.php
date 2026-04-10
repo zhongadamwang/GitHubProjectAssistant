@@ -48,7 +48,7 @@ final class Queries
      */
     public const FETCH_PROJECT_FIELDS = <<<'GRAPHQL'
         query FetchProjectFields($owner: String!, $number: Int!) {
-          user(login: $owner) {
+          organization(login: $owner) {
             projectV2(number: $number) {
               id
               title
@@ -119,7 +119,7 @@ final class Queries
      */
     public const FETCH_PROJECT_ITEMS = <<<'GRAPHQL'
         query FetchProjectItems($owner: String!, $number: Int!, $after: String) {
-          user(login: $owner) {
+          organization(login: $owner) {
             projectV2(number: $number) {
               id
               title

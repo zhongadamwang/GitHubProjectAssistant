@@ -13,7 +13,7 @@ use PDO;
  * password_hash is only returned by the internal findHashByEmail() method
  * which is used exclusively by AuthService for credential verification.
  */
-final class UserRepository
+class UserRepository
 {
     public function __construct(private readonly PDO $pdo)
     {
@@ -105,5 +105,24 @@ final class UserRepository
         }
 
         return $user;
+    }
+
+    /**
+     * Return all users ordered by id ASC, without password_hash.
+     *
+     * Used by AdminController::listUsers() (T017).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function findAll(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT `id`, `email`, `display_name`, `role`,
+                    `github_username`, `created_at`, `updated_at`
+               FROM `users`
+              ORDER BY `id` ASC'
+        );
+
+        return $stmt->fetchAll();
     }
 }

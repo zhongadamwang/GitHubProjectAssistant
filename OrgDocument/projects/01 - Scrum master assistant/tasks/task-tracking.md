@@ -1,7 +1,7 @@
 # Task Tracking — Scrum Master Assistant
 
 **Project**: PRJ-01 — Scrum Master Assistant  
-**Last Updated**: 2026-04-03  
+**Last Updated**: 2026-04-06  
 **Status**: Planning Complete — Ready for Phase 1 Development  
 
 ## Current Sprint: Phase 1 — Foundation
@@ -26,48 +26,74 @@
 | ~~T012~~ | ~~Integration Test: GitHub Sync E2E~~ | ~~0.5d~~ | ~~High~~ | ~~T010, T011~~ | ~~[task-dev-sync-integration-test.md](task-dev-sync-integration-test.md)~~ |
 
 ### Backlog — Phase 3: Analytics Engine
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T013 | Implement BurndownService | 1d | High | T002, T004, T006 |
-| T014 | Build Daily Burndown Snapshot Job | 0.5d | High | T002, T013 |
-| T015 | Implement EfficiencyService | 1d | High | T002, T004, T006 |
-| T016 | Implement TimeTrackingService with Audit | 1d | High | T002, T005, T006 |
-| T017 | Implement Admin User Management Endpoints | 0.5d | Medium | T005, T006 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+
+| ~~T014~~ | ~~Build Daily Burndown Snapshot Job~~ | ~~0.5d~~ | ~~High~~ | ~~T002, T013~~ | ~~[task-dev-burndown-snapshot-job.md](task-dev-burndown-snapshot-job.md)~~ |
+| ~~T015~~ | ~~Implement EfficiencyService~~ | ~~1d~~ | ~~High~~ | ~~T002, T004, T006~~ | ~~[task-dev-efficiency-service.md](task-dev-efficiency-service.md)~~ |
+| ~~T016~~ | ~~Implement TimeTrackingService with Audit~~ | ~~1d~~ | ~~High~~ | ~~T002, T005, T006~~ | ~~[task-dev-time-tracking-service.md](task-dev-time-tracking-service.md)~~ |
+| ~~T017~~ | ~~Implement Admin User Management Endpoints~~ | ~~0.5d~~ | ~~Medium~~ | ~~T005, T006~~ | ~~[task-dev-admin-user-management.md](task-dev-admin-user-management.md)~~ |
 
 ### Backlog — Phase 4: Frontend Dashboard
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T018 | Initialize Vue 3 + Vite Project | 0.5d | High | Phase 2+3 |
-| T019 | Build Login View | 0.5d | High | T018 |
-| T020 | Build Auth Store & Route Guards | 0.5d | High | T019 |
-| T021 | Build API Service Layer | 0.5d | High | T018 |
-| T022 | Build Dashboard View with Burndown Chart | 1.5d | High | T021 |
-| T023 | Build Issues View with Time Editor | 1.5d | High | T021 |
-| T024 | Build Members View with Efficiency Charts | 1d | High | T021 |
-| T025 | Build Sync Status View | 0.5d | Medium | T021, T020 |
-| T026 | Build Admin View (User Management) | 0.5d | Medium | T020, T021 |
-| T027 | Implement Auto-Refresh & Polling | 0.5d | Medium | T022, T023 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T018 | Initialize Vue 3 + Vite Project | 0.5d | High | Phase 2+3 | [task-dev-vue-initialize.md](task-dev-vue-initialize.md) |
+| T019 | Build Login View | 0.5d | High | T018 | [task-dev-login-view.md](task-dev-login-view.md) |
+| T020 | Build Auth Store & Route Guards | 0.5d | High | T019 | [task-dev-auth-store.md](task-dev-auth-store.md) |
+| T021 | Build API Service Layer | 0.5d | High | T018 | [task-dev-api-service-layer.md](task-dev-api-service-layer.md) |
+| T022 | Build Dashboard View with Burndown Chart | 1.5d | High | T021 | [task-dev-dashboard-view.md](task-dev-dashboard-view.md) |
+| T023 | Build Issues View with Time Editor | 1.5d | High | T021 | [task-dev-issues-view.md](task-dev-issues-view.md) |
+| T024 | Build Members View with Efficiency Charts | 1d | High | T021 | [task-dev-members-view.md](task-dev-members-view.md) |
+| T025 | Build Sync Status View | 0.5d | Medium | T021, T020 | [task-dev-sync-status-view.md](task-dev-sync-status-view.md) |
+| T026 | Build Admin View (User Management) | 0.5d | Medium | T020, T021 | [task-dev-admin-view.md](task-dev-admin-view.md) |
+| T027 | Implement Auto-Refresh & Polling | 0.5d | Medium | T022, T023 | [task-dev-auto-refresh.md](task-dev-auto-refresh.md) |
 
 ### Backlog — Phase 5: Deployment Pipeline
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T028 | Create GitHub Actions Deploy Workflow | 1d | High | T001, T004 |
-| T029 | Configure cPanel Cron Job | 0.5d | High | T011 |
-| T030 | Write Environment Configuration Template | 0.5d | Medium | T001 |
-| T031 | Write Deployment Guide | 1d | Medium | T028, T029 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| ~~T028~~ | ~~Create GitHub Actions Deploy Workflow~~ | ~~1d~~ | ~~High~~ | ~~T001, T004, T018~~ | ~~[task-dev-github-actions-deploy.md](task-dev-github-actions-deploy.md)~~ |
+| ~~T029~~ | ~~Configure cPanel Cron Job~~ | ~~0.5d~~ | ~~High~~ | ~~T011, T028~~ | ~~[task-dev-cpanel-cron.md](task-dev-cpanel-cron.md)~~ |
+| ~~T030~~ | ~~Write Environment Configuration Template~~ | ~~0.5d~~ | ~~Medium~~ | ~~T001~~ | ~~[task-dev-env-config-template.md](task-dev-env-config-template.md)~~ |
+| ~~T031~~ | ~~Write Deployment Guide~~ | ~~1d~~ | ~~Medium~~ | ~~T028, T029~~ | ~~[task-dev-deployment-guide.md](task-dev-deployment-guide.md)~~ |
+
+### Active Sprint — Phase 6: Polish & Validation
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
 
 ### Backlog — Phase 6: Polish & Validation
-| Task ID | Title | Effort | Priority | Dependencies |
-|---------|-------|--------|----------|--------------|
-| T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 |
-| T033 | Performance Optimization & Testing | 0.5d | High | T032 |
-| T034 | Security Review & Hardening | 0.5d | High | T032 |
-| T035 | Error Handling & Resilience | 0.5d | Medium | T032 |
-| T036 | Code Documentation & Comments | 0.5d | Medium | T032 |
+| Task ID | Title | Effort | Priority | Dependencies | Task File |
+|---------|-------|--------|----------|--------------|-----------|
+| ~~T033~~ | ~~Performance Optimization & Testing~~ | ~~0.5d~~ | ~~High~~ | ~~T032~~ | ~~[task-dev-performance-optimization.md](task-dev-performance-optimization.md)~~ |
+| ~~T034~~ | ~~Security Review & Hardening~~ | ~~0.5d~~ | ~~High~~ | ~~T032~~ | ~~[task-dev-security-review.md](task-dev-security-review.md)~~ |
+| ~~T035~~ | ~~Error Handling & Resilience~~ | ~~0.5d~~ | ~~Medium~~ | ~~T032~~ | ~~[task-dev-error-handling.md](task-dev-error-handling.md)~~ |
+| ~~T036~~ | ~~Code Documentation & Comments~~ | ~~0.5d~~ | ~~Medium~~ | ~~T032~~ | ~~[task-dev-code-documentation.md](task-dev-code-documentation.md)~~ |
 
 ### Completed Tasks
 | Task | Completed Date | Notes |
 |------|---------------|-------|
+| T036 — Code Documentation & Comments | 2026-04-06 | JSDoc added to all 7 Vue views, 7 components, all 11 api.js exports, and all Pinia store actions. PHP backend already had comprehensive PHPDoc. Dead: removed `console.error` from `projectStore.fetchProjects`; removed orphaned stub methods outside closing brace of `ProjectController` (PHP parse error fix). All `php -l` checks pass. |
+| T035 — Error Handling & Resilience | 2026-04-06 | `cron/sync.php` now writes to `logs/sync-error.log` (auto-creates dir) + STDERR on all exception paths. All 6 controllers (Project, Issue, Admin, Member, Burndown, Sync) have `\PDOException`→500 guards. `BurndownController` now injects `ProjectRepository` and returns 404 for unknown projects. Vue: Axios interceptor dispatches `app-error` CustomEvent for 403/404/5xx/network errors; new `ErrorBanner.vue` shows dismissible fixed-position banner (auto-dismisses 8 s); added to `App.vue`. `/logs/*.log` added to `.gitignore`. |
+| T034 — Security Review & Hardening | 2026-04-06 | Full OWASP Top 10 audit across all `src/`, `cron/`, `config/`, `public/`, `bootstrap/` files. 17 security items — all PASS, 0 FAIL. No code changes required; existing implementation met all requirements. `security-checklist.md` created with pass/fail/N-A per item, production deployment checklist, and SESSION_SECURE reminder. |
+| T033 — Performance Optimization & Testing | 2026-04-06 | `tests/perf/benchmark.sh` (10 runs/endpoint, min/avg/max TTFB, auto-appends markdown table to `tests/perf/results.md`); `tests/perf/results.md` with code-review audit (10/10 checks ✅); `database/migrations/008_add_performance_indexes.sql` defensive guard (INFORMATION_SCHEMA procedure, MySQL 5.7+/8.0 compatible — all 4 indexes already existed); `JsonResponseMiddleware` updated with `Cache-Control: no-store` + `Pragma: no-cache` + `X-Content-Type-Options: nosniff`; all backend query audits passed (single-query burndown, SQL-level efficiency GROUP BY, bound-param issue filter); Chart.js `destroy()` guard confirmed in both chart components |
+| T031 — Write Deployment Guide | 2026-04-05 | `OrgDocument/Solutions/ScrumMasterTool/README.md` created; 8 sections: Project Overview (features list), Tech Stack table, Prerequisites table, Local Development (8 steps), cPanel Manual Deployment (7 steps + SFTP exclude table), GitHub Actions (workflow steps + 9-secret table + manual trigger), Troubleshooting (6 entries), Architecture Reference; all 9 deploy.yml secrets documented |
+| T029 — Configure cPanel Cron Job | 2026-04-05 | `cron/setup.sh` auto-detects PHP 8.2+ binary from 5 EA4 candidate paths, creates `~/logs/` + `data/snapshots/`, runs manual test sync, prints exact cron command; `cron/logrotate.conf` reference config; `deploy.yml` step 5 extended to create dirs via SSH and echo cron command to Actions log; lock file confirmed at `data/sync.lock` (cleaned by `register_shutdown_function`); live cPanel Cron Jobs panel entry requires server access |
+| T030 — Write Environment Configuration Template | 2026-04-05 | Audited all `$_ENV` usage; added `GITHUB_PROJECT_NUMBER` (was missing), `APP_URL`, seed vars (`ADMIN_EMAIL`/`ADMIN_PASSWORD`/`ADMIN_NAME`); added DO-NOT-COMMIT header; production callouts for `APP_ENV` and `SESSION_SECURE`; corrected var name `ADMIN_NAME` (not ADMIN_DISPLAY_NAME) |
+| T028 — Create GitHub Actions Deploy Workflow | 2026-04-05 | `.github/workflows/deploy.yml` at repo root; checkout → Node 20 + npm ci + build → PHP 8.2 + composer install --no-dev → lftp SFTP mirror (excludes .env, tests/, frontend/, snapshots/) → appleboy/ssh-action migrate; `workflow_dispatch` for manual runs; 9 secrets: SFTP_HOST/PORT/USER/PASSWORD, REMOTE_PATH, SSH_HOST/USER/KEY/PORT |
+| T027 — Implement Auto-Refresh & Polling | 2026-04-05 | `dashboardStore.startPolling(30s)` + `stopPolling()` with in-flight guard; `projectStore.startPolling(60s)` + `stopPolling()`; `DashboardView` mounts/unmounts polling; `IssuesView` mounts/unmounts polling + immediate re-fetch on `IssueTimeEditor` `saved` event |
+| T026 — Build Admin View (User Management) | 2026-04-05 | `AdminView.vue` — users table + Add User form; client-side validation (email, min-8 password); 409/422 error handling; new user appended without reload; route guarded by `requiresAdmin` |
+| T025 — Build Sync Status View | 2026-04-05 | `SyncStatus.vue` (ok/stale/error/unknown indicator); `SyncView.vue` — history table (top 20), summary stats, "Sync Now" button (admin-only, loading spinner, 4s auto-dismiss feedback) |
+| T024 — Build Members View with Efficiency Charts | 2026-04-05 | `EfficiencyChart.vue` (grouped bar: blue=estimated, orange=actual); `MembersView.vue` — iteration filter, chart, accuracy table with ratio color coding (accurate 0.9–1.1/over/under); N/A guard for zero estimates |
+| T023 — Build Issues View with Time Editor | 2026-04-05 | `projectStore.js` (filteredIssues computed, filter/sort state, totals getter, saveIssueTime optimistic update); `IssueTimeEditor.vue` (3 numeric inputs, blur/Enter save, flash-success/error, emits `saved`); `IssuesView.vue` (filter controls, sortable headers, footer totals, 60s polling) |
+| T022 — Build Dashboard View with Burndown Chart | 2026-04-05 | `dashboardStore.js` (fetchBurndown, refresh, health getter, startPolling/stopPolling); `BurndownChart.vue` (ideal dashed blue, actual solid red, Chart.js destroy guard); `SprintSelector.vue`; `HealthBadge.vue`; `DashboardView.vue` |
+| T021 — Build API Service Layer | 2026-04-05 | `frontend/src/services/api.js` — Axios instance (baseURL=/api, withCredentials); 401 interceptor (dynamic import to avoid circular deps); 13 named exports covering all API endpoints |
+| T020 — Build Auth Store & Route Guards | 2026-04-05 | `authStore.js` (Pinia Options API: user state, isAuthenticated/isAdmin getters, login/logout/fetchMe/clearAuth actions); `router.beforeEach()` guards `requiresAuth` + `requiresAdmin` meta |
+| T019 — Build Login View | 2026-04-05 | `LoginView.vue` — email/password form, `@submit.prevent`, 401→"Invalid credentials" / generic fallback, button disabled during request, Enter submits, scoped card layout |
+| T018 — Initialize Vue 3 + Vite Project | 2026-04-05 | `frontend/` scaffold: `package.json`, `vite.config.js` (build.outDir=../public/dist, proxy /api→localhost:8080), `index.html`, `App.vue`, `main.js`; all dirs created; `.gitignore` updated; `public/index.php` SPA fallback added | `UserRepository::findAll()` (no password_hash); `AdminController::listUsers()` (200 + users array); `AdminController::createUser()` (201/409/422, validates email/display_name/password/role); `container.php` AdminController injects UserRepository; 7-test `AdminControllerTest` in Phase3/ |
+| T016 — Implement TimeTrackingService with Audit | 2026-04-04 | `TimeLogRepository` (insert, findByIssue); `TimeTrackingService` (validated partial update, PDO transaction, read-before-write audit); `IssueRepository::findByProject()` (filter builder) + `getCountsByProject()` + `findById()`; `ProjectRepository::findAll()` + `findById()`; `IssueController` (getIssues, updateTime — auth_user from request); `ProjectController` (listProjects, getProject with live counts); `TimeLogRepository`+`TimeTrackingService` wired; `IssueController`/`ProjectController` replaced with injected versions; routes updated; 7-test `TimeTrackingServiceTest` in Phase3/ |
+| T015 — Implement EfficiencyService | 2026-04-04 | `IssueRepository::aggregateEfficiencyByMember()` + `aggregateEfficiencyByMemberAndIteration()`; `EfficiencyService` (getMemberEfficiency, getMemberTrend, null-safe ratio); `MemberController` (GET /api/projects/{id}/members); container+routes wired; 9-test `EfficiencyServiceTest` in Phase3/ |
+| T014 — Build Daily Burndown Snapshot Job | 2026-04-04 | `IssueRepository::aggregateTimeByIteration()` (GROUP BY iteration, COALESCE for NULLs); `BurndownService::captureDaily()` full impl (replaces stub); `BurndownService` constructor now injects `IssueRepository`; `SyncService` step 6b hook with try/catch guard; `container.php` updated for both services; 5-test `CaptureDailyTest` suite (value mapping, idempotency, multi-iteration, empty project, UTC date) |
+| T013 — Implement BurndownService | 2026-04-04 | `BurndownPoint` VO; `BurndownRepository` (getPointsForIteration, getLatestIteration, upsertDailySnapshot); `BurndownService` (getBurndown linear ideal + carry-forward actual, captureDaily stub); `BurndownController` (GET /api/projects/{id}/burndown); container+routes wired; 5-test PHPUnit mock suite in Phase3/ |
 | T012 — Integration Test: GitHub Sync E2E | 2026-04-03 | 6 tests (first-run, idempotency, history rows, update detection, snapshot, API-failure, time-field preservation); `GitHubClientInterface` extracted; timestamp normalization fixed; migration 007 |
 | T011 — Create Cron Sync Entry Point | 2026-04-03 | `cron/sync.php` (PID lock, shutdown cleanup, exit codes 0/1/2); `SyncController` real impl (history + trigger); container updated |
 | T010 — Build Sync Logic with Diff & Snapshot | 2026-04-03 | `SyncService`, `SyncResult`, `ProjectRepository`, `IssueRepository`, `SyncHistoryRepository` — full 7-step sync cycle; time fields never overwritten |
@@ -96,13 +122,12 @@
 | *No blocked tasks* | - | - | - |
 
 ## Progress Summary
-- **Total Tasks**: 36 development tasks (6 active sprint, 30 backlog) + 9 planning tasks completed
-- **Sprint Progress**: Phase 1 ready to start (6 tasks, 5 days effort)
-- **Velocity**: N/A (first development sprint)
-- **Critical Path**: T001 → T002 → T005 → T006 → T010 → T012 → T018 → T022 → T032
+- **Total Tasks**: 36 development tasks (0 active sprint, 8 backlog) + 9 planning tasks completed
+- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
+- **Phase 5 Progress**: T028 ✅, T029 ✅, T030 ✅, T031 ✅ — Phase 5 Complete
+- **Phases Remaining**: Phase 6 (Polish & Validation — 5 tasks)
+- **Critical Path**: T032 (E2E testing) → T033/T034/T035/T036
 
 ## Next Actions
-1. Assign Phase 1 tasks to developer(s)
-2. Start T001 (Initialize PHP Backend Project) and T004 (Slim 4 Entry Point) in parallel
-3. Set up development MySQL database
-4. Obtain GitHub PAT with `read:project` and `repo` scopes for integration testing
+1. T032 — End-to-End Integration Testing (all Phase 1–5 complete; detail task file and implement)
+2. T033–T036 — Polish, security review, error handling, documentation (can run in parallel after T032)

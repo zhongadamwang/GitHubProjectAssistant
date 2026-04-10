@@ -10,6 +10,7 @@ use App\GraphQL\ResponseParser;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Services\BurndownService;
 
 /**
  * SyncService — orchestrates a complete GitHub Projects v2 sync cycle.
@@ -33,6 +34,7 @@ final class SyncService
         private readonly ProjectRepository     $projectRepo,
         private readonly IssueRepository       $issueRepo,
         private readonly SyncHistoryRepository $historyRepo,
+        private readonly BurndownService       $burndownService,
         private readonly string                $owner,
         private readonly int                   $projectNumber,
         private readonly string                $snapshotDir,
@@ -77,7 +79,7 @@ final class SyncService
         // ------------------------------------------------------------------
         // Step 3 — Parse
         // ------------------------------------------------------------------
-        $projectData = $projectRaw['data']['user']['projectV2'] ?? [];
+        $projectData = $projectRaw['data']['organization']['projectV2'] ?? [];
         $project     = ResponseParser::parseProject($projectData, $this->owner);
         $issues      = ResponseParser::parseIssueNodes($rawNodes);
 
@@ -138,6 +140,16 @@ final class SyncService
         } catch (\Throwable $e) {
             // Snapshot failure is non-fatal — sync still succeeded
             trigger_error('SyncService: snapshot write failed: ' . $e->getMessage(), E_USER_WARNING);
+        }
+
+        // ------------------------------------------------------------------
+        // Step 6b — Capture daily burndown snapshot (T014)
+        // ------------------------------------------------------------------
+        try {
+            $this->burndownService->captureDaily($projectId);
+        } catch (\Throwable $e) {
+            // burndown capture failure is non-fatal — never abort the sync
+            trigger_error('SyncService: burndown captureDaily failed: ' . $e->getMessage(), E_USER_WARNING);
         }
 
         // ------------------------------------------------------------------
