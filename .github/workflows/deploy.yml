@@ -110,6 +110,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          key_passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Run migrations (idempotent)
