@@ -81,6 +81,9 @@ final class SyncController
 
             return $response->withStatus(200);
 
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
         } catch (\Throwable $e) {
             $response->getBody()->write(
                 json_encode(

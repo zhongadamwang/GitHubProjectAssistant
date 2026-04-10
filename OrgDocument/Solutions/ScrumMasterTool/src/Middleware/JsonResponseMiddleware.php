@@ -10,11 +10,18 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * JsonResponseMiddleware — Ensures all API responses carry the correct
- * Content-Type header (`application/json; charset=utf-8`).
+ * Content-Type and cache-control headers.
  *
  * This middleware runs after routing so it applies only to responses that
- * pass through the Slim pipeline. It is intentionally a thin pass-through
- * that only mutates the Content-Type header.
+ * pass through the Slim pipeline. Non-API requests (Vue SPA) are served
+ * directly from public/index.php and never reach Slim, so this middleware
+ * exclusively mutates API responses.
+ *
+ * Headers applied:
+ *   Content-Type     : application/json; charset=utf-8
+ *   Cache-Control    : no-store
+ *   Pragma           : no-cache  (HTTP/1.0 proxy compatibility)
+ *   X-Content-Type-Options: nosniff
  */
 final class JsonResponseMiddleware implements MiddlewareInterface
 {
@@ -22,6 +29,10 @@ final class JsonResponseMiddleware implements MiddlewareInterface
     {
         $response = $handler->handle($request);
 
-        return $response->withHeader('Content-Type', 'application/json; charset=utf-8');
+        return $response
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Pragma', 'no-cache')
+            ->withHeader('X-Content-Type-Options', 'nosniff');
     }
 }

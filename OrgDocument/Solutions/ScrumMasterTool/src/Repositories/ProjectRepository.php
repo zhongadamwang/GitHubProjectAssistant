@@ -79,4 +79,42 @@ final class ProjectRepository
         $row = $this->findByGitHubId($githubId);
         return $row !== null ? (int) $row['id'] : null;
     }
+
+    /**
+     * Return all project rows ordered by sync_timestamp DESC (most recently
+     * synced first).  Used by ProjectController::listProjects().
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function findAll(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT `id`, `github_project_id`, `github_owner`, `project_number`,
+                    `name`, `current_iteration`, `sync_timestamp`, `created_at`
+               FROM `projects`
+              ORDER BY `sync_timestamp` DESC'
+        );
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Return a single project row by its local auto-increment ID, or null.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function findById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT `id`, `github_project_id`, `github_owner`, `project_number`,
+                    `name`, `current_iteration`, `sync_timestamp`, `created_at`
+               FROM `projects`
+              WHERE `id` = :id
+              LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+
+        return $row !== false ? $row : null;
+    }
 }

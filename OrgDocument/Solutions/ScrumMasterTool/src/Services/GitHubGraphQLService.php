@@ -94,7 +94,7 @@ final class GitHubGraphQLService implements GitHubClientInterface
 
             $response = $this->query('FETCH_PROJECT_ITEMS', $variables);
 
-            $items       = $response['data']['user']['projectV2']['items'] ?? [];
+            $items       = $response['data']['organization']['projectV2']['items'] ?? [];
             $nodes       = $items['nodes']                                 ?? [];
             $pageInfo    = $items['pageInfo']                              ?? [];
             $hasNextPage = (bool) ($pageInfo['hasNextPage']                ?? false);
@@ -213,7 +213,7 @@ final class GitHubGraphQLService implements GitHubClientInterface
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        curl_close($ch);
+        unset($ch);
 
         // cURL-level failure (network error, DNS, timeout, etc.)
         if ($curlErrNo !== 0 || $raw === false) {

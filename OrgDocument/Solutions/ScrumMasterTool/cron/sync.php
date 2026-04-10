@@ -98,17 +98,39 @@ try {
     exit(0);
 
 } catch (RateLimitException $e) {
-    $ts = gmdate('Y-m-d H:i:s');
-    fwrite(STDERR, "[{$ts} UTC] Sync aborted (rate limit): {$e->getMessage()}\n");
+    $ts  = gmdate('Y-m-d H:i:s');
+    $msg = "[{$ts} UTC] Sync aborted (rate limit): {$e->getMessage()}\n";
+    fwrite(STDERR, $msg);
+    logSyncError($rootDir, $msg);
     exit(1);
 
 } catch (GitHubApiException $e) {
-    $ts = gmdate('Y-m-d H:i:s');
-    fwrite(STDERR, "[{$ts} UTC] Sync failed (GitHub API error): {$e->getMessage()}\n");
+    $ts  = gmdate('Y-m-d H:i:s');
+    $msg = "[{$ts} UTC] Sync failed (GitHub API error): {$e->getMessage()}\n";
+    fwrite(STDERR, $msg);
+    logSyncError($rootDir, $msg);
     exit(1);
 
 } catch (\Throwable $e) {
-    $ts = gmdate('Y-m-d H:i:s');
-    fwrite(STDERR, "[{$ts} UTC] Sync failed (unexpected): " . get_class($e) . ": {$e->getMessage()}\n");
+    $ts  = gmdate('Y-m-d H:i:s');
+    $msg = "[{$ts} UTC] Sync failed (unexpected): " . get_class($e) . ": {$e->getMessage()}\n";
+    fwrite(STDERR, $msg);
+    logSyncError($rootDir, $msg);
     exit(2);
+}
+
+/**
+ * Append an error message to logs/sync-error.log.
+ * Creates the logs/ directory if it does not exist.
+ */
+function logSyncError(string $rootDir, string $message): void
+{
+    $logsDir  = $rootDir . '/logs';
+    $logFile  = $logsDir . '/sync-error.log';
+
+    if (!is_dir($logsDir)) {
+        @mkdir($logsDir, 0755, true);
+    }
+
+    @file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
 }
