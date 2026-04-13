@@ -120,10 +120,9 @@ foreach ($files as $filepath) {
     try {
         // DDL statements (CREATE TABLE etc.) cause implicit commits in MySQL,
         // so we cannot wrap them in a transaction. Execute directly.
-        // Strip SQL line comments before splitting on semicolons to avoid
-        // splitting on semicolons that appear inside comment text.
-        $stripped = preg_replace('/--[^\n]*\n/', "\n", $sql);
-        foreach (array_filter(array_map('trim', explode(';', (string) $stripped))) as $stmt) {
+        // Supports DELIMITER $$ blocks (stored procedures/functions) by
+        // switching delimiter mid-file, then restoring to ; afterwards.
+        foreach (self_split_sql($sql) as $stmt) {
             if ($stmt !== '') {
                 $pdo->exec($stmt);
             }
@@ -148,4 +147,57 @@ echo "\nMigrations complete: {$applied_count} applied, {$skipped_count} skipped.
 // Only exit when run as a standalone CLI script, not when required by tests.
 if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === realpath(__FILE__)) {
     exit(0);
+}
+
+// ---------------------------------------------------------------------------
+// Helper: split a SQL file into individual statements, honouring DELIMITER
+// directives so that stored procedure bodies are kept intact.
+// ---------------------------------------------------------------------------
+function self_split_sql(string $sql): array
+{
+    $delimiter = ';';
+    $statements = [];
+    $current    = '';
+
+    // Normalise line endings
+    $lines = explode("\n", str_replace("\r\n", "\n", $sql));
+
+    foreach ($lines as $line) {
+        $trimmed = rtrim($line);
+
+        // Handle DELIMITER directive (e.g. "DELIMITER $$" or "DELIMITER ;")
+        if (preg_match('/^\s*DELIMITER\s+(\S+)\s*$/i', $trimmed, $m)) {
+            // Flush anything accumulated under the old delimiter
+            if (trim($current) !== '') {
+                $statements[] = trim($current);
+                $current = '';
+            }
+            $delimiter = $m[1];
+            continue;
+        }
+
+        // Strip line comments (but keep the newline so multiline strings
+        // inside procedures are not corrupted)
+        $codeLine = preg_replace('/--[^\n]*$/', '', $trimmed);
+
+        $current .= $codeLine . "\n";
+
+        // Check whether the accumulated buffer ends with the current delimiter
+        $dl = preg_quote($delimiter, '/');
+        if (preg_match('/' . $dl . '\s*$/', rtrim($current))) {
+            // Remove the trailing delimiter and save the statement
+            $stmt = trim(preg_replace('/' . $dl . '\s*$/', '', rtrim($current)));
+            if ($stmt !== '') {
+                $statements[] = $stmt;
+            }
+            $current = '';
+        }
+    }
+
+    // Flush remainder (no trailing delimiter)
+    if (trim($current) !== '') {
+        $statements[] = trim($current);
+    }
+
+    return $statements;
 }
