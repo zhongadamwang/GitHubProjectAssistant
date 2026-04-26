@@ -6,9 +6,9 @@
 AI-powered assistant for Scrum masters to support agile team management and processes. The assistant will help Scrum masters facilitate ceremonies, track team metrics, manage backlogs, and provide insights for continuous improvement.
 
 **Archetype**: standard  
-**Status**: Planning Complete — Ready for Development  
+**Status**: 🔄 In Progress — Phase 6 Active (T032 remaining)  
 **Created**: 2026-04-02  
-<!-- Last Updated: 2026-04-02 -->
+<!-- Last Updated: 2026-04-08 -->  
 
 ## Structure
 - `artifacts/` - Supporting materials and analysis outputs
@@ -45,6 +45,6 @@ AI-powered assistant for Scrum masters to support agile team management and proc
 ~20 working days (see [project-plan.md](project-plan.md) for detailed phases)
 
 ---
-**Project Status**: Planning Complete — Ready for Development  
-**Last Updated**: 2026-04-02  
-**Next Steps**: Begin Phase 1 development (Backend Skeleton + Auth + DB)
+**Project Status**: 🔄 In Progress — Phase 6 Active (35/36 tasks complete, 97%)  
+**Last Updated**: 2026-04-08  
+**Next Steps**: Resolve MySQL local instance (migrate.php exit code 1), then execute `tests/e2e/api-smoke.sh` and PHPUnit Phase 6 suite to close T032

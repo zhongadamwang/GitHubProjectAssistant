@@ -1,15 +1,17 @@
 # Task Tracking — Scrum Master Assistant
 
 **Project**: PRJ-01 — Scrum Master Assistant  
-**Last Updated**: 2026-04-06  
-**Status**: Planning Complete — Ready for Phase 1 Development  
+**Last Updated**: 2026-04-08  
+**Status**: Phase 6 In Progress — 1 Task Remaining (T032)  
 
-## Current Sprint: Phase 1 — Foundation
+## Current Sprint: Phase 6 — Polish & Validation
 
 ### Active Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Task File |
 |---------|-------|----------|--------|----------|--------|-----------|
-| T002 | Create MySQL Schema & Migrations | TBD | Completed | High | 1d | [task-dev-mysql-schema-migrations.md](task-dev-mysql-schema-migrations.md) |
+| T032 | End-to-End Integration Testing | TBD | In Progress | High | 1d | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
+
+> **Blocker**: `php database/migrate.php` exits code 1 — MySQL must be running locally to execute smoke script and PHPUnit suite.
 
 
 
@@ -122,12 +124,18 @@
 | *No blocked tasks* | - | - | - |
 
 ## Progress Summary
-- **Total Tasks**: 36 development tasks (0 active sprint, 8 backlog) + 9 planning tasks completed
-- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
-- **Phase 5 Progress**: T028 ✅, T029 ✅, T030 ✅, T031 ✅ — Phase 5 Complete
-- **Phases Remaining**: Phase 6 (Polish & Validation — 5 tasks)
-- **Critical Path**: T032 (E2E testing) → T033/T034/T035/T036
+- **Total Tasks**: 36 development tasks + 9 planning tasks completed
+- **Development Tasks Complete**: 35 / 36 (**97%**)
+- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅
+- **Phase 6 Progress**: T033 ✅, T034 ✅, T035 ✅, T036 ✅ | T032 🔄 In Progress
+- **Remaining**: T032 (E2E integration test execution blocked on local MySQL)
+- **Critical Path**: Restore local MySQL → run `database/migrate.php` → execute `tests/e2e/api-smoke.sh` → run PHPUnit Phase6 suite → T032 complete → project done
 
 ## Next Actions
-1. T032 — End-to-End Integration Testing (all Phase 1–5 complete; detail task file and implement)
-2. T033–T036 — Polish, security review, error handling, documentation (can run in parallel after T032)
+1. **Fix MySQL** — start MySQL locally (`mysql.server start` or via Homebrew services) and re-run `php database/migrate.php` to confirm clean migration
+2. **Seed DB** — run `php database/seed.php` to create admin user
+3. **Start PHP dev server** — `php -S localhost:8080 -t public/` from `ScrumMasterTool/`
+4. **Run smoke script** — `bash tests/e2e/api-smoke.sh` (requires `TEST_BASE_URL`, `TEST_ADMIN_EMAIL`, `TEST_ADMIN_PASSWORD` env vars set)
+5. **Run PHPUnit** — `composer test` — confirm Phase6 E2E suite exits 0
+6. **Manually verify frontend** — follow `tests/e2e/FINDINGS.md` checklist
+7. **Mark T032 complete** — close out project
