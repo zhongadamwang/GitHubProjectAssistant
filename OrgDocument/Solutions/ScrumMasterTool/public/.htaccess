@@ -4,6 +4,35 @@
 Options -Indexes
 DirectoryIndex index.php
 
+# -------------------------------------------------------------------------
+# MIME types for static assets (Vue SPA build)
+# -------------------------------------------------------------------------
+<IfModule mod_mime.c>
+    # JavaScript
+    AddType application/javascript .js .mjs
+    
+    # CSS
+    AddType text/css .css
+    
+    # JSON
+    AddType application/json .json
+    
+    # Images
+    AddType image/svg+xml .svg
+    AddType image/png .png
+    AddType image/jpeg .jpg .jpeg
+    AddType image/gif .gif
+    AddType image/webp .webp
+    AddType image/x-icon .ico
+    
+    # Fonts
+    AddType font/woff .woff
+    AddType font/woff2 .woff2
+    AddType font/ttf .ttf
+    AddType font/otf .otf
+    AddType application/vnd.ms-fontobject .eot
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
