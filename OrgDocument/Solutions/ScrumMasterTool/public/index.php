@@ -19,9 +19,12 @@ if (file_exists($envPath . '/.env')) {
 
 // Serve compiled Vue SPA for all non-API routes so that client-side
 // navigation (Vue Router history mode) works when the page is refreshed.
+// Skip if the requested path is an actual file (assets, favicon, etc.)
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
 $path = parse_url($uri, PHP_URL_PATH);
-if (!str_starts_with($path, '/api/')) {
+$requestedFile = __DIR__ . $path;
+
+if (!str_starts_with($path, '/api/') && !is_file($requestedFile)) {
     $distIndex = __DIR__ . '/dist/index.html';
     if (is_file($distIndex)) {
         header('Content-Type: text/html; charset=UTF-8');
