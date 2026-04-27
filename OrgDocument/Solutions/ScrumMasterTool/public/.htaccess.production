@@ -1,4 +1,4 @@
-# ScrumMasterTool — Apache front controller rewrite
+# ScrumMasterTool — Apache front controller rewrite (PRODUCTION)
 # Routes all non-static requests to public/index.php (Slim 4 entry point).
 
 Options -Indexes
@@ -36,11 +36,8 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # If APP_BASE_PATH is set, the RewriteBase must match it.
-    # For a root install leave as "/". For a subdirectory (e.g. /dashboard)
-    # change to: RewriteBase /dashboard/
-    # For production: RewriteBase /website_98511c15/
-    RewriteBase /
+    # PRODUCTION: Subdirectory deployment at /website_98511c15/
+    RewriteBase /website_98511c15/
 
     # Allow existing files and directories to be served directly
     # (static assets in public/dist/, favicons, etc.)
