@@ -1,10 +1,11 @@
 # Deployment Guide for Production Server
 
-## Subdirectory Deployment: `/website_98511c15/`
+## Subdomain Deployment: `scrum.softercolor.com`
 
 The production site is deployed at:
 - **Server Path**: `/home/iafmcqte/public_html/website_98511c15`
-- **URL**: `https://yourdomain.com/website_98511c15/`
+- **URL**: `https://scrum.softercolor.com/`
+- **Configuration**: Subdomain points directly to the app folder (document root)
 
 ## Steps to Deploy
 
@@ -14,10 +15,10 @@ From the `frontend/` directory, run:
 
 ```bash
 cd frontend
-npm run build:prod
+npm run build
 ```
 
-This builds the Vue app with the correct base path (`/website_98511c15/`) so all assets are referenced correctly.
+This builds the Vue app with the default base path (`/`) since the subdomain points to the app root.
 
 ### 2. Upload Files to Server
 
@@ -30,8 +31,9 @@ Upload these files/folders to `/home/iafmcqte/public_html/website_98511c15`:
 ├── bootstrap/
 ├── vendor/           (run composer install on server)
 ├── .env              (copy from .env.production and update credentials)
-└── .htaccess         (copy from public/.htaccess.production)
 ```
+
+**Note**: The `.htaccess` file in `public/` is already configured correctly with `RewriteBase /`
 
 ### 3. Configure Environment
 
@@ -43,24 +45,13 @@ cp .env.production .env
 
 # Edit .env and update:
 # - Database credentials (DB_HOST, DB_NAME, DB_USER, DB_PASS)
-# - GitHub PAT (if different)
-# - APP_ENV=production
-# - APP_DEBUG=false
-# - APP_BASE_PATH=/website_98511c15
+# - REPO_PAT (if different)
+# - Verify APP_ENV=production
+# - Verify APP_DEBUG=false
+# - Verify APP_BASE_PATH is empty (for subdomain root)
 ```
 
-### 4. Configure Apache
-
-In the `public/` directory on the server:
-
-```bash
-# Copy production .htaccess
-cp .htaccess.production .htaccess
-```
-
-This sets `RewriteBase /website_98511c15/` which is required for the subdirectory install.
-
-### 5. Install Dependencies
+### 4. Install Dependencies
 
 On the server:
 
@@ -69,7 +60,7 @@ cd /home/iafmcqte/public_html/website_98511c15
 composer install --no-dev --optimize-autoloader
 ```
 
-### 6. Set Permissions
+### 5. Set Permissions
 
 ```bash
 chmod -R 755 public/
@@ -77,7 +68,7 @@ chmod -R 775 data/logs/
 chmod 600 .env
 ```
 
-### 7. Database Setup
+### 6. Database Setup
 
 Run the database migrations on the server:
 
@@ -90,16 +81,16 @@ mysql -u scrum_user -p scrum_dashboard < database/schema.sql
 
 ## Verify Deployment
 
-1. Visit: `https://yourdomain.com/website_98511c15/`
-2. Assets should load from: `https://yourdomain.com/website_98511c15/assets/`
-3. API calls should go to: `https://yourdomain.com/website_98511c15/api/`
+1. Visit: `https://scrum.softercolor.com/`
+2. Assets should load from: `https://scrum.softercolor.com/assets/`
+3. API calls should go to: `https://scrum.softercolor.com/api/`
 
 ## Troubleshooting
 
 ### Assets return 404
-- Check `RewriteBase` in `public/.htaccess` matches `/website_98511c15/`
-- Check `APP_BASE_PATH` in `.env` matches `/website_98511c15`
-- Rebuild frontend with `npm run build:prod`
+- Check `RewriteBase` in `public/.htaccess` is set to `/`
+- Check `APP_BASE_PATH` in `.env` is empty or `/`
+- Rebuild frontend with `npm run build`
 
 ### MIME type errors
 - Ensure `AddType` directives are in `public/.htaccess`
@@ -107,8 +98,8 @@ mysql -u scrum_user -p scrum_dashboard < database/schema.sql
 
 ### Blank page / JS errors
 - Check browser console for errors
-- Verify `.env` has correct `APP_BASE_PATH`
-- Verify Vue build used correct `VITE_BASE_PATH`
+- Verify `.env` has `APP_BASE_PATH=` (empty)
+- Verify Vue build used default base path
 
 ## Quick Deploy Script
 
@@ -117,15 +108,14 @@ For future deployments, you can use:
 ```bash
 # On local machine
 cd frontend
-npm run build:prod
+npm run build
 cd ..
-# Now upload the files to server
+# Now upload the public/dist/ folder to server
 
 # On server (via SSH)
 cd /home/iafmcqte/public_html/website_98511c15
 composer install --no-dev --optimize-autoloader
 cp .env.production .env  # (edit with production values)
-cp public/.htaccess.production public/.htaccess
 chmod -R 755 public/
 chmod 600 .env
 ```

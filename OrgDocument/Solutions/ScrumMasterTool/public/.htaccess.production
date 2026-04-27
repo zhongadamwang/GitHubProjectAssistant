@@ -36,8 +36,8 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # PRODUCTION: Subdirectory deployment at /website_98511c15/
-    RewriteBase /website_98511c15/
+    # For subdomain pointing to app root (scrum.softercolor.com → /website_98511c15/)
+    RewriteBase /
 
     # Allow existing files and directories to be served directly
     # (static assets in public/dist/, favicons, etc.)

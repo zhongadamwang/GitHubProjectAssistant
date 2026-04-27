@@ -37,9 +37,8 @@ DirectoryIndex index.php
     RewriteEngine On
 
     # If APP_BASE_PATH is set, the RewriteBase must match it.
-    # For a root install leave as "/". For a subdirectory (e.g. /dashboard)
-    # change to: RewriteBase /dashboard/
-    # For production: RewriteBase /website_98511c15/
+    # For root install or subdomain pointing to app root: RewriteBase /
+    # For subdirectory install (e.g., example.com/dashboard/): RewriteBase /dashboard/
     RewriteBase /
 
     # Allow existing files and directories to be served directly
