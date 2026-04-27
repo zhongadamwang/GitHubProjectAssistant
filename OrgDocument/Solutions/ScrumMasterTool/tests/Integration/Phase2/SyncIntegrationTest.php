@@ -274,7 +274,7 @@ final class SyncIntegrationTest extends TestCase
     /**
      * Live-mode test — skipped unless GITHUB_INTEGRATION_TEST=true.
      *
-     * Requires GITHUB_PAT, GITHUB_ORG, GITHUB_PROJECT_NUMBER in .env.test.
+     * Requires REPO_PAT, REPO_ORG, REPO_PROJECT_NUMBER in .env.test.
      */
     public function testLiveSyncSkippedByDefault(): void
     {

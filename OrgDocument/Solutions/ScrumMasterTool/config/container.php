@@ -111,7 +111,7 @@ $builder->addDefinitions([
 
         if (empty($github['pat'])) {
             throw new \RuntimeException(
-                'GITHUB_PAT must be set in .env to use GitHubGraphQLService.'
+                'REPO_PAT must be set in .env to use GitHubGraphQLService.'
             );
         }
 

@@ -48,9 +48,9 @@ DB_PASS=
 GITHUB_INTEGRATION_TEST=true
 
 # GitHub credentials — replace with real values
-GITHUB_PAT=ghp_your_real_token_here
-GITHUB_ORG=your-github-login
-GITHUB_PROJECT_NUMBER=1
+REPO_PAT=ghp_your_real_token_here
+REPO_ORG=your-github-login
+REPO_PROJECT_NUMBER=1
 ```
 
 ### Running the live test

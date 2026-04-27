@@ -63,7 +63,7 @@ cd <your-repo>/OrgDocument/Solutions/ScrumMasterTool
 
 # 2. Copy the environment template and fill in values
 cp .env.example .env
-# Open .env and set DB_*, GITHUB_TOKEN, GITHUB_ORG, GITHUB_PROJECT_NUMBER
+# Open .env and set DB_*, REPO_PAT, REPO_ORG, REPO_PROJECT_NUMBER
 
 # 3. Install PHP dependencies
 composer install

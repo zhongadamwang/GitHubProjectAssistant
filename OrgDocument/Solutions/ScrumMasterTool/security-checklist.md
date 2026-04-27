@@ -38,7 +38,7 @@
 |---|---|
 | **Status** | ✅ PASS |
 | **File** | `.gitignore`, `.env.example`, `config/settings.php` |
-| **Finding** | `GITHUB_PAT` is read from `$_ENV['GITHUB_PAT']` (populated from `.env` at runtime). `.gitignore` lists `.env` and `.env.test` as excluded. `.env` is never committed to source control. |
+| **Finding** | `REPO_PAT` is read from `$_ENV['REPO_PAT']` (populated from `.env` at runtime). `.gitignore` lists `.env` and `.env.test` as excluded. `.env` is never committed to source control. |
 
 ### A02-3 — Database credentials storage
 | | |
