@@ -19,9 +19,13 @@ if (str_starts_with($path, '/api/')) {
     return;
 }
 
-// Static assets from the Vue build — map /assets/* to /dist/assets/*
-if (str_starts_with($path, '/assets/')) {
-    $file = __DIR__ . '/dist' . $path;
+// Static assets from the Vue build
+// Handle both /assets/* (for direct access) and /dist/assets/* (Vite base path)
+if (str_starts_with($path, '/assets/') || str_starts_with($path, '/dist/assets/')) {
+    // Map both /assets/* and /dist/assets/* to physical /dist/assets/*
+    $relativePath = str_starts_with($path, '/dist/') ? substr($path, 5) : $path;
+    $file = __DIR__ . '/dist' . $relativePath;
+    
     if (is_file($file)) {
         // Determine MIME type based on file extension
         $ext = pathinfo($file, PATHINFO_EXTENSION);
