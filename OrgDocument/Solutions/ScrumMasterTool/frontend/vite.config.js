@@ -4,8 +4,8 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // Base path defaults to '/' (root) which is correct for subdomain deployment
-  base: process.env.VITE_BASE_PATH || '/',
+  // Base path must match where dist folder is located relative to server root
+  base: process.env.VITE_BASE_PATH || '/dist/',
   build: {
     // Output compiled assets into the PHP document root
     outDir: '../public/dist',
