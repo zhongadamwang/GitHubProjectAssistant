@@ -10,9 +10,9 @@ use PDO;
 /**
  * IssueRepository — all database access for the `issues` table.
  *
- * CRITICAL: `estimated_time`, `remaining_time`, and `actual_time` are LOCAL
- * fields owned by the team. They are NEVER written by `upsertFromGitHub()`.
- * They may only be updated through the dedicated time-tracking endpoints (T016).
+ * `estimated_time`, `remaining_time`, and `actual_time` come from GitHub Project
+ * number fields and are overwritten on every sync (GitHub is the source of
+ * truth; the dashboard is read-only). An empty GitHub field is stored as 0.
  *
  * Column mapping from Issue model:
  *   github_issue_id   ← Issue::$contentId  (underlying Issue node ID)
@@ -21,10 +21,24 @@ use PDO;
  *   assignee          ← first assignee login, or null
  *   labels            ← JSON-encoded labels array
  *   iteration         ← Issue::$customFields['iteration'] or null
+ *   estimated_time    ← Issue::$estimatedHours (null → 0)
+ *   remaining_time    ← Issue::$remainingHours (null → 0)
+ *   actual_time       ← Issue::$actualHours    (null → 0)
  *   github_updated_at ← Issue::$updatedAt
  */
 class IssueRepository
 {
+    /** Columns the issue list may be sorted by (whitelist — never interpolate user input). */
+    public const SORT_COLUMNS = [
+        'id', 'title', 'assignee', 'status', 'iteration',
+        'estimated_time', 'remaining_time', 'actual_time', 'github_updated_at',
+    ];
+
+    private const LIST_COLUMNS = '`id`, `project_id`, `github_issue_id`, `title`, `status`,
+                       `assignee`, `labels`, `iteration`,
+                       `estimated_time`, `remaining_time`, `actual_time`,
+                       `github_updated_at`, `created_at`, `updated_at`';
+
     public function __construct(private readonly PDO $pdo)
     {
     }
@@ -33,10 +47,8 @@ class IssueRepository
      * Insert or update an issue row from GitHub data.
      *
      * Uses INSERT … ON DUPLICATE KEY UPDATE. The UNIQUE KEY on
-     * `(project_id, github_issue_id)` determines duplicates.
-     *
-     * Local time fields are excluded from the UPDATE clause — they are
-     * never overwritten by a sync operation.
+     * `(project_id, github_issue_id)` determines duplicates. The time fields
+     * are always overwritten with the GitHub values.
      *
      * @param Issue $issue      Parsed from GitHub
      * @param int   $projectId  Local `projects.id` FK
@@ -52,18 +64,22 @@ class IssueRepository
         $stmt = $this->pdo->prepare(
             'INSERT INTO `issues`
                  (`project_id`, `github_issue_id`, `title`, `status`,
-                  `assignee`, `labels`, `iteration`, `github_updated_at`)
+                  `assignee`, `labels`, `iteration`,
+                  `estimated_time`, `remaining_time`, `actual_time`, `github_updated_at`)
              VALUES
                  (:project_id, :github_issue_id, :title, :status,
-                  :assignee, :labels, :iteration, :github_updated_at)
+                  :assignee, :labels, :iteration,
+                  :estimated_time, :remaining_time, :actual_time, :github_updated_at)
              ON DUPLICATE KEY UPDATE
                  `title`             = VALUES(`title`),
                  `status`            = VALUES(`status`),
                  `assignee`          = VALUES(`assignee`),
                  `labels`            = VALUES(`labels`),
                  `iteration`         = VALUES(`iteration`),
+                 `estimated_time`    = VALUES(`estimated_time`),
+                 `remaining_time`    = VALUES(`remaining_time`),
+                 `actual_time`       = VALUES(`actual_time`),
                  `github_updated_at` = VALUES(`github_updated_at`)'
-            // estimated_time, remaining_time, actual_time are intentionally absent
         );
 
         $stmt->execute([
@@ -74,6 +90,9 @@ class IssueRepository
             'assignee'          => $assignee,
             'labels'            => $labels,
             'iteration'         => is_string($iteration) ? $iteration : null,
+            'estimated_time'    => $issue->estimatedHours ?? 0.0,
+            'remaining_time'    => $issue->remainingHours ?? 0.0,
+            'actual_time'       => $issue->actualHours    ?? 0.0,
             // Normalize ISO 8601 ('2026-04-01T10:00:00Z') to MySQL DATETIME format
             'github_updated_at' => $issue->updatedAt !== null
                 ? rtrim(str_replace('T', ' ', $issue->updatedAt), 'Z')
@@ -114,8 +133,10 @@ class IssueRepository
      * Aggregate time-tracking totals grouped by iteration for a project.
      *
      * Used by BurndownService::captureDaily() (T014) to populate burndown_daily.
-     * Only rows where `iteration IS NOT NULL` are included.
-     * COALESCE ensures NULL time fields (unset by team) contribute 0.00.
+     * Only rows where `iteration IS NOT NULL` are included — issues without a
+     * sprint in GitHub do not belong to any burndown.
+     * `total_remaining` sums remaining hours of OPEN issues only; closed issues
+     * count as 0 remaining (owner decision, REQ-CHG-001).
      *
      * @return array<int,array{
      *   iteration: string,
@@ -131,7 +152,7 @@ class IssueRepository
             'SELECT
                  `iteration`,
                  COALESCE(SUM(`estimated_time`), 0.0) AS total_estimated,
-                 COALESCE(SUM(`remaining_time`), 0.0) AS total_remaining,
+                 COALESCE(SUM(CASE WHEN `status` = \'open\' THEN `remaining_time` ELSE 0 END), 0.0) AS total_remaining,
                  SUM(CASE WHEN `status` = \'open\'   THEN 1 ELSE 0 END) AS open_count,
                  SUM(CASE WHEN `status` = \'closed\' THEN 1 ELSE 0 END) AS closed_count
                FROM `issues`
@@ -238,6 +259,116 @@ class IssueRepository
      */
     public function findByProject(int $projectId, array $filters = []): array
     {
+        [$where, $params] = $this->buildFilter($projectId, $filters);
+
+        $sql = 'SELECT ' . self::LIST_COLUMNS . '
+                  FROM `issues`
+                 WHERE ' . $where . '
+                 ORDER BY `github_updated_at` DESC';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Return one page of a project's issues.
+     *
+     * $sort must be one of SORT_COLUMNS and $dir 'asc'|'desc' (validated by the
+     * caller; unknown values fall back to the default order). `id` is always the
+     * secondary sort key so paging is stable.
+     *
+     * @param array<string,string> $filters  Same filters as findByProject()
+     * @return array<int,array<string,mixed>>
+     */
+    public function findPageByProject(
+        int    $projectId,
+        array  $filters,
+        string $sort,
+        string $dir,
+        int    $limit,
+        int    $offset,
+    ): array {
+        [$where, $params] = $this->buildFilter($projectId, $filters);
+
+        $column    = in_array($sort, self::SORT_COLUMNS, true) ? $sort : 'github_updated_at';
+        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+
+        $stmt = $this->pdo->prepare(
+            'SELECT ' . self::LIST_COLUMNS . '
+               FROM `issues`
+              WHERE ' . $where . '
+              ORDER BY `' . $column . '` ' . $direction . ', `id` ASC
+              LIMIT :limit OFFSET :offset'
+        );
+
+        foreach ($params as $name => $value) {
+            $stmt->bindValue($name, $value, $name === 'project_id' ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->bindValue('limit',  $limit,  PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Count and hour totals over ALL issues matching the filters (not just one page).
+     *
+     * @param array<string,string> $filters
+     * @return array{total: int, totals: array{estimated: float, remaining: float, actual: float}}
+     */
+    public function summarizeByProject(int $projectId, array $filters = []): array
+    {
+        [$where, $params] = $this->buildFilter($projectId, $filters);
+
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*)                                  AS total,
+                    COALESCE(SUM(`estimated_time`), 0)        AS estimated,
+                    COALESCE(SUM(`remaining_time`), 0)        AS remaining,
+                    COALESCE(SUM(`actual_time`), 0)           AS actual
+               FROM `issues`
+              WHERE ' . $where
+        );
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return [
+            'total'  => (int) $row['total'],
+            'totals' => [
+                'estimated' => (float) $row['estimated'],
+                'remaining' => (float) $row['remaining'],
+                'actual'    => (float) $row['actual'],
+            ],
+        ];
+    }
+
+    /**
+     * Distinct non-empty assignee logins of a project, alphabetical.
+     *
+     * @return string[]
+     */
+    public function distinctAssignees(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT DISTINCT `assignee` FROM `issues`
+              WHERE `project_id` = ? AND `assignee` IS NOT NULL AND `assignee` <> \'\'
+              ORDER BY `assignee` ASC'
+        );
+        $stmt->execute([$projectId]);
+
+        return array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * Build the shared WHERE clause (all values bound, nothing interpolated).
+     *
+     * @param  array<string,string> $filters
+     * @return array{0: string, 1: array<string,int|string>}
+     */
+    private function buildFilter(int $projectId, array $filters): array
+    {
         $conditions = ['`project_id` = :project_id'];
         $params     = ['project_id' => $projectId];
 
@@ -256,18 +387,7 @@ class IssueRepository
             $params['status'] = $filters['status'];
         }
 
-        $sql = 'SELECT `id`, `project_id`, `github_issue_id`, `title`, `status`,
-                       `assignee`, `labels`, `iteration`,
-                       `estimated_time`, `remaining_time`, `actual_time`,
-                       `github_updated_at`, `created_at`, `updated_at`
-                  FROM `issues`
-                 WHERE ' . implode(' AND ', $conditions) . '
-                 ORDER BY `github_updated_at` DESC';
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-
-        return $stmt->fetchAll();
+        return [implode(' AND ', $conditions), $params];
     }
 
     /**

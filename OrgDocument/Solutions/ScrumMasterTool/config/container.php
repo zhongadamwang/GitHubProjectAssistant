@@ -34,7 +34,6 @@ use App\Services\BurndownService;
 use App\Services\EfficiencyService;
 use App\Services\GitHubGraphQLService;
 use App\Services\SyncService;
-use App\Services\TimeTrackingService;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -140,6 +139,8 @@ $builder->addDefinitions([
             owner:            $github['org'],
             projectNumber:    $github['project_number'],
             snapshotDir:      $sync['snapshot_dir'],
+            timeLogRepo:      $c->get(TimeLogRepository::class),
+            fieldNames:       $github['fields'],
         );
     },
 
@@ -158,12 +159,6 @@ $builder->addDefinitions([
     EfficiencyService::class => static fn(ContainerInterface $c): EfficiencyService =>
         new EfficiencyService($c->get(IssueRepository::class)),
 
-    TimeTrackingService::class => static fn(ContainerInterface $c): TimeTrackingService =>
-        new TimeTrackingService(
-            $c->get(TimeLogRepository::class),
-            $c->get(PDO::class),
-        ),
-
     // Placeholder controllers (Phase 3 will add real services)
     ProjectController::class => static fn(ContainerInterface $c): ProjectController =>
         new ProjectController(
@@ -171,10 +166,7 @@ $builder->addDefinitions([
             $c->get(IssueRepository::class),
         ),
     IssueController::class => static fn(ContainerInterface $c): IssueController =>
-        new IssueController(
-            $c->get(IssueRepository::class),
-            $c->get(TimeTrackingService::class),
-        ),
+        new IssueController($c->get(IssueRepository::class)),
     AdminController::class   => static fn(ContainerInterface $c): AdminController =>
         new AdminController($c->get(UserRepository::class)),
 

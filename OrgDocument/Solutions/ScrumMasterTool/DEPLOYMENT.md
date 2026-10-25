@@ -101,6 +101,27 @@ mysql -u scrum_user -p scrum_dashboard < database/schema.sql
 - Verify `.env` has `APP_BASE_PATH=` (empty)
 - Verify Vue build used default base path
 
+## Hours, sprints and burndown (after the 2026-10 update)
+
+Estimated / remaining / actual hours and the sprint come from the GitHub Project fields
+`Estimate Hours`, `Remains Hours`, `Actual Hours` (NUMBER) and `Iteration` (ITERATION).
+Override the names with `REPO_FIELD_ESTIMATED`, `REPO_FIELD_REMAINING`, `REPO_FIELD_ACTUAL`,
+`REPO_FIELD_ITERATION` in the server `.env` if your project uses different names. GitHub is the
+source of truth: every sync overwrites the stored hours, the dashboard is read-only, and
+closed issues count as 0 remaining in the burndown.
+
+After deploying this version:
+
+1. The deploy pipeline runs `php database/migrate.php` (migrations 009 and 010).
+2. Log in as admin and press **Sync Now** (or wait for the cron) — hours and sprints are imported.
+3. Repair burndown snapshots that were captured while hours were still 0 (run once, via SSH or the cPanel terminal):
+   ```bash
+   php cron/rebuild-burndown.php            # all projects
+   php cron/rebuild-burndown.php --project=1
+   ```
+   It deletes snapshots with no estimated hours and captures today's snapshot from the synced data.
+4. Open the Dashboard: the sprint selector lists the project's iterations; the chart should show a non-zero ideal line.
+
 ## Quick Deploy Script
 
 For future deployments, you can use:

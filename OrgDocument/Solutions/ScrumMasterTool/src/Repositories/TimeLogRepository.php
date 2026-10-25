@@ -9,10 +9,10 @@ use PDO;
 /**
  * TimeLogRepository — append-only audit trail for issue time-field changes.
  *
- * time_logs schema (migration 004):
+ * time_logs schema (migrations 004, 009):
  *   id          INT UNSIGNED  AUTO_INCREMENT
  *   issue_id    INT UNSIGNED  NOT NULL  (FK → issues.id)
- *   changed_by  INT UNSIGNED  NOT NULL  (FK → users.id)
+ *   changed_by  INT UNSIGNED  NULL      (FK → users.id; NULL = GitHub sync)
  *   field_name  ENUM('estimated_time','remaining_time','actual_time')
  *   old_value   DECIMAL(8,2)
  *   new_value   DECIMAL(8,2)
@@ -28,14 +28,14 @@ class TimeLogRepository
      * Append one audit log entry.
      *
      * @param int    $issueId    Local issues.id
-     * @param int    $userId     Authenticated user's users.id
+     * @param int|null $userId   users.id of the actor, or null when the GitHub sync made the change
      * @param string $fieldName  One of 'estimated_time', 'remaining_time', 'actual_time'
      * @param float  $oldValue   Value before the change
      * @param float  $newValue   Value after the change
      */
     public function insert(
         int    $issueId,
-        int    $userId,
+        ?int   $userId,
         string $fieldName,
         float  $oldValue,
         float  $newValue,

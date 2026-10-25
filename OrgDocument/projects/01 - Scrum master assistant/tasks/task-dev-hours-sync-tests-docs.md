@@ -12,16 +12,16 @@
 End-to-end verification of the hours sync, documentation updates and a safe rollout on production.
 
 ### Acceptance Criteria
-- [ ] Integration test: stubbed GitHub response with number fields → issues, member efficiency and burndown API return the expected hours
-- [ ] `DEPLOYMENT.md`, `README.md`, `.env.example`, `.env.production` document `REPO_FIELD_*` variables; server `.env` updated with the real field names
-- [ ] `artifacts/Analysis/requirements.md` R-002/R-004 reworded (hours sourced from GitHub, dashboard read-only); technical-architecture.md updated
-- [ ] Production runbook executed: deploy → migration 009 → real "Sync Now" → rebuild burndown → verify Dashboard, Issues, Members
-- [ ] `tests/e2e/FINDINGS.md` updated with the production verification
+- [x] Integration tests: stubbed GitHub response with number fields → stored hours, GitHub-wins overwrite, audit, iteration config (`SyncIntegrationTest`); issues/iterations endpoints (`EndToEndTest`)
+- [x] `DEPLOYMENT.md`, `README.md`, `.env.example` document the `REPO_FIELD_*` variables (defaults already match the owner's field names, so the server `.env` needs no change)
+- [x] `artifacts/Analysis/requirements.md` R-002/R-004 and both technical-architecture documents updated (hours sourced from GitHub, dashboard read-only, endpoint list)
+- [ ] Production runbook executed: deploy → migrations 009/010 → real "Sync Now" → `php cron/rebuild-burndown.php` → verify Dashboard, Issues, Members against GitHub
+- [x] `tests/e2e/FINDINGS.md` has the Phase 7 local verification (production entries open)
 
 ### Tasks/Subtasks
-- [ ] Extend fixtures and `SyncIntegrationTest`/`EndToEndTest`
-- [ ] Update docs and requirement text
-- [ ] Production verification (needs real PAT on server)
+- [x] Extend fixtures/tests (built in-memory in `SyncIntegrationTest`)
+- [x] Update docs and requirement text
+- [ ] Production verification (needs the real PAT on the server — owner)
 
 ### Definition of Done
 - [ ] Owner confirms hours and burndown on the live site match GitHub  
@@ -39,5 +39,5 @@ High
 - Category: testing, documentation  
 
 ---
-**Status**: Not Started  
+**Status**: In Progress — code, tests and docs done; production backfill/verification pending  
 **Last Updated**: 2026-10-24

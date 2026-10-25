@@ -19,8 +19,8 @@ declare(strict_types=1);
  *   GET   /api/auth/me
  *   GET   /api/projects
  *   GET   /api/projects/{id}
- *   GET   /api/projects/{id}/issues
- *   PUT   /api/issues/{id}/time
+ *   GET   /api/projects/{id}/issues   (paginated, read-only)
+ *   GET   /api/projects/{id}/iterations
  *   GET   /api/projects/{id}/burndown
  *   GET   /api/projects/{id}/members
  *   GET   /api/sync/history
@@ -64,11 +64,9 @@ return static function (App $app): void {
         $group->get('/projects',                    [ProjectController::class, 'index']);
         $group->get('/projects/{id:[0-9]+}',        [ProjectController::class, 'show']);
         $group->get('/projects/{id:[0-9]+}/issues',  [IssueController::class,   'getIssues']);
+        $group->get('/projects/{id:[0-9]+}/iterations', [ProjectController::class, 'getIterations']);
         $group->get('/projects/{id:[0-9]+}/burndown', [BurndownController::class, 'getBurndown']);
         $group->get('/projects/{id:[0-9]+}/members', [MemberController::class, 'getMembers']);
-
-        // Issues
-        $group->put('/issues/{id:[0-9]+}/time', [IssueController::class, 'updateTime']);
 
         // Sync
         $group->get('/sync/history', [SyncController::class, 'history']);

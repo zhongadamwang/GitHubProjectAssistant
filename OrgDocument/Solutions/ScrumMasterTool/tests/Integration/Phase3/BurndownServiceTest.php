@@ -246,6 +246,30 @@ final class BurndownServiceTest extends TestCase
     }
 
     // =========================================================================
+    // (f) Baseline uses the largest total_estimated, not the first row
+    // =========================================================================
+
+    /**
+     * Snapshots captured before hours were synced have total_estimated = 0.
+     * The ideal line must still start from the real sprint total.
+     */
+    public function testIdealBaselineIgnoresEarlyZeroSnapshots(): void
+    {
+        $rows = [
+            ['snapshot_date' => '2026-04-01', 'total_estimated' => '0.00',  'actual_remaining' => '0.00',  'ideal_remaining' => '0.00',  'open_count' => 3, 'closed_count' => 0],
+            ['snapshot_date' => '2026-04-02', 'total_estimated' => '40.00', 'actual_remaining' => '40.00', 'ideal_remaining' => '40.00', 'open_count' => 3, 'closed_count' => 0],
+            ['snapshot_date' => '2026-04-03', 'total_estimated' => '40.00', 'actual_remaining' => '25.00', 'ideal_remaining' => '25.00', 'open_count' => 2, 'closed_count' => 1],
+        ];
+
+        $service = new BurndownService($this->makeRepo($rows, 'Sprint 5'), $this->makeIssueRepo());
+        $points  = $service->getBurndown(1, 'Sprint 5')['points'];
+
+        $this->assertSame(40.0, $points[0]->ideal);
+        $this->assertSame(20.0, $points[1]->ideal);
+        $this->assertSame(0.0,  $points[2]->ideal);
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 

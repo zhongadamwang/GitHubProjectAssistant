@@ -1,14 +1,14 @@
 <script setup>
 /**
  * @component IssuesView
- * @description Issue list for the active project. Shows all issues with inline
- * time-tracking editors (IssueTimeEditor). Polls for updates every 60 seconds
- * and immediately re-fetches when an IssueTimeEditor emits the `saved` event.
- * Supports filtering by assignee, iteration, and status via projectStore.
+ * @description Read-only, server-side paginated issue list for the active project.
+ * Estimated / remaining / actual hours are synced from GitHub and cannot be edited
+ * here. Filtering, sorting and paging are applied by the API through projectStore;
+ * the current page is re-fetched every 60 seconds.
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useProjectStore } from '../stores/projectStore.js'
-import IssueTimeEditor from '../components/IssueTimeEditor.vue'
+import { computed, onMounted, onUnmounted } from 'vue'
+import { useProjectStore, PAGE_SIZES } from '../stores/projectStore.js'
+import PaginationBar from '../components/PaginationBar.vue'
 
 const store = useProjectStore()
 const projectId = computed(() => store.activeProjectId)
@@ -16,22 +16,19 @@ const projectId = computed(() => store.activeProjectId)
 onMounted(async () => {
   if (!store.projects.length) await store.fetchProjects()
   if (projectId.value) {
-    await store.fetchIssues(projectId.value)
+    await Promise.all([store.fetchIterations(projectId.value), store.fetchIssues(projectId.value)])
     store.startPolling(projectId.value, 60000)
   }
 })
 
 onUnmounted(() => store.stopPolling())
 
-// Re-fetch immediately after a successful save
-function onSaved() {
-  if (projectId.value) store.fetchIssues(projectId.value)
-}
-
 const sortIndicator = (key) => {
   if (store.sortKey !== key) return ''
   return store.sortDir === 'asc' ? ' ▲' : ' ▼'
 }
+
+const hours = (value) => Number(value ?? 0).toFixed(1)
 </script>
 
 <template>
@@ -45,21 +42,32 @@ const sortIndicator = (key) => {
     <div class="filters">
       <label>
         Assignee
-        <select v-model="store.filterAssignee">
+        <select
+          :value="store.filterAssignee"
+          @change="store.applyFilter(projectId, 'filterAssignee', $event.target.value)"
+        >
           <option value="">All</option>
-          <option v-for="a in store.uniqueAssignees" :key="a" :value="a">{{ a }}</option>
+          <option v-for="a in store.assignees" :key="a" :value="a">{{ a }}</option>
         </select>
       </label>
+
       <label>
         Sprint
-        <select v-model="store.filterIteration">
+        <select
+          :value="store.filterIteration"
+          @change="store.applyFilter(projectId, 'filterIteration', $event.target.value)"
+        >
           <option value="">All</option>
-          <option v-for="it in store.uniqueIterations" :key="it" :value="it">{{ it }}</option>
+          <option v-for="it in store.iterationNames" :key="it" :value="it">{{ it }}</option>
         </select>
       </label>
+
       <label>
         Status
-        <select v-model="store.filterStatus">
+        <select
+          :value="store.filterStatus"
+          @change="store.applyFilter(projectId, 'filterStatus', $event.target.value)"
+        >
           <option value="all">All</option>
           <option value="open">Open</option>
           <option value="closed">Closed</option>
@@ -73,16 +81,18 @@ const sortIndicator = (key) => {
       <table>
         <thead>
           <tr>
-            <th @click="store.setSort('id')"># {{ sortIndicator('id') }}</th>
-            <th @click="store.setSort('title')">Title{{ sortIndicator('title') }}</th>
-            <th @click="store.setSort('assignee')">Assignee{{ sortIndicator('assignee') }}</th>
-            <th @click="store.setSort('status')">Status{{ sortIndicator('status') }}</th>
-            <th @click="store.setSort('iteration')">Sprint{{ sortIndicator('iteration') }}</th>
-            <th>Est / Rem / Act (h)</th>
+            <th @click="store.setSort(projectId, 'id')"># {{ sortIndicator('id') }}</th>
+            <th @click="store.setSort(projectId, 'title')">Title{{ sortIndicator('title') }}</th>
+            <th @click="store.setSort(projectId, 'assignee')">Assignee{{ sortIndicator('assignee') }}</th>
+            <th @click="store.setSort(projectId, 'status')">Status{{ sortIndicator('status') }}</th>
+            <th @click="store.setSort(projectId, 'iteration')">Sprint{{ sortIndicator('iteration') }}</th>
+            <th class="num" @click="store.setSort(projectId, 'estimated_time')">Est (h){{ sortIndicator('estimated_time') }}</th>
+            <th class="num" @click="store.setSort(projectId, 'remaining_time')">Rem (h){{ sortIndicator('remaining_time') }}</th>
+            <th class="num" @click="store.setSort(projectId, 'actual_time')">Act (h){{ sortIndicator('actual_time') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="issue in store.filteredIssues" :key="issue.id">
+          <tr v-for="issue in store.issues" :key="issue.id">
             <td>{{ issue.id }}</td>
             <td class="title-cell">{{ issue.title }}</td>
             <td>{{ issue.assignee ?? '—' }}</td>
@@ -92,21 +102,34 @@ const sortIndicator = (key) => {
               </span>
             </td>
             <td>{{ issue.iteration ?? '—' }}</td>
-            <td><IssueTimeEditor :issue="issue" @saved="onSaved" /></td>
+            <td class="num">{{ hours(issue.estimated_time) }}</td>
+            <td class="num">{{ hours(issue.remaining_time) }}</td>
+            <td class="num">{{ hours(issue.actual_time) }}</td>
+          </tr>
+          <tr v-if="!store.issues.length && !store.issuesLoading">
+            <td colspan="8" class="empty">No issues match the current filters.</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="5" class="totals-label">Totals</td>
-            <td class="totals-values">
-              {{ store.totals.estimated.toFixed(1) }} /
-              {{ store.totals.remaining.toFixed(1) }} /
-              {{ store.totals.actual.toFixed(1) }}
-            </td>
+            <td colspan="5" class="totals-label">Totals (all {{ store.issuesMeta.total }} matching issues)</td>
+            <td class="num">{{ hours(store.issuesTotals.estimated) }}</td>
+            <td class="num">{{ hours(store.issuesTotals.remaining) }}</td>
+            <td class="num">{{ hours(store.issuesTotals.actual) }}</td>
           </tr>
         </tfoot>
       </table>
     </div>
+
+    <PaginationBar
+      :page="store.issuesMeta.page"
+      :page-size="store.issuesMeta.page_size"
+      :total="store.issuesMeta.total"
+      :total-pages="store.issuesMeta.total_pages"
+      :page-sizes="PAGE_SIZES"
+      @update:page="store.setPage(projectId, $event)"
+      @update:page-size="store.setPageSize(projectId, $event)"
+    />
   </div>
 </template>
 
@@ -160,7 +183,9 @@ th {
 }
 th:hover { background: #eef0ff; }
 td { padding: 0.55rem 0.75rem; font-size: 0.88rem; border-top: 1px solid #f1f1f1; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
 .title-cell { max-width: 280px; }
+.empty { text-align: center; color: #888; padding: 2rem 0; }
 .status-badge {
   font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px;
 }
@@ -168,5 +193,4 @@ td { padding: 0.55rem 0.75rem; font-size: 0.88rem; border-top: 1px solid #f1f1f1
 .status-badge.closed { background: #e9ecef; color: #495057; }
 tfoot td { font-weight: 700; background: #f8f9fa; }
 .totals-label { color: #555; }
-.totals-values { font-family: monospace; }
 </style>

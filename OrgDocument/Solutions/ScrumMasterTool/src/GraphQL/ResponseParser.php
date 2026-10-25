@@ -24,6 +24,17 @@ use App\Models\Project;
  */
 final class ResponseParser
 {
+    /**
+     * GitHub Project field names (case-insensitive) mapped to local meaning.
+     * Override per deployment via REPO_FIELD_* settings.
+     */
+    public const DEFAULT_FIELD_NAMES = [
+        'estimated' => 'Estimate Hours',
+        'remaining' => 'Remains Hours',
+        'actual'    => 'Actual Hours',
+        'iteration' => 'Iteration',
+    ];
+
     // -------------------------------------------------------------------------
     // Project parsing
     // -------------------------------------------------------------------------
@@ -63,15 +74,16 @@ final class ResponseParser
      * Nodes whose `content` is not an Issue (DraftIssue, PullRequest, empty)
      * are silently skipped.
      *
-     * @param  array<int,array<string,mixed>> $nodes  items.nodes from FETCH_PROJECT_ITEMS
+     * @param  array<int,array<string,mixed>> $nodes       items.nodes from FETCH_PROJECT_ITEMS
+     * @param  array<string,string>           $fieldNames  Overrides for DEFAULT_FIELD_NAMES
      * @return Issue[]
      */
-    public static function parseIssueNodes(array $nodes): array
+    public static function parseIssueNodes(array $nodes, array $fieldNames = []): array
     {
         $issues = [];
 
         foreach ($nodes as $node) {
-            $issue = self::parseIssueNode($node);
+            $issue = self::parseIssueNode($node, $fieldNames);
 
             if ($issue !== null) {
                 $issues[] = $issue;
@@ -85,10 +97,11 @@ final class ResponseParser
      * Map a single project item node to an Issue model.
      * Returns null when the item's content is not a GitHub Issue.
      *
-     * @param  array<string,mixed> $node  Single element of items.nodes
+     * @param  array<string,mixed>  $node        Single element of items.nodes
+     * @param  array<string,string> $fieldNames  Overrides for DEFAULT_FIELD_NAMES
      * @return Issue|null
      */
-    public static function parseIssueNode(array $node): ?Issue
+    public static function parseIssueNode(array $node, array $fieldNames = []): ?Issue
     {
         $content = $node['content'] ?? [];
 
@@ -108,6 +121,15 @@ final class ResponseParser
             $node['fieldValues']['nodes'] ?? []
         );
 
+        $names = array_filter($fieldNames, static fn($v) => is_string($v) && $v !== '')
+            + self::DEFAULT_FIELD_NAMES;
+
+        // The iteration field may have any configured name; expose it under 'iteration'
+        $iteration = self::fieldValue($customFields, $names['iteration']);
+        if (is_string($iteration)) {
+            $customFields['iteration'] = $iteration;
+        }
+
         return new Issue(
             githubId:    $node['id']                ?? '',
             contentId:   $content['id']             ?? '',
@@ -123,11 +145,37 @@ final class ResponseParser
             labels:      self::parseLabels($content['labels']['nodes']       ?? []),
             milestone:   self::parseMilestone($content['milestone']          ?? null),
             customFields: $customFields,
-            // Local time fields are never populated from GitHub data
-            estimatedHours: null,
-            remainingHours: null,
-            actualHours:    null,
+            // Hours come from GitHub number fields; GitHub is the source of truth
+            estimatedHours: self::hoursValue($customFields, $names['estimated']),
+            remainingHours: self::hoursValue($customFields, $names['remaining']),
+            actualHours:    self::hoursValue($customFields, $names['actual']),
         );
+    }
+
+    /**
+     * Look up a parsed custom field by its (case-insensitive) GitHub name.
+     *
+     * @param  array<string,string|float|null> $customFields
+     */
+    private static function fieldValue(array $customFields, string $name): string|float|null
+    {
+        return $customFields[strtolower($name)] ?? null;
+    }
+
+    /**
+     * Read a number field as non-negative hours; anything else yields null.
+     *
+     * @param  array<string,string|float|null> $customFields
+     */
+    private static function hoursValue(array $customFields, string $name): ?float
+    {
+        $value = self::fieldValue($customFields, $name);
+
+        if (!is_float($value) || $value < 0.0) {
+            return null;
+        }
+
+        return $value;
     }
 
     // -------------------------------------------------------------------------
@@ -273,9 +321,16 @@ final class ResponseParser
                 $field['options'] = $node['options'];
             }
 
-            // Attach iteration configuration
-            if (!empty($node['configuration']['iterations'])) {
-                $field['iterations'] = $node['configuration']['iterations'];
+            // Attach iteration configuration (active/upcoming + completed sprints)
+            $iterations = array_merge(
+                $node['configuration']['iterations'] ?? [],
+                array_map(
+                    static fn(array $it): array => $it + ['completed' => true],
+                    $node['configuration']['completedIterations'] ?? [],
+                ),
+            );
+            if (!empty($iterations)) {
+                $field['iterations'] = $iterations;
             }
 
             $fields[] = $field;

@@ -49,7 +49,7 @@ final class MiddlewareTest extends IntegrationTestCase
             'project issues'     => ['GET',  '/api/projects/1/issues'],
             'project burndown'   => ['GET',  '/api/projects/1/burndown'],
             'project members'    => ['GET',  '/api/projects/1/members'],
-            'issue time update'  => ['PUT',  '/api/issues/1/time'],
+            'project iterations' => ['GET',  '/api/projects/1/iterations'],
             'sync history'       => ['GET',  '/api/sync/history'],
         ];
     }

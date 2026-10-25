@@ -139,8 +139,8 @@ OrgDocument/Solutions/ScrumMasterTool/
 | GET | `/api/auth/me` | Current user info + role | Any |
 | GET | `/api/projects` | List synced GitHub projects | Any |
 | GET | `/api/projects/{id}` | Project detail with sprint info | Any |
-| GET | `/api/projects/{id}/issues` | Enhanced issues with time data | Any |
-| PUT | `/api/issues/{id}/time` | Update estimated/remaining/actual | Member+ |
+| GET | `/api/projects/{id}/issues` | Paginated issues with hours (read-only; `page`, `page_size`, filters, `sort`/`dir`) | Any |
+| GET | `/api/projects/{id}/iterations` | Sprint labels of the project (current flag, dates) | Any |
 | GET | `/api/projects/{id}/burndown` | Burndown data (ideal + actual) | Any |
 | GET | `/api/projects/{id}/members` | Member efficiency metrics | Any |
 | GET | `/api/sync/history` | Sync audit log | Any |

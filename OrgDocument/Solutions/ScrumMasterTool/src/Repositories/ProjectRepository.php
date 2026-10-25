@@ -117,4 +117,88 @@ final class ProjectRepository
 
         return $row !== false ? $row : null;
     }
+
+    /**
+     * Replace the stored iteration (sprint) configuration of a project.
+     *
+     * @param array<int,array{title?:string,startDate?:string|null,duration?:int|null,completed?:bool}> $iterations
+     */
+    public function syncIterations(int $projectId, array $iterations): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO `project_iterations` (`project_id`, `title`, `start_date`, `duration_days`, `is_completed`)
+             VALUES (:project_id, :title, :start_date, :duration_days, :is_completed)
+             ON DUPLICATE KEY UPDATE
+                 `start_date`    = VALUES(`start_date`),
+                 `duration_days` = VALUES(`duration_days`),
+                 `is_completed`  = VALUES(`is_completed`)'
+        );
+
+        foreach ($iterations as $it) {
+            $title = trim((string) ($it['title'] ?? ''));
+            if ($title === '') {
+                continue;
+            }
+
+            $stmt->execute([
+                'project_id'    => $projectId,
+                'title'         => $title,
+                'start_date'    => $it['startDate'] ?? null,
+                'duration_days' => isset($it['duration']) ? (int) $it['duration'] : null,
+                'is_completed'  => !empty($it['completed']) ? 1 : 0,
+            ]);
+        }
+    }
+
+    /**
+     * Record which iteration is running now (null clears it).
+     */
+    public function updateCurrentIteration(int $projectId, ?string $title): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE `projects` SET `current_iteration` = ? WHERE `id` = ?');
+        $stmt->execute([$title, $projectId]);
+    }
+
+    /**
+     * List every iteration known for a project, newest first.
+     *
+     * Union of the GitHub iteration configuration (project_iterations), iteration
+     * names found on issues, and names present in burndown_daily — so sprints
+     * appear even if GitHub no longer lists them or they have no issues yet.
+     *
+     * @return array<int,array{
+     *   name: string, start_date: ?string, duration_days: ?int,
+     *   is_completed: bool, has_data: bool
+     * }>
+     */
+    public function findIterations(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT t.`name`,
+                    pi.`start_date`,
+                    pi.`duration_days`,
+                    COALESCE(pi.`is_completed`, 0) AS is_completed,
+                    EXISTS (SELECT 1 FROM `burndown_daily` b
+                             WHERE b.`project_id` = :p4 AND b.`iteration` = t.`name`) AS has_data
+               FROM (
+                    SELECT `title` AS `name` FROM `project_iterations` WHERE `project_id` = :p1
+                    UNION
+                    SELECT `iteration` FROM `issues` WHERE `project_id` = :p2 AND `iteration` IS NOT NULL
+                    UNION
+                    SELECT `iteration` FROM `burndown_daily` WHERE `project_id` = :p3
+               ) t
+               LEFT JOIN `project_iterations` pi
+                      ON pi.`project_id` = :p5 AND pi.`title` = t.`name`
+              ORDER BY pi.`start_date` IS NULL, pi.`start_date` DESC, t.`name` DESC'
+        );
+        $stmt->execute(['p1' => $projectId, 'p2' => $projectId, 'p3' => $projectId, 'p4' => $projectId, 'p5' => $projectId]);
+
+        return array_map(static fn(array $r): array => [
+            'name'          => (string) $r['name'],
+            'start_date'    => $r['start_date'] !== null ? (string) $r['start_date'] : null,
+            'duration_days' => $r['duration_days'] !== null ? (int) $r['duration_days'] : null,
+            'is_completed'  => (bool) $r['is_completed'],
+            'has_data'      => (bool) $r['has_data'],
+        ], $stmt->fetchAll());
+    }
 }

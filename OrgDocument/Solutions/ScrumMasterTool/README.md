@@ -5,7 +5,8 @@ A GitHub-integrated Scrum dashboard for tracking sprint burndown, issue time est
 ## Key Features
 
 - **Sprint Burndown Chart** — ideal vs. actual remaining-effort line chart, updated every 15 minutes from GitHub
-- **Issue Time Tracking** — inline editing of estimated / remaining / actual hours per issue
+- **Issue Hours (read-only)** — estimated / remaining / actual hours are synced from GitHub Project number fields; the Issues list is server-side paginated (10/25/50/100 rows) with filters and sorting
+- **Sprint Selector** — the Dashboard lists the project's GitHub iterations (current sprint preselected)
 - **Member Efficiency Analysis** — grouped bar chart comparing estimated vs. actual effort by team member
 - **Sync Monitoring** — sync history table, status indicator (ok / stale / error), manual "Sync Now" trigger for admins
 - **User Management** — admin panel to create and list team members

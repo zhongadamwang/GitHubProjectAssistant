@@ -70,7 +70,7 @@ Build a GitHub-integrated Scrum burndown dashboard using **PHP 8.2 + Slim 4** ba
 │  │  Vue 3 SPA (static)  │←──│   PHP 8.2 + Slim 4 API      │  │
 │  │  • LoginView.vue     │    │   • /api/auth/login|logout   │  │
 │  │  • DashboardView.vue │    │   • /api/projects            │  │
-│  │  • IssuesView.vue    │    │   • /api/issues/{id}/time    │  │
+│  │  • IssuesView.vue    │    │   • /api/projects/{id}/issues│  │
 │  │  • MembersView.vue   │    │   • /api/projects/{id}/burn  │  │
 │  │  • AdminView.vue     │    │   • /api/admin/users         │  │
 │  │  • Chart.js 4        │    │   • AuthMiddleware (session)  │  │
@@ -123,8 +123,8 @@ Build a GitHub-integrated Scrum burndown dashboard using **PHP 8.2 + Slim 4** ba
 | GET | `/api/auth/me` | Current user info + role | Any | ADR-7 |
 | GET | `/api/projects` | List synced GitHub projects | Any | R-001 |
 | GET | `/api/projects/{id}` | Project detail with sprint info | Any | R-001 |
-| GET | `/api/projects/{id}/issues` | Enhanced issues with time data | Any | R-004 |
-| PUT | `/api/issues/{id}/time` | Update estimated/remaining/actual | Member+ | R-004 |
+| GET | `/api/projects/{id}/issues` | Paginated issues with hours (read-only; `page`, `page_size`, filters, `sort`/`dir`) | Any | R-004 |
+| GET | `/api/projects/{id}/iterations` | Sprint labels of the project (current flag, dates) | Any | R-007 |
 | GET | `/api/projects/{id}/burndown` | Calculated burndown data (ideal + actual curves) | Any | R-005, R-006 |
 | GET | `/api/projects/{id}/members` | Member efficiency metrics | Any | R-008 |
 | GET | `/api/sync/history` | Sync audit log | Any | R-003 |

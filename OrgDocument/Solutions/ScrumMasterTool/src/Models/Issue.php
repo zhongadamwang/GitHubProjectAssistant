@@ -9,9 +9,10 @@ namespace App\Models;
  * Populated from FETCH_PROJECT_ITEMS by ResponseParser and persisted to
  * the `issues` table by IssueRepository.
  *
- * Local time-tracking fields (`estimatedHours`, `remainingHours`,
- * `actualHours`) are populated from the local DB and are NEVER overwritten
- * by the GitHub sync — they belong to the team, not to GitHub.
+ * Time-tracking fields (`estimatedHours`, `remainingHours`, `actualHours`)
+ * are read from GitHub Project number fields (see ResponseParser); GitHub is
+ * the source of truth and the dashboard only displays them. Null means the
+ * field is empty or missing in GitHub.
  *
  * `assignees`    — array of ['login' => string, 'name' => string|null]
  * `labels`       — array of ['name'  => string, 'color' => string|null]
@@ -35,9 +36,9 @@ final class Issue
      * @param array<int,array<string,mixed>> $labels
      * @param array<string,mixed>|null       $milestone
      * @param array<string,mixed>            $customFields   field name → scalar
-     * @param float|null                     $estimatedHours Local only — not from GitHub
-     * @param float|null                     $remainingHours Local only — not from GitHub
-     * @param float|null                     $actualHours    Local only — not from GitHub
+     * @param float|null                     $estimatedHours From the GitHub number field; null when empty
+     * @param float|null                     $remainingHours From the GitHub number field; null when empty
+     * @param float|null                     $actualHours    From the GitHub number field; null when empty
      */
     public function __construct(
         public readonly string  $githubId,

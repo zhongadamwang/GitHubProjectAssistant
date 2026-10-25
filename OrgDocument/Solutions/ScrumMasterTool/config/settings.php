@@ -40,6 +40,13 @@ return [
         'org'            => $_ENV['REPO_ORG']            ?? '',
         'project_number' => (int) ($_ENV['REPO_PROJECT_NUMBER'] ?? 0),
         'graphql_url'    => $_ENV['REPO_GRAPHQL_URL']    ?? 'https://api.github.com/graphql',
+        // GitHub Project field names holding the time-tracking hours and the sprint
+        'fields' => [
+            'estimated' => $_ENV['REPO_FIELD_ESTIMATED'] ?? 'Estimate Hours',
+            'remaining' => $_ENV['REPO_FIELD_REMAINING'] ?? 'Remains Hours',
+            'actual'    => $_ENV['REPO_FIELD_ACTUAL']    ?? 'Actual Hours',
+            'iteration' => $_ENV['REPO_FIELD_ITERATION'] ?? 'Iteration',
+        ],
     ],
 
     // -------------------------------------------------------------------------

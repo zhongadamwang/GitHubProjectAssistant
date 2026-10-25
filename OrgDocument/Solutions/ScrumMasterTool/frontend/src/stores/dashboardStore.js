@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import * as api from '../services/api.js'
 
+// Only the response to the most recent burndown request is applied
+let burndownRequestSeq = 0
+
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     points: [],       // Array of { date, ideal, actual }
@@ -29,17 +32,20 @@ export const useDashboardStore = defineStore('dashboard', {
      * @returns {Promise<void>}
      */
     async fetchBurndown(projectId, iteration = null) {
-      if (this.loading) return
+      // A newer request supersedes one still in flight (project/sprint switches)
+      const seq = ++burndownRequestSeq
       this.loading = true
       this.error = null
       try {
         const data = await api.getBurndown(projectId, iteration)
+        if (seq !== burndownRequestSeq) return
         this.points = data.points ?? []
         this.iteration = data.iteration ?? null
       } catch (err) {
+        if (seq !== burndownRequestSeq) return
         this.error = err.message ?? 'Failed to load burndown data.'
       } finally {
-        this.loading = false
+        if (seq === burndownRequestSeq) this.loading = false
       }
     },
 

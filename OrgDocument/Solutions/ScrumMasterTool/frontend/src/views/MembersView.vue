@@ -17,8 +17,8 @@ const projectId = computed(() => store.activeProjectId)
 async function load(iteration = null) {
   if (!store.projects.length) await store.fetchProjects()
   if (projectId.value) {
-    // The sprint dropdown is derived from the issue list
-    if (!store.issues.length) await store.fetchIssues(projectId.value)
+    // The sprint dropdown comes from the project's iteration list
+    if (!store.iterations.length) await store.fetchIterations(projectId.value)
     await store.fetchMembers(projectId.value, iteration)
   }
 }
@@ -58,7 +58,7 @@ function ratioLabel(m) {
             @change="load(selectedIteration)"
           >
             <option :value="null">All Time</option>
-            <option v-for="it in store.uniqueIterations" :key="it" :value="it">{{ it }}</option>
+            <option v-for="it in store.iterationNames" :key="it" :value="it">{{ it }}</option>
           </select>
         </label>
       </div>

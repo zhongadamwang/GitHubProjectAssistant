@@ -1,13 +1,36 @@
 import { defineStore } from 'pinia'
 import * as api from '../services/api.js'
 
+/** Page sizes offered by the Issues view (must match the API whitelist). */
+export const PAGE_SIZES = [10, 25, 50, 100]
+const DEFAULT_PAGE_SIZE = 25
+const PAGE_SIZE_KEY = 'scrum.issues.pageSize'
+
+function loadPageSize() {
+  try {
+    const size = Number(localStorage.getItem(PAGE_SIZE_KEY))
+    return PAGE_SIZES.includes(size) ? size : DEFAULT_PAGE_SIZE
+  } catch {
+    return DEFAULT_PAGE_SIZE
+  }
+}
+
+// Only the response to the most recent issues request is applied
+let issuesRequestSeq = 0
+
 export const useProjectStore = defineStore('project', {
   state: () => ({
     projects: [],
     activeProjectId: null,
 
-    // Issues
+    // Iterations (sprints) of the active project: [{ name, is_current, ... }]
+    iterations: [],
+
+    // Issues — one server-side page at a time
     issues: [],
+    issuesMeta: { page: 1, page_size: loadPageSize(), total: 0, total_pages: 1 },
+    issuesTotals: { estimated: 0, remaining: 0, actual: 0 },
+    assignees: [],
     issuesLoading: false,
     issuesError: null,
 
@@ -16,55 +39,23 @@ export const useProjectStore = defineStore('project', {
     membersLoading: false,
     membersError: null,
 
-    // Filters & sort
+    // Filters, sort and paging (applied by the API)
     filterAssignee: '',
     filterIteration: '',
     filterStatus: 'all',
     sortKey: 'id',
     sortDir: 'asc',
+    page: 1,
+    pageSize: loadPageSize(),
 
     // Polling
     issuesPollingTimer: null,
   }),
 
   getters: {
-    filteredIssues: (state) => {
-      let list = [...state.issues]
+    iterationNames: (state) => state.iterations.map((i) => i.name),
 
-      if (state.filterAssignee) {
-        list = list.filter((i) => i.assignee === state.filterAssignee)
-      }
-      if (state.filterIteration) {
-        list = list.filter((i) => i.iteration === state.filterIteration)
-      }
-      if (state.filterStatus !== 'all') {
-        list = list.filter((i) =>
-          state.filterStatus === 'open' ? i.status !== 'closed' : i.status === 'closed'
-        )
-      }
-
-      list.sort((a, b) => {
-        const va = a[state.sortKey] ?? ''
-        const vb = b[state.sortKey] ?? ''
-        const cmp = typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb))
-        return state.sortDir === 'asc' ? cmp : -cmp
-      })
-
-      return list
-    },
-
-    uniqueAssignees: (state) =>
-      [...new Set(state.issues.map((i) => i.assignee).filter(Boolean))].sort(),
-
-    uniqueIterations: (state) =>
-      [...new Set(state.issues.map((i) => i.iteration).filter(Boolean))].sort(),
-
-    // Column totals
-    totals: (state) => ({
-      estimated: state.issues.reduce((s, i) => s + (i.estimated_time ?? 0), 0),
-      remaining: state.issues.reduce((s, i) => s + (i.remaining_time ?? 0), 0),
-      actual:    state.issues.reduce((s, i) => s + (i.actual_time ?? 0), 0),
-    }),
+    currentIteration: (state) => state.iterations.find((i) => i.is_current)?.name ?? null,
   },
 
   actions: {
@@ -86,29 +77,112 @@ export const useProjectStore = defineStore('project', {
     },
 
     /**
-     * Fetch issues for a project and populate `state.issues`.
-     * Debounced by `issuesLoading` flag to prevent concurrent requests.
+     * Fetch the iteration (sprint) labels of a project, newest first.
+     * @param {number} projectId
+     * @returns {Promise<void>}
+     */
+    async fetchIterations(projectId) {
+      try {
+        const data = await api.getIterations(projectId)
+        this.iterations = data.iterations ?? []
+      } catch {
+        this.iterations = []
+      }
+    },
+
+    /**
+     * Fetch the current page of issues using the stored filters, sort and paging.
+     * A newer request supersedes an older one still in flight.
      * @param {number} projectId
      * @returns {Promise<void>}
      */
     async fetchIssues(projectId) {
-      if (this.issuesLoading) return
+      const seq = ++issuesRequestSeq
       this.issuesLoading = true
       this.issuesError = null
+
+      const params = {
+        page: this.page,
+        page_size: this.pageSize,
+        sort: this.sortKey,
+        dir: this.sortDir,
+      }
+      if (this.filterAssignee) params.assignee = this.filterAssignee
+      if (this.filterIteration) params.iteration = this.filterIteration
+      if (this.filterStatus !== 'all') params.status = this.filterStatus
+
       try {
-        const data = await api.getIssues(projectId)
-        // MySQL DECIMAL columns are serialised as strings — coerce to numbers
-        this.issues = (data.issues ?? data).map((i) => ({
-          ...i,
-          estimated_time: Number(i.estimated_time ?? 0),
-          remaining_time: Number(i.remaining_time ?? 0),
-          actual_time:    Number(i.actual_time ?? 0),
-        }))
+        const data = await api.getIssues(projectId, params)
+        if (seq !== issuesRequestSeq) return
+        this.issues = data.issues ?? []
+        this.issuesMeta = data.meta ?? this.issuesMeta
+        this.issuesTotals = data.totals ?? this.issuesTotals
+        this.assignees = data.assignees ?? this.assignees
+        this.page = this.issuesMeta.page
       } catch (err) {
+        if (seq !== issuesRequestSeq) return
         this.issuesError = err.message ?? 'Failed to load issues.'
       } finally {
-        this.issuesLoading = false
+        if (seq === issuesRequestSeq) this.issuesLoading = false
       }
+    },
+
+    /**
+     * Change one filter (assignee | iteration | status), return to page 1 and reload.
+     * @param {number} projectId
+     * @param {'filterAssignee'|'filterIteration'|'filterStatus'} key
+     * @param {string} value
+     * @returns {Promise<void>}
+     */
+    async applyFilter(projectId, key, value) {
+      this[key] = value
+      this.page = 1
+      await this.fetchIssues(projectId)
+    },
+
+    /**
+     * Toggle sort direction if the same key is selected; otherwise sort ascending
+     * by the new key. Returns to page 1 and reloads.
+     * @param {number} projectId
+     * @param {string} key  API sort column.
+     * @returns {Promise<void>}
+     */
+    async setSort(projectId, key) {
+      if (this.sortKey === key) {
+        this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortKey = key
+        this.sortDir = 'asc'
+      }
+      this.page = 1
+      await this.fetchIssues(projectId)
+    },
+
+    /**
+     * @param {number} projectId
+     * @param {number} page  1-based page number.
+     * @returns {Promise<void>}
+     */
+    async setPage(projectId, page) {
+      this.page = page
+      await this.fetchIssues(projectId)
+    },
+
+    /**
+     * Change the page size (remembered in localStorage), return to page 1 and reload.
+     * @param {number} projectId
+     * @param {number} size  One of PAGE_SIZES.
+     * @returns {Promise<void>}
+     */
+    async setPageSize(projectId, size) {
+      this.pageSize = size
+      this.page = 1
+      try {
+        localStorage.setItem(PAGE_SIZE_KEY, String(size))
+      } catch {
+        // Storage unavailable — the choice just isn't remembered
+      }
+      await this.fetchIssues(projectId)
     },
 
     /**
@@ -131,46 +205,7 @@ export const useProjectStore = defineStore('project', {
     },
 
     /**
-     * Persist updated time fields for an issue.
-     * Applies an optimistic update to `state.issues` immediately and rolls back
-     * to the previous values if the API call fails.
-     * @param {number} issueId  Local issue ID.
-     * @param {Object} patch    Partial object with any of: estimated_time, remaining_time, actual_time.
-     * @returns {Promise<void>}
-     * @throws Will rethrow the API error after rolling back the optimistic update.
-     */
-    // Optimistic update — reverts on error; emits nothing (caller handles event)
-    async saveIssueTime(issueId, patch) {
-      const idx = this.issues.findIndex((i) => i.id === issueId)
-      if (idx === -1) return
-      const prev = { ...this.issues[idx] }
-      // Optimistic apply
-      this.issues[idx] = { ...this.issues[idx], ...patch }
-      try {
-        await api.updateIssueTime(issueId, patch)
-      } catch (err) {
-        // Rollback
-        this.issues[idx] = prev
-        throw err
-      }
-    },
-
-    /**
-     * Toggle sort direction if the same key is selected; otherwise set a new
-     * sort key with ascending direction.
-     * @param {string} key  Issue field name to sort by.
-     */
-    setSort(key) {
-      if (this.sortKey === key) {
-        this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
-      } else {
-        this.sortKey = key
-        this.sortDir = 'asc'
-      }
-    },
-
-    /**
-     * Start polling issues at the given interval.
+     * Start polling the current issues page at the given interval.
      * Clears any existing timer before starting a new one.
      * @param {number} projectId
      * @param {number} [intervalMs=60000]

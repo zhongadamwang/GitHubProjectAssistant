@@ -5,7 +5,8 @@
  * Implements the `v-model` pattern via `modelValue` / `update:modelValue`.
  *
  * @prop {Array<string>} iterations  List of available iteration names.
- * @prop {string|null}   modelValue  Currently selected iteration (null = all sprints).
+ * @prop {string|null}   modelValue  Currently selected iteration (null = latest).
+ * @prop {string|null}   current     Name of the iteration running now (marked "current").
  * @emits update:modelValue  Emitted with the newly selected iteration string.
  */
 defineProps({
@@ -14,6 +15,10 @@ defineProps({
     default: () => [],
   },
   modelValue: {
+    type: String,
+    default: null,
+  },
+  current: {
     type: String,
     default: null,
   },
@@ -27,11 +32,13 @@ const emit = defineEmits(['update:modelValue'])
     <label for="sprint-select">Sprint</label>
     <select
       id="sprint-select"
-      :value="modelValue"
+      :value="modelValue ?? ''"
       @change="emit('update:modelValue', $event.target.value || null)"
     >
       <option value="">Latest</option>
-      <option v-for="it in iterations" :key="it" :value="it">{{ it }}</option>
+      <option v-for="it in iterations" :key="it" :value="it">
+        {{ it }}{{ it === current ? ' (current)' : '' }}
+      </option>
     </select>
   </div>
 </template>

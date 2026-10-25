@@ -74,6 +74,22 @@ class BurndownRepository
     }
 
     /**
+     * Delete snapshots captured while no estimated hours existed (total_estimated = 0).
+     * Such rows only draw a flat zero line; used by cron/rebuild-burndown.php.
+     *
+     * @return int number of deleted rows
+     */
+    public function deleteEmptySnapshots(int $projectId): int
+    {
+        $stmt = $this->pdo->prepare(
+            'DELETE FROM `burndown_daily` WHERE `project_id` = ? AND `total_estimated` = 0'
+        );
+        $stmt->execute([$projectId]);
+
+        return $stmt->rowCount();
+    }
+
+    /**
      * Upsert a single daily burndown snapshot row.
      *
      * The UNIQUE KEY on (project_id, iteration, snapshot_date) ensures that

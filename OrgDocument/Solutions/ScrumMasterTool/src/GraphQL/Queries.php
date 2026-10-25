@@ -86,6 +86,12 @@ final class Queries
                         startDate
                         duration
                       }
+                      completedIterations {
+                        id
+                        title
+                        startDate
+                        duration
+                      }
                     }
                   }
                 }

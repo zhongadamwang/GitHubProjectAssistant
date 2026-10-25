@@ -197,13 +197,11 @@ RESULTS+=( "$(bench_endpoint \
 )" )
 
 # ---------------------------------------------------------------------------
-# 8. PUT /api/issues/{id}/time
+# 8. GET /api/projects/{id}/iterations
 # ---------------------------------------------------------------------------
 RESULTS+=( "$(bench_endpoint \
-    "PUT  /api/issues/$ISSUE_ID/time" PUT \
-    "$BASE_URL/api/issues/$ISSUE_ID/time" \
-    -H 'Content-Type: application/json' \
-    -d '{"estimated_time":8,"remaining_time":4,"actual_time":2}'
+    "GET  /api/projects/$PROJECT_ID/iterations" GET \
+    "$BASE_URL/api/projects/$PROJECT_ID/iterations"
 )" )
 
 # ---------------------------------------------------------------------------

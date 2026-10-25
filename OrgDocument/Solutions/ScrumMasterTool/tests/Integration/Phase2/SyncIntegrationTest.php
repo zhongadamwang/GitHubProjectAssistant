@@ -10,6 +10,7 @@ use App\Repositories\BurndownRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Repositories\TimeLogRepository;
 use App\Services\BurndownService;
 use App\Services\SyncService;
 use PDO;
@@ -74,6 +75,9 @@ final class SyncIntegrationTest extends TestCase
 
         // Truncate the sync-related tables in dependency order
         self::$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+        self::$pdo->exec('TRUNCATE TABLE `time_logs`');
+        self::$pdo->exec('TRUNCATE TABLE `project_iterations`');
+        self::$pdo->exec('TRUNCATE TABLE `burndown_daily`');
         self::$pdo->exec('TRUNCATE TABLE `sync_history`');
         self::$pdo->exec('TRUNCATE TABLE `issues`');
         self::$pdo->exec('TRUNCATE TABLE `projects`');
@@ -231,46 +235,152 @@ final class SyncIntegrationTest extends TestCase
     }
 
     /**
-     * Local time fields (estimated_time, remaining_time, actual_time) are
-     * preserved when a re-sync finds the same issue timestamp (unchanged path).
+     * Hours come from the GitHub number fields "Estimate Hours", "Remains Hours",
+     * "Actual Hours"; the sprint comes from the "Iteration" field.
      */
-    public function testLocalTimeFieldsPreservedOnResync(): void
+    public function testHoursAndIterationAreSyncedFromGitHubFields(): void
     {
-        $service = $this->makeSyncService();
+        $this->setItemFields(0, ['Estimate Hours' => 8.0, 'Remains Hours' => 5.0, 'Actual Hours' => 3.0], 'Sprint 7');
 
-        // First run — all 5 issues inserted with default time values (0.00)
-        $service->run();
+        $this->makeSyncService()->run();
 
-        // Get the local project_id
-        $projectId = $this->getProjectLocalId('PVT_kwTest01');
-        $this->assertNotNull($projectId, 'Project row must exist after sync');
-
-        // Manually set time fields for issue 1
-        self::$pdo->prepare(
-            'UPDATE `issues`
-                SET `estimated_time` = 8.0,
-                    `remaining_time` = 5.0,
-                    `actual_time`    = 3.0
-              WHERE `github_issue_id` = ? AND `project_id` = ?'
-        )->execute(['I_kgDOA1AAAAA', $projectId]);
-
-        // Second run — issue 1 has same timestamp in DB and fixture → unchanged
-        $result = $service->run();
-        $this->assertSame(0, $result->updated, 'Issue should be unchanged on re-sync with same timestamp');
-
-        // Time fields must be preserved
-        $stmt = self::$pdo->prepare(
-            'SELECT `estimated_time`, `remaining_time`, `actual_time`
-               FROM `issues`
-              WHERE `github_issue_id` = ? AND `project_id` = ?'
-        );
-        $stmt->execute(['I_kgDOA1AAAAA', $projectId]);
-        $row = $stmt->fetch();
-
-        $this->assertNotFalse($row, 'Issue row must exist');
+        $row = $this->fetchIssue('I_kgDOA1AAAAA');
         $this->assertEqualsWithDelta(8.0, (float) $row['estimated_time'], 0.001);
         $this->assertEqualsWithDelta(5.0, (float) $row['remaining_time'], 0.001);
         $this->assertEqualsWithDelta(3.0, (float) $row['actual_time'],    0.001);
+        $this->assertSame('Sprint 7', $row['iteration']);
+
+        // Issues without the fields default to 0
+        $other = $this->fetchIssue('I_kgDOA2BBBBB');
+        $this->assertEqualsWithDelta(0.0, (float) $other['estimated_time'], 0.001);
+    }
+
+    /**
+     * GitHub wins: a changed (or cleared) field value overwrites the stored hours
+     * even though the Issue's own updatedAt did not change, and the change is audited
+     * with a NULL (system) actor.
+     */
+    public function testGitHubHourChangesOverwriteLocalAndAreAudited(): void
+    {
+        $this->setItemFields(0, ['Estimate Hours' => 8.0, 'Remains Hours' => 5.0, 'Actual Hours' => 3.0], 'Sprint 7');
+        $this->makeSyncService()->run();
+
+        // Same Issue updatedAt, but Remains changes and Actual is cleared in GitHub
+        $this->setItemFields(0, ['Estimate Hours' => 8.0, 'Remains Hours' => 2.0], 'Sprint 7');
+        $result = $this->makeSyncService()->run();
+
+        $this->assertSame(1, $result->updated, 'A field-only change must count as an update');
+        $this->assertSame(0, $result->added);
+
+        $row = $this->fetchIssue('I_kgDOA1AAAAA');
+        $this->assertEqualsWithDelta(8.0, (float) $row['estimated_time'], 0.001);
+        $this->assertEqualsWithDelta(2.0, (float) $row['remaining_time'], 0.001);
+        $this->assertEqualsWithDelta(0.0, (float) $row['actual_time'],    0.001, 'Cleared field becomes 0');
+
+        $logs = self::$pdo->query(
+            'SELECT `field_name`, `old_value`, `new_value`, `changed_by` FROM `time_logs` ORDER BY `id`'
+        )->fetchAll();
+        $this->assertCount(2, $logs);
+        $this->assertSame('remaining_time', $logs[0]['field_name']);
+        $this->assertEqualsWithDelta(5.0, (float) $logs[0]['old_value'], 0.001);
+        $this->assertEqualsWithDelta(2.0, (float) $logs[0]['new_value'], 0.001);
+        $this->assertNull($logs[0]['changed_by']);
+        $this->assertSame('actual_time', $logs[1]['field_name']);
+    }
+
+    /** Re-syncing identical data touches nothing and logs nothing. */
+    public function testResyncWithSameHoursIsUnchanged(): void
+    {
+        $this->setItemFields(0, ['Estimate Hours' => 8.0, 'Remains Hours' => 5.0, 'Actual Hours' => 3.0], 'Sprint 7');
+        $this->makeSyncService()->run();
+
+        $result = $this->makeSyncService()->run();
+
+        $this->assertSame(0, $result->updated);
+        $this->assertSame(5, $result->unchanged);
+        $this->assertSame(0, (int) self::$pdo->query('SELECT COUNT(*) FROM `time_logs`')->fetchColumn());
+    }
+
+    /** Field names are configurable per deployment. */
+    public function testCustomFieldNamesAreHonoured(): void
+    {
+        $this->setItemFields(0, ['Est' => 6.0, 'Rem' => 4.0, 'Act' => 1.0], 'Sprint 7', 'Sprint');
+
+        $issueRepo = new IssueRepository(self::$pdo);
+        (new SyncService(
+            gitHub:          new GitHubGraphQLServiceStub($this->fixture),
+            projectRepo:     new ProjectRepository(self::$pdo),
+            issueRepo:       $issueRepo,
+            historyRepo:     new SyncHistoryRepository(self::$pdo),
+            burndownService: new BurndownService(new BurndownRepository(self::$pdo), $issueRepo),
+            owner:           'testowner',
+            projectNumber:   1,
+            snapshotDir:     $this->snapshotDir,
+            fieldNames:      ['estimated' => 'Est', 'remaining' => 'Rem', 'actual' => 'Act', 'iteration' => 'Sprint'],
+        ))->run();
+
+        $row = $this->fetchIssue('I_kgDOA1AAAAA');
+        $this->assertEqualsWithDelta(6.0, (float) $row['estimated_time'], 0.001);
+        $this->assertSame('Sprint 7', $row['iteration']);
+    }
+
+    /**
+     * The iteration field configuration (active + completed sprints) is stored and the
+     * sprint running today becomes projects.current_iteration.
+     */
+    public function testIterationConfigurationAndCurrentIterationAreStored(): void
+    {
+        $today     = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
+        $fmt       = static fn(\DateTimeImmutable $d): string => $d->format('Y-m-d');
+        $this->fixture['project_fields_response']['data']['organization']['projectV2']['fields']['nodes'][] = [
+            'id' => 'PVTIF_001', 'name' => 'Iteration', 'dataType' => 'ITERATION',
+            'configuration' => [
+                'iterations' => [
+                    ['id' => 'IT2', 'title' => 'Sprint 2', 'startDate' => $fmt($today->modify('-3 days')), 'duration' => 14],
+                    ['id' => 'IT3', 'title' => 'Sprint 3', 'startDate' => $fmt($today->modify('+11 days')), 'duration' => 14],
+                ],
+                'completedIterations' => [
+                    ['id' => 'IT1', 'title' => 'Sprint 1', 'startDate' => $fmt($today->modify('-17 days')), 'duration' => 14],
+                ],
+            ],
+        ];
+
+        $this->makeSyncService()->run();
+
+        $projectId = $this->getProjectLocalId('PVT_kwTest01');
+        $rows = self::$pdo->query(
+            "SELECT `title`, `is_completed` FROM `project_iterations` WHERE `project_id` = {$projectId} ORDER BY `title`"
+        )->fetchAll();
+        $this->assertSame(['Sprint 1', 'Sprint 2', 'Sprint 3'], array_column($rows, 'title'));
+        $this->assertSame(['1', '0', '0'], array_map('strval', array_column($rows, 'is_completed')));
+
+        $current = self::$pdo->query("SELECT `current_iteration` FROM `projects` WHERE `id` = {$projectId}")->fetchColumn();
+        $this->assertSame('Sprint 2', $current);
+    }
+
+    /**
+     * Closed issues count as 0 remaining in the burndown aggregation, while their
+     * estimate still counts; issues without an iteration are excluded.
+     */
+    public function testBurndownAggregationTreatsClosedIssuesAsZeroRemaining(): void
+    {
+        self::$pdo->exec("INSERT INTO `projects` (github_project_id, github_owner, github_repo, project_number, name)
+                          VALUES ('PVT_AGG', 'o', '', 1, 'Agg')");
+        $projectId = (int) self::$pdo->lastInsertId();
+        $stmt = self::$pdo->prepare(
+            'INSERT INTO `issues` (project_id, github_issue_id, title, status, iteration, estimated_time, remaining_time, actual_time)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 0)'
+        );
+        $stmt->execute([$projectId, 'A1', 'open one',   'open',   'Sprint 1', 10, 6]);
+        $stmt->execute([$projectId, 'A2', 'closed one', 'closed', 'Sprint 1', 8, 3]);
+        $stmt->execute([$projectId, 'A3', 'no sprint',  'open',   null,       5, 5]);
+
+        $rows = (new IssueRepository(self::$pdo))->aggregateTimeByIteration($projectId);
+
+        $this->assertCount(1, $rows);
+        $this->assertEqualsWithDelta(18.0, (float) $rows[0]['total_estimated'], 0.001);
+        $this->assertEqualsWithDelta(6.0,  (float) $rows[0]['total_remaining'], 0.001);
+        $this->assertSame(1, (int) $rows[0]['closed_count']);
     }
 
     /**
@@ -306,7 +416,44 @@ final class SyncIntegrationTest extends TestCase
             owner:           'testowner',
             projectNumber:   1,
             snapshotDir:     $this->snapshotDir,
+            timeLogRepo:     new TimeLogRepository(self::$pdo),
         );
+    }
+
+    /**
+     * Replace the field values of fixture item $index with the given number fields
+     * and an iteration value.
+     *
+     * @param array<string,float> $numbers  field name → value
+     */
+    private function setItemFields(int $index, array $numbers, string $iteration, string $iterationField = 'Iteration'): void
+    {
+        $nodes = [];
+        foreach ($numbers as $name => $value) {
+            $nodes[] = [
+                '__typename' => 'ProjectV2ItemFieldNumberValue',
+                'number'     => $value,
+                'field'      => ['id' => 'F_' . $name, 'name' => $name],
+            ];
+        }
+        $nodes[] = [
+            '__typename' => 'ProjectV2ItemFieldIterationValue',
+            'title'      => $iteration,
+            'field'      => ['id' => 'F_iter', 'name' => $iterationField],
+        ];
+
+        $this->fixture['project_items_nodes'][$index]['fieldValues']['nodes'] = $nodes;
+    }
+
+    /** @return array<string,mixed> */
+    private function fetchIssue(string $contentId): array
+    {
+        $stmt = self::$pdo->prepare('SELECT * FROM `issues` WHERE `github_issue_id` = ?');
+        $stmt->execute([$contentId]);
+        $row = $stmt->fetch();
+        $this->assertNotFalse($row, "Issue {$contentId} must exist");
+
+        return $row;
     }
 
     private function countIssueRows(): int

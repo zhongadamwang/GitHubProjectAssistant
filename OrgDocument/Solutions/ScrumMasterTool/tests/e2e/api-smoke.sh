@@ -15,7 +15,7 @@
 #   TEST_MEMBER_EMAIL    — email of a member-role user (default: uses admin)
 #   TEST_MEMBER_PASSWORD — password of member-role user
 #   TEST_PROJECT_ID      — project id to test data endpoints (default: 1)
-#   TEST_ISSUE_ID        — issue id for time update test (default: 1)
+#   TEST_ISSUE_ID        — an issue id (default: 1); used to check the retired time-update route
 # =============================================================================
 
 set -euo pipefail
@@ -161,6 +161,9 @@ assert_status "GET /api/projects/{id}" "200" "$STATUS"
 STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/issues")
 assert_status "GET /api/projects/{id}/issues" "200" "$STATUS"
 
+STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/iterations")
+assert_status "GET /api/projects/{id}/iterations" "200" "$STATUS"
+
 STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/burndown")
 assert_status "GET /api/projects/{id}/burndown" "200" "$STATUS"
 
@@ -168,22 +171,25 @@ STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/members")
 assert_status "GET /api/projects/{id}/members" "200" "$STATUS"
 
 # ---------------------------------------------------------------------------
-# Issues — time update
+# Issues — pagination (hours are read-only, synced from GitHub)
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- Issues ---"
 
-STATUS=$(put_json "$ADMIN_COOKIE" "/api/issues/${ISSUE_ID}/time" \
-    '{"estimated_time":8.0,"remaining_time":5.0,"actual_time":3.0}')
-assert_status "PUT /api/issues/{id}/time (valid payload)" "200" "$STATUS"
+STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/issues?page=1&page_size=10&sort=id&dir=asc")
+assert_status "GET /api/projects/{id}/issues (paged)" "200" "$STATUS"
 
-STATUS=$(put_json "$ADMIN_COOKIE" "/api/issues/${ISSUE_ID}/time" \
-    '{"estimated_time":-1.0}')
-assert_status "PUT /api/issues/{id}/time (negative value)" "400" "$STATUS"
+STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/issues?page_size=7")
+assert_status "GET /api/projects/{id}/issues (invalid page_size)" "400" "$STATUS"
 
-STATUS=$(put_json "$ADMIN_COOKIE" "/api/issues/999999/time" \
-    '{"estimated_time":5.0}')
-assert_status "PUT /api/issues/{id}/time (nonexistent issue)" "404" "$STATUS"
+STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/projects/${PROJECT_ID}/issues?sort=password_hash")
+assert_status "GET /api/projects/{id}/issues (invalid sort)" "400" "$STATUS"
+
+STATUS=$(put_json "$ADMIN_COOKIE" "/api/issues/${ISSUE_ID}/time" '{"estimated_time":8.0}')
+case "$STATUS" in
+    404|405) pass "PUT /api/issues/{id}/time retired → HTTP $STATUS" ;;
+    *)       fail "PUT /api/issues/{id}/time retired → expected 404/405, got HTTP $STATUS" ;;
+esac
 
 # ---------------------------------------------------------------------------
 # Sync

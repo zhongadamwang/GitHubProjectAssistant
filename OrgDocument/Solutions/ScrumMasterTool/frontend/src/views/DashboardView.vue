@@ -6,7 +6,7 @@
  * 30 seconds via dashboardStore. When the selected project or iteration changes,
  * the store is refreshed and polling restarted.
  */
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import { useDashboardStore } from '../stores/dashboardStore.js'
 import BurndownChart from '../components/BurndownChart.vue'
@@ -19,29 +19,32 @@ const dashStore = useDashboardStore()
 const selectedProjectId = ref(null)
 const selectedIteration = ref(null)
 
-// Unique iterations derived from burndown points already loaded
-const iterations = computed(() =>
-  [...new Set(dashStore.points.map((p) => p.iteration).filter(Boolean))]
-)
+// Sprint labels of the selected project (from GET /api/projects/{id}/iterations)
+const iterations = computed(() => projectStore.iterationNames)
 
-async function load() {
+/**
+ * Load a project: fetch its sprint list, preselect the current sprint (falling back
+ * to "Latest"), load that burndown, and (re)start polling for this project.
+ */
+async function loadProject(projectId) {
+  dashStore.stopPolling()
+  projectStore.activeProjectId = projectId
+  await projectStore.fetchIterations(projectId)
+  selectedIteration.value = projectStore.currentIteration
+  await dashStore.fetchBurndown(projectId, selectedIteration.value)
+  dashStore.startPolling(projectId, 30000)
+}
+
+async function onIterationChange(iteration) {
+  selectedIteration.value = iteration
+  await dashStore.fetchBurndown(selectedProjectId.value, iteration)
+}
+
+onMounted(async () => {
   await projectStore.fetchProjects()
   if (projectStore.projects.length) {
     selectedProjectId.value = projectStore.activeProjectId ?? projectStore.projects[0].id
-    await dashStore.fetchBurndown(selectedProjectId.value, selectedIteration.value)
-  }
-}
-
-watch(selectedIteration, async (iter) => {
-  if (selectedProjectId.value) {
-    await dashStore.fetchBurndown(selectedProjectId.value, iter)
-  }
-})
-
-onMounted(async () => {
-  await load()
-  if (selectedProjectId.value) {
-    dashStore.startPolling(selectedProjectId.value, 30000)
+    await loadProject(selectedProjectId.value)
   }
 })
 
@@ -58,13 +61,18 @@ onUnmounted(() => {
         <select
           v-if="projectStore.projects.length > 0"
           v-model="selectedProjectId"
-          @change="dashStore.fetchBurndown(selectedProjectId, selectedIteration)"
+          @change="loadProject(selectedProjectId)"
         >
           <option v-for="p in projectStore.projects" :key="p.id" :value="p.id">
             {{ p.title ?? p.name }}
           </option>
         </select>
-        <SprintSelector v-model="selectedIteration" :iterations="iterations" />
+        <SprintSelector
+          :model-value="selectedIteration"
+          :iterations="iterations"
+          :current="projectStore.currentIteration"
+          @update:model-value="onIterationChange"
+        />
         <HealthBadge :health="dashStore.health" />
       </div>
     </header>

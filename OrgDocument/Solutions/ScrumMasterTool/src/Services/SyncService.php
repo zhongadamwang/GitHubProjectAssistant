@@ -7,9 +7,11 @@ namespace App\Services;
 use App\Exceptions\GitHubApiException;
 use App\Exceptions\RateLimitException;
 use App\GraphQL\ResponseParser;
+use App\Models\Issue;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Repositories\TimeLogRepository;
 use App\Services\BurndownService;
 
 /**
@@ -20,15 +22,27 @@ use App\Services\BurndownService;
  *   2. Fetch all project items via fetchAllProjectItems() (auto-paginated)
  *   3. Parse project + items into domain models
  *   4. Upsert project row (sets sync_timestamp)
- *   5. For each issue: diff against stored `github_updated_at` → upsert if newer or new
+ *   5. For each issue: insert when new; update when GitHub's updatedAt is newer OR the
+ *      stored hours / iteration / status / assignee differ (editing a Projects field
+ *      does not bump the Issue's updatedAt)
  *   6. Write timestamped JSON snapshot to data/snapshots/
  *   7. Write sync_history record (always — success or failure)
  *
  * Concurrency: lock-file guard belongs in the cron entry point (T011), not here.
- * Local time fields (estimated/remaining/actual hours) are NEVER overwritten.
+ * Hours (estimated/remaining/actual) come from GitHub and overwrite local values;
+ * changes to existing issues are audited in time_logs with a NULL (system) actor.
  */
 final class SyncService
 {
+    private const HOUR_FIELDS = [
+        'estimated_time' => 'estimatedHours',
+        'remaining_time' => 'remainingHours',
+        'actual_time'    => 'actualHours',
+    ];
+
+    /**
+     * @param array<string,string> $fieldNames  Overrides for ResponseParser::DEFAULT_FIELD_NAMES
+     */
     public function __construct(
         private readonly GitHubClientInterface $gitHub,
         private readonly ProjectRepository     $projectRepo,
@@ -38,6 +52,8 @@ final class SyncService
         private readonly string                $owner,
         private readonly int                   $projectNumber,
         private readonly string                $snapshotDir,
+        private readonly ?TimeLogRepository    $timeLogRepo = null,
+        private readonly array                 $fieldNames  = [],
     ) {
     }
 
@@ -81,7 +97,7 @@ final class SyncService
         // ------------------------------------------------------------------
         $projectData = $projectRaw['data']['organization']['projectV2'] ?? [];
         $project     = ResponseParser::parseProject($projectData, $this->owner);
-        $issues      = ResponseParser::parseIssueNodes($rawNodes);
+        $issues      = ResponseParser::parseIssueNodes($rawNodes, $this->fieldNames);
 
         // ------------------------------------------------------------------
         // Step 4 — Upsert project row; resolve local project ID
@@ -96,23 +112,36 @@ final class SyncService
         }
 
         // ------------------------------------------------------------------
+        // Step 4b — Store the sprint (iteration) configuration; non-fatal
+        // ------------------------------------------------------------------
+        try {
+            $this->syncIterations($projectId, $project->fields);
+        } catch (\Throwable $e) {
+            trigger_error('SyncService: iteration sync failed: ' . $e->getMessage(), E_USER_WARNING);
+        }
+
+        // ------------------------------------------------------------------
         // Step 5 — Diff & upsert issues
         // ------------------------------------------------------------------
         foreach ($issues as $issue) {
             try {
-                $storedUpdatedAt = $this->issueRepo->getStoredUpdatedAt($issue->contentId, $projectId);
+                $stored = $this->issueRepo->findByGitHubId($issue->contentId, $projectId);
 
                 // Normalize GitHub ISO 8601 ('2026-04-01T10:00:00Z') to MySQL
                 // DATETIME format ('2026-04-01 10:00:00') for comparison.
                 $githubTs = $this->normalizeTimestamp($issue->updatedAt);
 
-                if ($storedUpdatedAt === null) {
+                if ($stored === null) {
                     // New issue — not yet in local DB
                     $this->issueRepo->upsertFromGitHub($issue, $projectId);
                     $added++;
-                } elseif ($githubTs !== null && $githubTs > $storedUpdatedAt) {
-                    // GitHub has a newer version
+                } elseif (
+                    ($githubTs !== null && $githubTs > ($stored['github_updated_at'] ?? ''))
+                    || $this->differsFromStored($issue, $stored)
+                ) {
+                    // GitHub has a newer version, or a Projects field changed
                     $this->issueRepo->upsertFromGitHub($issue, $projectId);
+                    $this->auditHourChanges($issue, $stored);
                     $updated++;
                 } else {
                     $unchanged++;
@@ -171,6 +200,93 @@ final class SyncService
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Persist the project's iteration field configuration and mark the sprint
+     * running today as projects.current_iteration.
+     *
+     * @param array<int,array<string,mixed>> $fields  Project::$fields definitions
+     */
+    private function syncIterations(int $projectId, array $fields): void
+    {
+        $wanted = strtolower($this->fieldNames['iteration'] ?? ResponseParser::DEFAULT_FIELD_NAMES['iteration']);
+
+        $iterations = [];
+        foreach ($fields as $field) {
+            if (strtolower((string) ($field['name'] ?? '')) === $wanted) {
+                $iterations = $field['iterations'] ?? [];
+                break;
+            }
+        }
+
+        if (empty($iterations)) {
+            return;
+        }
+
+        $this->projectRepo->syncIterations($projectId, $iterations);
+
+        $today   = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
+        $current = null;
+
+        foreach ($iterations as $it) {
+            if (empty($it['startDate']) || empty($it['title'])) {
+                continue;
+            }
+
+            $start = new \DateTimeImmutable((string) $it['startDate'], new \DateTimeZone('UTC'));
+            $end   = $start->modify('+' . (int) ($it['duration'] ?? 0) . ' days');
+
+            if ($start <= $today && $today < $end) {
+                $current = (string) $it['title'];
+                break;
+            }
+        }
+
+        $this->projectRepo->updateCurrentIteration($projectId, $current);
+    }
+
+    /**
+     * True when the GitHub values for hours, iteration, status or assignee differ
+     * from the stored row. Needed because editing a Projects field value does not
+     * change the underlying Issue's updatedAt.
+     *
+     * @param array<string,mixed> $stored  Row from `issues`
+     */
+    private function differsFromStored(Issue $issue, array $stored): bool
+    {
+        foreach (self::HOUR_FIELDS as $column => $property) {
+            if (abs((float) ($issue->$property ?? 0.0) - (float) ($stored[$column] ?? 0.0)) >= 0.005) {
+                return true;
+            }
+        }
+
+        $iteration = $issue->customFields['iteration'] ?? null;
+
+        return (is_string($iteration) ? $iteration : null) !== ($stored['iteration'] ?? null)
+            || strtolower($issue->state) !== ($stored['status'] ?? null)
+            || ($issue->assignees[0]['login'] ?? null) !== ($stored['assignee'] ?? null);
+    }
+
+    /**
+     * Record changed hour fields of an existing issue in time_logs (system actor).
+     *
+     * @param array<string,mixed> $stored  Row from `issues` before the upsert
+     */
+    private function auditHourChanges(Issue $issue, array $stored): void
+    {
+        if ($this->timeLogRepo === null) {
+            return;
+        }
+
+        foreach (self::HOUR_FIELDS as $column => $property) {
+            $old = (float) ($stored[$column] ?? 0.0);
+            $new = (float) ($issue->$property ?? 0.0);
+
+            if (abs($new - $old) >= 0.005) {
+                $this->timeLogRepo->insert((int) $stored['id'], null, $column, $old, $new);
+            }
+        }
+    }
 
     /**
      * Write a timestamped JSON snapshot file to the snapshot directory.

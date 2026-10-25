@@ -92,22 +92,26 @@ export const getProject = (id) =>
 
 // ── Issues ────────────────────────────────────────────────────────────────
 /**
- * GET /api/projects/:projectId/issues — list issues with optional filters.
+ * GET /api/projects/:projectId/issues — one page of issues (read-only; hours come from GitHub).
  * @param {number} projectId
- * @param {{assignee?: string, iteration?: string, status?: string}} [params]
- * @returns {Promise<{issues: Array<Object>, total: number}>}
+ * @param {{page?: number, page_size?: number, sort?: string, dir?: 'asc'|'desc',
+ *          assignee?: string, iteration?: string, status?: string}} [params]
+ * @returns {Promise<{issues: Array<Object>, total: number,
+ *   meta: {page: number, page_size: number, total: number, total_pages: number},
+ *   totals: {estimated: number, remaining: number, actual: number},
+ *   assignees: Array<string>}>}
  */
 export const getIssues = (projectId, params = {}) =>
   unwrap(instance.get(`/projects/${projectId}/issues`, { params }))
 
 /**
- * PUT /api/issues/:id/time — update time-tracking fields for an issue.
- * @param {number} issueId
- * @param {{estimated_time?: number, remaining_time?: number, actual_time?: number}} data
- * @returns {Promise<Object>}  Updated issue row.
+ * GET /api/projects/:projectId/iterations — sprint labels of a project, newest first.
+ * @param {number} projectId
+ * @returns {Promise<{iterations: Array<{name: string, start_date: string|null,
+ *   duration_days: number|null, is_current: boolean, is_completed: boolean, has_data: boolean}>}>}
  */
-export const updateIssueTime = (issueId, data) =>
-  unwrap(instance.put(`/issues/${issueId}/time`, data))
+export const getIterations = (projectId) =>
+  unwrap(instance.get(`/projects/${projectId}/iterations`))
 
 // ── Burndown ──────────────────────────────────────────────────────────────
 /**

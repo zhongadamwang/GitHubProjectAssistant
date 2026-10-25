@@ -91,6 +91,47 @@ final class ProjectController
         return $response->withStatus(200);
     }
 
+    /**
+     * GET /api/projects/{id}/iterations
+     *
+     * Response 200:
+     * { "iterations": [ { "name", "start_date", "duration_days", "is_current",
+     *                     "is_completed", "has_data" }, ... ] }   // newest first
+     * Response 404: { "error": "Project not found." }
+     */
+    public function getIterations(Request $request, Response $response, array $args): Response
+    {
+        $projectId = (int) ($args['id'] ?? 0);
+
+        try {
+            $project = $this->projectRepo->findById($projectId);
+
+            if ($project !== null) {
+                $current    = $project['current_iteration'] ?? null;
+                $iterations = array_map(
+                    static fn(array $it): array => ['is_current' => $it['name'] === $current] + $it,
+                    $this->projectRepo->findIterations($projectId),
+                );
+            }
+        } catch (\PDOException) {
+            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
+            return $response->withStatus(500);
+        }
+
+        if ($project === null) {
+            $response->getBody()->write(
+                json_encode(['error' => 'Project not found.'], JSON_THROW_ON_ERROR)
+            );
+            return $response->withStatus(404);
+        }
+
+        $response->getBody()->write(
+            json_encode(['iterations' => $iterations], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+        );
+
+        return $response->withStatus(200);
+    }
+
     // ------------------------------------------------------------------
     // Legacy route aliases kept for routes.php compatibility
     // ------------------------------------------------------------------

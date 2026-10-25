@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Phase6;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Integration\IntegrationTestCase;
 
 /**
@@ -297,7 +298,6 @@ final class EndToEndTest extends IntegrationTestCase
         $this->loginAsAdmin();
 
         $id  = $this->projectId;
-        $iid = $this->issueId;
 
         $specs = [
             ['GET',  '/api/auth/me',                                 200, null],
@@ -307,9 +307,9 @@ final class EndToEndTest extends IntegrationTestCase
             ['GET',  '/api/projects',                                200, null],
             ['GET',  "/api/projects/{$id}",                          200, null],
             ['GET',  "/api/projects/{$id}/issues",                   200, null],
+            ['GET',  "/api/projects/{$id}/iterations",               200, null],
             ['GET',  "/api/projects/{$id}/burndown",                 200, null],
             ['GET',  "/api/projects/{$id}/members",                  200, null],
-            ['PUT',  "/api/issues/{$iid}/time",                      200, ['estimated_time' => 5.0]],
             ['GET',  '/api/sync/history',                            200, null],
             ['GET',  '/api/admin/users',                             200, null],
             ['POST', '/api/admin/users',                             201,
@@ -331,75 +331,22 @@ final class EndToEndTest extends IntegrationTestCase
     }
 
     // =========================================================================
-    // 5. Time update flow
+    // 5. Hours are read-only (synced from GitHub)
     // =========================================================================
 
-    public function test_update_time_returns_200_with_updated_issue(): void
+    public function test_time_update_endpoint_is_retired(): void
     {
         $this->loginAsAdmin();
         $response = $this->request('PUT', "/api/issues/{$this->issueId}/time", [
             'estimated_time' => 10.0,
-            'remaining_time' => 7.0,
-            'actual_time'    => 3.0,
         ]);
 
-        $this->assertSame(200, $response->getStatusCode());
-        $body = $this->json($response);
-        $this->assertSame('10.00', (string) $body['estimated_time']);
-        $this->assertSame('7.00',  (string) $body['remaining_time']);
-        $this->assertSame('3.00',  (string) $body['actual_time']);
-    }
+        $this->assertContains($response->getStatusCode(), [404, 405]);
 
-    public function test_update_time_is_reflected_on_re_fetch(): void
-    {
-        $this->loginAsAdmin();
-        $this->request('PUT', "/api/issues/{$this->issueId}/time", [
-            'estimated_time' => 12.0,
-        ]);
-
-        // Re-fetch the issue list and find our issue
-        $response = $this->request('GET', "/api/projects/{$this->projectId}/issues");
-        $body     = $this->json($response);
-        $issue    = $this->findIssue($body['issues'], $this->issueId);
-
-        $this->assertNotNull($issue, 'Seeded issue not found in GET /issues response');
-        $this->assertSame('12.00', (string) $issue['estimated_time']);
-    }
-
-    public function test_update_time_with_negative_value_returns_400(): void
-    {
-        $this->loginAsAdmin();
-        $response = $this->request('PUT', "/api/issues/{$this->issueId}/time", [
-            'estimated_time' => -1.0,
-        ]);
-
-        $this->assertSame(400, $response->getStatusCode());
-    }
-
-    public function test_update_time_for_nonexistent_issue_returns_404(): void
-    {
-        $this->loginAsAdmin();
-        $response = $this->request('PUT', '/api/issues/999999/time', [
-            'estimated_time' => 5.0,
-        ]);
-
-        $this->assertSame(404, $response->getStatusCode());
-    }
-
-    public function test_partial_update_leaves_other_time_fields_unchanged(): void
-    {
-        $this->loginAsAdmin();
-        // Only update estimated_time; remaining_time and actual_time should stay
-        $this->request('PUT', "/api/issues/{$this->issueId}/time", [
-            'estimated_time' => 20.0,
-        ]);
-
-        $response = $this->request('GET', "/api/projects/{$this->projectId}/issues");
-        $issue    = $this->findIssue($this->json($response)['issues'], $this->issueId);
-
-        $this->assertSame('20.00', (string) $issue['estimated_time']);
-        $this->assertSame('5.00',  (string) $issue['remaining_time']); // unchanged from seed
-        $this->assertSame('3.00',  (string) $issue['actual_time']);    // unchanged from seed
+        // Values are untouched
+        $stmt = static::$pdo->prepare('SELECT `estimated_time` FROM `issues` WHERE `id` = ?');
+        $stmt->execute([$this->issueId]);
+        $this->assertEquals(8.0, (float) $stmt->fetchColumn());
     }
 
     // =========================================================================
@@ -631,21 +578,136 @@ final class EndToEndTest extends IntegrationTestCase
     }
 
     // =========================================================================
-    // Helpers
+    // 10b. Issues pagination (REQ-ADD-001)
     // =========================================================================
 
-    /**
-     * Find an issue array by its id within an issues array.
-     *
-     * @param array<int,array> $issues
-     */
-    private function findIssue(array $issues, int $id): ?array
+    /** Insert $count extra issues so the project has $count + 2 issues in total. */
+    private function seedExtraIssues(int $count): void
     {
-        foreach ($issues as $issue) {
-            if ((int) $issue['id'] === $id) {
-                return $issue;
-            }
+        $stmt = static::$pdo->prepare(
+            'INSERT INTO `issues` (project_id, github_issue_id, title, status, assignee, iteration,
+                                   estimated_time, remaining_time, actual_time)
+             VALUES (?, ?, ?, ?, ?, ?, 1, 1, 1)'
+        );
+        for ($i = 1; $i <= $count; $i++) {
+            $stmt->execute([$this->projectId, "I_EXTRA_{$i}", "Extra {$i}", 'open', 'bob', 'Sprint 2']);
         }
-        return null;
+    }
+
+    public function test_issues_are_paginated_with_meta_and_totals(): void
+    {
+        $this->seedExtraIssues(28); // 30 issues in total
+        $this->loginAsAdmin();
+
+        $body = $this->json($this->request('GET', "/api/projects/{$this->projectId}/issues?page_size=10&page=2&sort=id&dir=asc"));
+
+        $this->assertCount(10, $body['issues']);
+        $this->assertSame(['page' => 2, 'page_size' => 10, 'total' => 30, 'total_pages' => 3], $body['meta']);
+        $this->assertSame(30, $body['total']);
+        // Totals cover all 30 filtered issues, not just the page: 8+4 + 28*1
+        $this->assertEquals(40.0, $body['totals']['estimated']);
+        $this->assertContains('alice', $body['assignees']);
+        $this->assertContains('bob', $body['assignees']);
+    }
+
+    public function test_issues_default_page_size_is_25(): void
+    {
+        $this->seedExtraIssues(28);
+        $this->loginAsAdmin();
+
+        $body = $this->json($this->request('GET', "/api/projects/{$this->projectId}/issues"));
+
+        $this->assertCount(25, $body['issues']);
+        $this->assertSame(2, $body['meta']['total_pages']);
+    }
+
+    public function test_issues_page_beyond_last_is_clamped(): void
+    {
+        $this->seedExtraIssues(8); // 10 issues
+        $this->loginAsAdmin();
+
+        $body = $this->json($this->request('GET', "/api/projects/{$this->projectId}/issues?page_size=10&page=99"));
+
+        $this->assertSame(1, $body['meta']['page']);
+        $this->assertCount(10, $body['issues']);
+    }
+
+    public function test_issues_filters_apply_across_pages_and_sort_is_stable(): void
+    {
+        $this->seedExtraIssues(28);
+        $this->loginAsAdmin();
+
+        $first  = $this->json($this->request('GET', "/api/projects/{$this->projectId}/issues?assignee=bob&page_size=10&page=1&sort=title&dir=asc"));
+        $second = $this->json($this->request('GET', "/api/projects/{$this->projectId}/issues?assignee=bob&page_size=10&page=2&sort=title&dir=asc"));
+
+        $this->assertSame(28, $first['meta']['total']);
+        $ids = array_merge(array_column($first['issues'], 'id'), array_column($second['issues'], 'id'));
+        $this->assertCount(20, array_unique($ids), 'Pages must not overlap');
+    }
+
+    #[DataProvider('invalidPagingProvider')]
+    public function test_issues_invalid_paging_params_return_400(string $query): void
+    {
+        $this->loginAsAdmin();
+        $response = $this->request('GET', "/api/projects/{$this->projectId}/issues?{$query}");
+
+        $this->assertSame(400, $response->getStatusCode());
+    }
+
+    /** @return array<string,array{string}> */
+    public static function invalidPagingProvider(): array
+    {
+        return [
+            'page size not allowed' => ['page_size=7'],
+            'page size not numeric' => ['page_size=abc'],
+            'page zero'             => ['page=0'],
+            'unknown sort column'   => ['sort=password_hash'],
+            'bad direction'         => ['dir=sideways'],
+        ];
+    }
+
+    // =========================================================================
+    // 10c. Iterations (REQ-CHG-002)
+    // =========================================================================
+
+    public function test_iterations_lists_project_iterations_with_current_flag(): void
+    {
+        static::$pdo->prepare('UPDATE `projects` SET `current_iteration` = ? WHERE `id` = ?')
+            ->execute(['Sprint 2', $this->projectId]);
+        static::$pdo->prepare(
+            'INSERT INTO `project_iterations` (project_id, title, start_date, duration_days, is_completed)
+             VALUES (?, ?, ?, ?, ?), (?, ?, ?, ?, ?)'
+        )->execute([
+            $this->projectId, 'Sprint 1', '2026-10-01', 14, 1,
+            $this->projectId, 'Sprint 2', '2026-10-15', 14, 0,
+        ]);
+        $this->seedExtraIssues(1); // adds an issue in 'Sprint 2'
+
+        $this->loginAsAdmin();
+        $response = $this->request('GET', "/api/projects/{$this->projectId}/iterations");
+
+        $this->assertSame(200, $response->getStatusCode());
+        $names = array_column($this->json($response)['iterations'], 'name');
+        $this->assertSame(['Sprint 2', 'Sprint 1'], $names, 'Newest iteration first, no duplicates');
+
+        $byName = array_column($this->json($response)['iterations'], null, 'name');
+        $this->assertTrue($byName['Sprint 2']['is_current']);
+        $this->assertFalse($byName['Sprint 1']['is_current']);
+        $this->assertTrue($byName['Sprint 1']['is_completed']);
+    }
+
+    public function test_iterations_includes_names_found_only_on_issues(): void
+    {
+        $this->loginAsAdmin(); // seeded issues use iteration 'Sprint 1', no project_iterations rows
+        $body = $this->json($this->request('GET', "/api/projects/{$this->projectId}/iterations"));
+
+        $this->assertSame(['Sprint 1'], array_column($body['iterations'], 'name'));
+    }
+
+    public function test_iterations_for_unknown_project_returns_404(): void
+    {
+        $this->loginAsAdmin();
+
+        $this->assertSame(404, $this->request('GET', '/api/projects/999999/iterations')->getStatusCode());
     }
 }

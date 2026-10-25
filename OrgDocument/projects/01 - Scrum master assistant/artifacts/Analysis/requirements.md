@@ -10,9 +10,9 @@
 | ID | Section | Text | Tags | Confidence |
 |----|---------|------|---------|------------|
 | R-001 | Data Integration | System will periodically pull project and issue data from GitHub account through API | functional, integration | high |
-| R-002 | Data Sync | System will obtain GitHub data in read-only mode and periodically update local database | functional, data | high |
+| R-002 | Data Sync | System will obtain GitHub data in read-only mode and periodically update local database; GitHub is the source of truth, including the time-tracking hours (REQ-CHG-001) | functional, data | high |
 | R-003 | Historical Data | Each data snapshot from synchronization will be preserved as historical version for tracking and auditing | functional, audit | high |
-| R-004 | Custom Attributes | System will supplement each GitHub Issue with estimated time, remaining time, and actual time attributes | functional, extension | high |
+| R-004 | Custom Attributes | System will read estimated, remaining and actual hours from GitHub Project number fields ("Estimate Hours", "Remains Hours", "Actual Hours") for each Issue; the dashboard displays them read-only (REQ-CHG-001) | functional, extension | high |
 | R-005 | Burndown Visualization | System will render ideal burndown curve based on sum of estimated time for all tasks | functional, visualization | high |
 | R-006 | Real-time Progress | System will render actual burndown curve as team members update remaining time daily | functional, real-time | high |
 | R-007 | Sprint Health Dashboard | Burndown chart serves as core dashboard for iteration health to determine project status | functional, dashboard | high |

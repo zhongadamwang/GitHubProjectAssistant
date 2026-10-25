@@ -48,4 +48,16 @@
 - [x] Session expiry test: cleared session → API returns 401 → frontend redirects to /login
 - [x] Member role: `/admin` redirects to dashboard; Admin link hidden; Log out returns to /login
 - [x] Member → POST /api/sync/trigger → returns 403 (EndToEndTest)
-- [x] Time update survives sync (SyncIntegrationTest::testLocalTimeFieldsPreservedOnResync)
+- [x] ~~Time update survives sync~~ — superseded: hours now come from GitHub and are read-only (see Phase 7 below)
+
+## Phase 7 verification — live-site feedback (2026-10-24)
+
+Local run (PHP dev server + temp MySQL, 60 seeded issues, 4 sprints). Change records: REQ-CHG-001, REQ-CHG-002, REQ-ADD-001.
+
+- [x] `vendor/bin/phpunit` — 128 tests, 0 failures (new: hours mapping, GitHub-wins overwrite + audit, field-only change detection, custom field names, iteration config + current sprint, closed-issue aggregation, burndown baseline, issues pagination/validation, iterations endpoint)
+- [x] `tests/e2e/api-smoke.sh` — 22/22 (adds iterations, paged/invalid issues, retired `PUT /issues/{id}/time` → 404)
+- [x] Dashboard: sprint dropdown lists Sprint 4 / 3 (current) / 2 / 1, current preselected; switching loads that sprint; sprint without data shows the empty state
+- [x] Issues: 25 rows by default; page-size dropdown 10/25/50/100; navigation, "Showing x–y of N", ellipsis; filter and sort apply to the whole result and return to page 1; page size remembered after reload; hours are plain text (no inputs); totals cover all matching issues
+- [x] `cron/rebuild-burndown.php` removes zero-estimate snapshots and captures today's snapshot
+- [ ] **Production**: deploy, run a real "Sync Now" with the real GitHub project, run `php cron/rebuild-burndown.php`, confirm hours / sprints / burndown match GitHub (needs owner)
+- [ ] Verify on the real project that `Estimate Hours`, `Remains Hours`, `Actual Hours` are NUMBER fields and `Iteration` is an ITERATION field

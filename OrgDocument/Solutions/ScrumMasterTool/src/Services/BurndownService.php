@@ -59,8 +59,12 @@ final class BurndownService
             return ['iteration' => $iteration, 'points' => []];
         }
 
-        // Use the first row's total_estimated as the sprint's baseline
-        $totalEstimated = (float) $rows[0]['total_estimated'];
+        // Baseline = the sprint's largest total_estimated. Taking the first row would
+        // give a flat zero ideal line if early snapshots were captured before hours existed.
+        $totalEstimated = (float) max(array_map(
+            static fn(array $r): float => (float) $r['total_estimated'],
+            $rows,
+        ));
 
         // Build date→actual_remaining lookup from rows with real data
         $actualMap = [];

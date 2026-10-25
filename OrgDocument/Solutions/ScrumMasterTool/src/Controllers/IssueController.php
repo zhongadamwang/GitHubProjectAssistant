@@ -4,32 +4,48 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Repositories\IssueRepository;
-use App\Services\TimeTrackingService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
- * IssueController — HTTP handlers for issue listing and time-tracking updates.
+ * IssueController — HTTP handler for the paginated, read-only issue list.
+ * Hours are synced from GitHub; there is no endpoint to edit them.
  *
  * Routes (config/routes.php — auth group):
  *   GET /api/projects/{id}/issues   → getIssues()
- *   PUT /api/issues/{id}/time       → updateTime()
  */
 final class IssueController
 {
+    private const PAGE_SIZES = [10, 25, 50, 100];
+
+    private const DEFAULT_PAGE_SIZE = 25;
+
     public function __construct(
-        private readonly IssueRepository     $issueRepo,
-        private readonly TimeTrackingService $timeTrackingService,
+        private readonly IssueRepository $issueRepo,
     ) {
     }
 
     /**
-     * GET /api/projects/{id}/issues?assignee=X&iteration=X&status=open|closed
+     * GET /api/projects/{id}/issues
+     *
+     * Query params (all optional):
+     *   assignee, iteration, status=open|closed   — filters
+     *   sort  = id|title|assignee|status|iteration|estimated_time|remaining_time|
+     *           actual_time|github_updated_at      (default github_updated_at)
+     *   dir   = asc|desc                           (default desc)
+     *   page  = 1..N                               (default 1; beyond the last page → last page)
+     *   page_size = 10|25|50|100                   (default 25)
      *
      * Response 200:
-     * { "issues": [ {...}, ... ], "total": int }
+     * {
+     *   "issues": [ {...}, ... ],           // current page
+     *   "total": int,                       // issues matching the filters (all pages)
+     *   "meta": { "page", "page_size", "total", "total_pages" },
+     *   "totals": { "estimated", "remaining", "actual" },   // over all filtered issues
+     *   "assignees": [ "alice", ... ]       // distinct assignees of the project
+     * }
      *
-     * Each issue object includes all columns except github_issue_id internals.
+     * Response 400 on an invalid page / page_size / sort / dir.
      */
     public function getIssues(Request $request, Response $response, array $args): Response
     {
@@ -43,8 +59,39 @@ final class IssueController
             }
         }
 
+        $page     = $this->intParam($params, 'page', 1);
+        $pageSize = $this->intParam($params, 'page_size', self::DEFAULT_PAGE_SIZE);
+        $sort     = isset($params['sort']) ? (string) $params['sort'] : 'github_updated_at';
+        $dir      = strtolower(isset($params['dir']) ? (string) $params['dir'] : 'desc');
+
+        if (
+            $page === null || $page < 1
+            || $pageSize === null || !in_array($pageSize, self::PAGE_SIZES, true)
+            || !in_array($sort, IssueRepository::SORT_COLUMNS, true)
+            || !in_array($dir, ['asc', 'desc'], true)
+        ) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Invalid pagination parameters. page_size must be one of '
+                    . implode(', ', self::PAGE_SIZES) . '.',
+            ], JSON_THROW_ON_ERROR));
+            return $response->withStatus(400);
+        }
+
         try {
-            $issues = $this->issueRepo->findByProject($projectId, $filters);
+            $summary    = $this->issueRepo->summarizeByProject($projectId, $filters);
+            $total      = $summary['total'];
+            $totalPages = max(1, (int) ceil($total / $pageSize));
+            $page       = min($page, $totalPages);
+
+            $issues    = $this->issueRepo->findPageByProject(
+                $projectId,
+                $filters,
+                $sort,
+                $dir,
+                $pageSize,
+                ($page - 1) * $pageSize,
+            );
+            $assignees = $this->issueRepo->distinctAssignees($projectId);
         } catch (\PDOException) {
             $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
             return $response->withStatus(500);
@@ -61,7 +108,18 @@ final class IssueController
 
         $response->getBody()->write(
             json_encode(
-                ['issues' => $issues, 'total' => count($issues)],
+                [
+                    'issues'    => $issues,
+                    'total'     => $total,
+                    'meta'      => [
+                        'page'        => $page,
+                        'page_size'   => $pageSize,
+                        'total'       => $total,
+                        'total_pages' => $totalPages,
+                    ],
+                    'totals'    => $summary['totals'],
+                    'assignees' => $assignees,
+                ],
                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
             )
         );
@@ -70,59 +128,18 @@ final class IssueController
     }
 
     /**
-     * PUT /api/issues/{id}/time
+     * Read an optional integer query param; null when present but not an integer.
      *
-     * Body (JSON): { "estimated_time"?: float, "remaining_time"?: float, "actual_time"?: float }
-     *
-     * Success 200: updated issue row as JSON
-     * Failure 400: { "error": "message" }  — validation failure
-     * Failure 404: { "error": "Issue not found" }
+     * @param array<string,mixed> $params
      */
-    public function updateTime(Request $request, Response $response, array $args): Response
+    private function intParam(array $params, string $key, int $default): ?int
     {
-        $issueId   = (int) ($args['id'] ?? 0);
-        $authUser  = $request->getAttribute('auth_user');
-        $changedBy = $authUser?->id ?? 0;
-
-        $body   = (array) ($request->getParsedBody() ?? []);
-        $fields = array_intersect_key($body, array_flip(['estimated_time', 'remaining_time', 'actual_time']));
-
-        try {
-            $this->timeTrackingService->updateTime($issueId, $changedBy, $fields);
-        } catch (\InvalidArgumentException $e) {
-            $response->getBody()->write(
-                json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(400);
-        } catch (\RuntimeException $e) {
-            $response->getBody()->write(
-                json_encode(['error' => 'Issue not found.'], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(404);
-        } catch (\PDOException) {
-            $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
-            return $response->withStatus(500);
+        if (!isset($params[$key]) || $params[$key] === '') {
+            return $default;
         }
 
-        // Return the updated issue row
-        $updated = $this->issueRepo->findById($issueId);
-        if ($updated === null) {
-            // Should never happen, but guard defensively
-            $response->getBody()->write(
-                json_encode(['error' => 'Issue not found.'], JSON_THROW_ON_ERROR)
-            );
-            return $response->withStatus(404);
-        }
+        $value = filter_var($params[$key], FILTER_VALIDATE_INT);
 
-        if (isset($updated['labels']) && is_string($updated['labels'])) {
-            $decoded = json_decode($updated['labels'], true);
-            $updated['labels'] = is_array($decoded) ? $decoded : [];
-        }
-
-        $response->getBody()->write(
-            json_encode($updated, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-        );
-
-        return $response->withStatus(200);
+        return $value === false ? null : $value;
     }
 }
