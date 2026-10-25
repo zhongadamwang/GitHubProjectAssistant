@@ -2,13 +2,33 @@
 
 **Project**: PRJ-01 — Scrum Master Assistant  
 **Last Updated**: 2026-10-24  
-**Status**: All phases complete — Phase 7 (post-release feedback) deployed, verified and signed off by the owner 2026-10-24
+**Status**: Phases 1–7 complete — Phase 8 (admin configuration & multi-project) approved and in progress
 
-## Current Sprint: Phase 7 — Post-Release Feedback
+## Current Sprint: Phase 8 — Admin Configuration & Multi-Project
+
+Source: owner request 2026-10-24. Change records: [REQ-ADD-002](../artifacts/Changes/2026-10-24-REQ-ADD-002-admin-github-account-config.md) (GitHub accounts, secure token storage), [REQ-ADD-003](../artifacts/Changes/2026-10-24-REQ-ADD-003-multi-project-support.md) (multiple projects, project selection). Requirements R-013–R-017.
+
+### Active Tasks
+| Task ID | Title | Assignee | Status | Priority | Effort | Depends on | Task File |
+|---------|-------|----------|--------|----------|--------|------------|-----------|
+| T046 | Data Model: GitHub Accounts, Tracked Projects, Audit Log | TBD | Not Started | High | 1d | — | [task-dev-account-data-model.md](task-dev-account-data-model.md) |
+| T047 | Credential Vault (Token Encryption at Rest) | TBD | Not Started | High | 1d | — | [task-dev-credential-vault.md](task-dev-credential-vault.md) |
+| T048 | GitHub Account API, Client Factory, Owner-Generic Queries | TBD | Not Started | High | 2d | T046, T047 | [task-dev-github-account-api.md](task-dev-github-account-api.md) |
+| T049 | Admin UI: GitHub Accounts Settings | TBD | Not Started | High | 1.5d | T048 | [task-dev-github-account-admin-ui.md](task-dev-github-account-admin-ui.md) |
+| T050 | Project Tracking: Discover, Track/Untrack, Field Mapping | TBD | Not Started | High | 1.5d | T046, T048 | [task-dev-project-tracking.md](task-dev-project-tracking.md) |
+| T051 | Sync Orchestration: Per-Project, Cron Loop, Isolation, Rate Limits | TBD | Not Started | High | 2d | T046, T048, T050 | [task-dev-sync-orchestration.md](task-dev-sync-orchestration.md) |
+| T052 | Global Project Switcher | TBD | Not Started | High | 1.5d | T050, T051 | [task-dev-project-switcher.md](task-dev-project-switcher.md) |
+| T053 | Backward Compatibility: Import from `.env`, Deployment | TBD | Not Started | High | 1d | T048, T051 | [task-dev-env-import-compat.md](task-dev-env-import-compat.md) |
+| T054 | Credential Security Review and Hardening | TBD | Not Started | High | 1d | T048–T051 | [task-dev-credential-security-review.md](task-dev-credential-security-review.md) |
+| T055 | Phase 8 Verification and Release | TBD | Not Started | High | 1d | T046–T054 | [task-dev-phase8-verification.md](task-dev-phase8-verification.md) |
+
+> **Owner decisions (2026-10-25)**: several accounts; PAT now (App/OAuth later); `APP_KEY` as the one secret left in `.env`; untracking archives data; per-project field mapping; "Sync Now" = selected project; all users see all tracked projects (**future improvement**: per-project access control); sizing **≤ 10 projects × ≤ ~1,000 issues is a documented system limitation**. Both change records are Approved.
+
+## Previous Sprint: Phase 7 — Post-Release Feedback (complete, signed off 2026-10-24)
 
 Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md), [REQ-CHG-002](../artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md), [REQ-ADD-001](../artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md).
 
-### Active Tasks
+### Phase 7 Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Depends on | Task File |
 |---------|-------|----------|--------|----------|--------|------------|-----------|
 | T037 | Map GitHub Number Fields to Hours (Parser + Config) | Copilot | Completed | High | 0.5d | — | [task-dev-github-hours-field-mapping.md](task-dev-github-hours-field-mapping.md) |
@@ -23,7 +43,7 @@ Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../
 
 > **Owner decisions (2026-10-24)**: fields `Estimate Hours` / `Remains Hours` / `Actual Hours` / `Iteration`; GitHub wins and the dashboard is read-only for hours; closed issues = 0 remaining; server-side pagination (10/25/50/100, default 25). All change records are Approved.
 
-## Previous Sprint: Phase 6 — Polish & Validation (complete)
+## Earlier Sprint: Phase 6 — Polish & Validation (complete)
 
 ### Phase 6 Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Task File |
@@ -144,8 +164,9 @@ Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../
 - **Development Tasks Complete**: 36 / 36 (**100%**) plus 9 / 9 Phase 7 follow-up tasks (T037–T045)
 - **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅, Phase 6 ✅, Phase 7 ✅
 - **Phase 7 Progress**: T037–T045 ✅ — change records REQ-CHG-001, REQ-CHG-002, REQ-ADD-001 Verified
-- **Remaining**: none — owner signed off the production verification on 2026-10-24 (PHPUnit 128/128, smoke 22/22)
+- **Phase 8 (planned)**: T046–T055 (~13.5 days) — GitHub account configuration in the app and multi-project support; change records REQ-ADD-002 / REQ-ADD-003 are *Proposed*
 - **Live site**: https://scrum.softercolor.com/ — running Phase 7 (deploy run 40164736711)
 
 ## Next Actions
-No open project tasks. New feedback should be logged as a change record under `artifacts/Changes/` and planned as Phase 8.
+1. **T046 ∥ T047** (data model, credential vault) → T048 → T049 ∥ T050 → T051 → T052 → T053 → T054 → T055
+2. **Documentation tasks**: state the sizing limit (≤ 10 projects × ≤ ~1,000 issues) in `README.md`/`DEPLOYMENT.md` and add a soft warning when more than 10 projects are tracked (T055/T050); keep "per-project access control" as the first future-improvement candidate

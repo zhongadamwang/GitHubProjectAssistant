@@ -5,7 +5,7 @@
 **Start Date**: 2026-04-02  
 **Target Completion**: 2026-04-30 (~20 working days with parallelization)  
 **Last Updated**: 2026-10-24  
-**Status**: ✅ All phases complete — Phases 0–6 (36 / 36 tasks) and Phase 7 post-release feedback (T037–T045); production verified and signed off by the owner 2026-10-24  
+**Status**: ✅ Phases 0–7 complete (36 original tasks + T037–T045, signed off 2026-10-24) — 🔄 Phase 8 (admin configuration & multi-project, T046–T055) planned  
 
 ## Executive Summary
 
@@ -15,7 +15,7 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 **Calendar Time**: ~20 working days (with parallel execution of independent phases)  
 **Team Size**: Optimized for 1–2 developers  
 
-**Completion**: 36 / 36 original development tasks complete (**100%**); 9 follow-up tasks (T037–T045) planned from live-site feedback  
+**Completion**: 36 / 36 original development tasks and 9 / 9 Phase 7 follow-up tasks complete; 10 Phase 8 tasks (T046–T055) planned  
 
 ## Project Phases
 
@@ -135,6 +135,39 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 - [x] **T044** — Issues view pagination controls and page-size selector — *2026-10-24*
 - [x] **T045** — Phase 7 verification and release — *2026-10-24 (PHPUnit 128/128, smoke 22/22, production verified, owner sign-off)*
 
+### Phase 8: Admin Configuration & Multi-Project 🔄 In Progress (requirements approved 2026-10-25)
+**Source**: Owner request 2026-10-24 — configure the GitHub account in the app instead of `.env`, and support multiple GitHub projects with project selection  
+**Dependencies**: Phase 7  
+**Tasks**: T046–T055 (~13.5 days)  
+**Change records**: [REQ-ADD-002](artifacts/Changes/2026-10-24-REQ-ADD-002-admin-github-account-config.md) (accounts + secure token storage) · [REQ-ADD-003](artifacts/Changes/2026-10-24-REQ-ADD-003-multi-project-support.md) (multi-project + selection)  
+**Requirements**: R-013 – R-017 in [requirements.md](artifacts/Analysis/requirements.md)  
+
+| Workstream | Tasks | Effort |
+|---|---|---|
+| Foundation | T046 data model (accounts, tracked projects, audit) · T047 credential vault (encryption at rest) | 2d |
+| Admin accounts | T048 account API + client factory + owner-generic queries · T049 admin UI | 3.5d |
+| Multi-project | T050 project tracking + field mapping · T051 sync orchestration · T052 global project switcher | 5d |
+| Upgrade & hardening | T053 `.env` import/compat + deployment · T054 credential security review | 2d |
+| Release | T055 verification, rehearsal, sign-off | 1d |
+
+**Order**: T046 ∥ T047 → T048 → T049 ∥ T050 → T051 → T052 → T053 → T054 → T055.
+
+**Key design decisions (owner-approved 2026-10-25)**: tokens encrypted with libsodium using `APP_KEY` (the one secret left in `.env`); several accounts supported; PAT now, GitHub App/OAuth later; untracking archives (data kept); per-project field mapping with global defaults; one cron interval for all projects; "Sync Now" syncs the selected project only (shared-hosting time limit); all users see all tracked projects.
+
+**Known limitation**: designed and tested for **≤ 10 tracked projects with ≤ ~1,000 issues each**; beyond that cron runs may exceed host limits or GitHub's hourly quota (documented in T055).  
+**Future improvement**: per-project access control (user ↔ project membership).
+
+- [ ] **T046** — Data model: GitHub accounts, tracked projects, audit log
+- [ ] **T047** — Credential vault (token encryption at rest)
+- [ ] **T048** — GitHub account API, client factory, owner-generic queries
+- [ ] **T049** — Admin UI: GitHub accounts settings
+- [ ] **T050** — Project tracking: discover, track/untrack, field mapping
+- [ ] **T051** — Sync orchestration: per-project sync, cron loop, isolation, rate limits
+- [ ] **T052** — Global project switcher
+- [ ] **T053** — Backward compatibility: import from `.env`, deployment changes
+- [ ] **T054** — Credential security review and hardening
+- [ ] **T055** — Phase 8 verification and release
+
 ## Timeline (Gantt Overview)
 
 ```
@@ -187,4 +220,6 @@ Week 4 (Days 18-20):Phase 6 █████████████████�
 
 - [REQ-CHG-001](artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md) - Sync time-tracking hours from GitHub Project fields; GitHub wins, dashboard read-only (High, Approved)
 - [REQ-CHG-002](artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md) - Dashboard sprint selector lists project iterations (High, Approved)
-- [REQ-ADD-001](artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md) - Issues pagination with page-size selector (Medium, Approved)
+- [REQ-ADD-001](artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md) - Issues pagination with page-size selector (Medium, Verified)
+- [REQ-ADD-002](artifacts/Changes/2026-10-24-REQ-ADD-002-admin-github-account-config.md) - Admin-managed GitHub account configuration, secure token storage (High, Approved — Phase 8)
+- [REQ-ADD-003](artifacts/Changes/2026-10-24-REQ-ADD-003-multi-project-support.md) - Multiple GitHub projects with user project selection (High, Approved — Phase 8)

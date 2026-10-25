@@ -21,6 +21,11 @@
 | R-010 | CI/CD Integration | System must support automated releases through GitHub Actions | nonfunctional, automation | high |
 | R-011 | Lightweight Database | System should use text databases or embedded databases to avoid complex management | nonfunctional, architecture | medium |
 | R-012 | Code Quality | Final code must have high readability, maintainability, and comprehensive documentation | nonfunctional, quality | high |
+| R-013 | Admin-Managed GitHub Accounts | Admins add, edit, test and delete GitHub accounts and their access tokens in the application instead of `.env` (REQ-ADD-002, Phase 8) | functional, configuration | high |
+| R-014 | Credential Protection | Tokens are stored only as authenticated ciphertext (key from `.env`), never returned by the API or written to logs; all configuration changes are audited (REQ-ADD-002, Phase 8) | nonfunctional, security | high |
+| R-015 | Multiple Projects | Admins choose which GitHub Projects (organization or user) to track; per-project field mapping; untracking keeps data (REQ-ADD-003, Phase 8) | functional, scope | high |
+| R-016 | Per-Project Sync | Cron and manual sync handle every tracked project independently, with failure isolation, rate-limit awareness and per-project snapshots/history (REQ-ADD-003, Phase 8) | functional, integration | high |
+| R-017 | Project Selection | Users select the active project in one place; Dashboard, Issues, Members and Sync follow it and the choice is remembered (REQ-ADD-003, Phase 8) | functional, usability | high |
 
 ## Glossary Suspects
 - GitHub API
