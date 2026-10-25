@@ -3,7 +3,7 @@
 ## Change ID
 **Change ID**: REQ-ADD-001  
 **Date Created**: 2026-10-24  
-**Status**: Implemented — pending production verification (2026-10-24)  
+**Status**: Verified — owner sign-off 2026-10-24  
 **Priority**: Medium  
 **Requested By**: Project owner (live-site review, feedback #2)  
 **Change Type**: REQ-ADD (new requirement)

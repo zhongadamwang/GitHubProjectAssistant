@@ -59,5 +59,5 @@ Local run (PHP dev server + temp MySQL, 60 seeded issues, 4 sprints). Change rec
 - [x] Dashboard: sprint dropdown lists Sprint 4 / 3 (current) / 2 / 1, current preselected; switching loads that sprint; sprint without data shows the empty state
 - [x] Issues: 25 rows by default; page-size dropdown 10/25/50/100; navigation, "Showing x–y of N", ellipsis; filter and sort apply to the whole result and return to page 1; page size remembered after reload; hours are plain text (no inputs); totals cover all matching issues
 - [x] `cron/rebuild-burndown.php` removes zero-estimate snapshots and captures today's snapshot
-- [ ] **Production**: deploy, run a real "Sync Now" with the real GitHub project, run `php cron/rebuild-burndown.php`, confirm hours / sprints / burndown match GitHub (needs owner)
-- [ ] Verify on the real project that `Estimate Hours`, `Remains Hours`, `Actual Hours` are NUMBER fields and `Iteration` is an ITERATION field
+- [x] **Production** (owner sign-off 2026-10-24): deployed, real "Sync Now", burndown rebuilt; hours / sprints / burndown / paging verified on https://scrum.softercolor.com/
+- [x] Real project field names and types confirmed (`Estimate Hours`, `Remains Hours`, `Actual Hours`, `Iteration`)

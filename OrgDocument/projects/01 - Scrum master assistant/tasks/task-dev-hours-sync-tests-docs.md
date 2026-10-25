@@ -15,16 +15,16 @@ End-to-end verification of the hours sync, documentation updates and a safe roll
 - [x] Integration tests: stubbed GitHub response with number fields → stored hours, GitHub-wins overwrite, audit, iteration config (`SyncIntegrationTest`); issues/iterations endpoints (`EndToEndTest`)
 - [x] `DEPLOYMENT.md`, `README.md`, `.env.example` document the `REPO_FIELD_*` variables (defaults already match the owner's field names, so the server `.env` needs no change)
 - [x] `artifacts/Analysis/requirements.md` R-002/R-004 and both technical-architecture documents updated (hours sourced from GitHub, dashboard read-only, endpoint list)
-- [ ] Production runbook executed: deploy → migrations 009/010 → real "Sync Now" → `php cron/rebuild-burndown.php` → verify Dashboard, Issues, Members against GitHub
+- [x] Production runbook executed: deploy → migrations 009/010 → real "Sync Now" → `php cron/rebuild-burndown.php` → verify Dashboard, Issues, Members against GitHub
 - [x] `tests/e2e/FINDINGS.md` has the Phase 7 local verification (production entries open)
 
 ### Tasks/Subtasks
 - [x] Extend fixtures/tests (built in-memory in `SyncIntegrationTest`)
 - [x] Update docs and requirement text
-- [ ] Production verification (needs the real PAT on the server — owner)
+- [x] Production verification (owner, 2026-10-24)
 
 ### Definition of Done
-- [ ] Owner confirms hours and burndown on the live site match GitHub  
+- [x] Owner confirms hours and burndown on the live site match GitHub (sign-off 2026-10-24)  
 
 ### Dependencies
 - T038, T039  
@@ -39,5 +39,5 @@ High
 - Category: testing, documentation  
 
 ---
-**Status**: In Progress — code, tests and docs done; production backfill/verification pending  
+**Status**: Completed (owner sign-off 2026-10-24)  
 **Last Updated**: 2026-10-24

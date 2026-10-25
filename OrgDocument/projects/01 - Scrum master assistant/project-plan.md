@@ -5,7 +5,7 @@
 **Start Date**: 2026-04-02  
 **Target Completion**: 2026-04-30 (~20 working days with parallelization)  
 **Last Updated**: 2026-10-24  
-**Status**: ✅ Phases 0–6 complete (36 / 36 tasks) — 🔄 Phase 7 (post-release feedback, T037–T045) implemented locally; deploy and production verification pending  
+**Status**: ✅ All phases complete — Phases 0–6 (36 / 36 tasks) and Phase 7 post-release feedback (T037–T045); production verified and signed off by the owner 2026-10-24  
 
 ## Executive Summary
 
@@ -104,10 +104,10 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 
 > **T032 status (2026-10-24)**: complete — migrations, PHPUnit suite, smoke script and the manual browser checklist all pass.
 
-### Phase 7: Post-Release Feedback 🔄 In Progress (implemented; deploy + sign-off pending)
+### Phase 7: Post-Release Feedback ✅ Complete (owner sign-off 2026-10-24)
 **Source**: Owner's live-site review of https://scrum.softercolor.com/ on 2026-10-24  
 **Dependencies**: Phase 6  
-**Tasks**: T037–T045 (~7.5 days) — status: 7 of 9 completed 2026-10-24; T040/T045 pending production verification  
+**Tasks**: T037–T045 (~7.5 days) — all completed 2026-10-24; production verified by the owner  
 **Change records**: [REQ-CHG-001](artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md) · [REQ-CHG-002](artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md) · [REQ-ADD-001](artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md)  
 
 | # | Feedback | Change | Tasks | Priority |
@@ -128,12 +128,12 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 - [x] **T037** — Map GitHub number fields to hours (parser + config) — *2026-10-24*
 - [x] **T038** — Persist synced hours (GitHub wins), read-only dashboard, audit — *2026-10-24*
 - [x] **T039** — Burndown accuracy with synced hours (baseline, closed issues, rebuild script) — *2026-10-24*
-- [ ] **T040** — Hours sync tests, docs, production backfill *(code/tests/docs done; production sync + `rebuild-burndown` pending)*
+- [x] **T040** — Hours sync tests, docs, production backfill — *2026-10-24 (production verified)*
 - [x] **T041** — Iterations endpoint + current iteration in sync — *2026-10-24*
 - [x] **T042** — Sprint selector wiring (Dashboard, Issues, Members) — *2026-10-24*
 - [x] **T043** — Issues API server-side pagination, filters, sort, totals — *2026-10-24*
 - [x] **T044** — Issues view pagination controls and page-size selector — *2026-10-24*
-- [ ] **T045** — Phase 7 verification and release *(local verification done: PHPUnit 128/128, smoke 22/22; deploy + owner sign-off pending)*
+- [x] **T045** — Phase 7 verification and release — *2026-10-24 (PHPUnit 128/128, smoke 22/22, production verified, owner sign-off)*
 
 ## Timeline (Gantt Overview)
 

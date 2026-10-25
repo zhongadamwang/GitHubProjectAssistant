@@ -21,7 +21,7 @@ Read estimated / remaining / actual hours from GitHub Project number fields and 
 ### Tasks/Subtasks
 - [x] Field-name map with defaults (`ResponseParser::DEFAULT_FIELD_NAMES`) passed through `parseIssueNodes()` / `SyncService`
 - [x] Settings + container wiring; `.env.example` documents the variables
-- [ ] Verify on the real GitHub project that the three fields are NUMBER fields (first production sync — see T040/T045)
+- [x] Verified on the real GitHub project in production (hours synced; owner sign-off 2026-10-24)
 
 ### Definition of Done
 - [x] PHPUnit passes (128 tests)  
@@ -40,5 +40,5 @@ High
 - **2026-10-24**: Implemented in `src/GraphQL/ResponseParser.php`, `src/Models/Issue.php`, `config/settings.php`, `config/container.php`.
 
 ---
-**Status**: Completed (real-project field-type check pending in T040/T045)  
+**Status**: Completed (production verified, owner sign-off 2026-10-24)  
 **Last Updated**: 2026-10-24

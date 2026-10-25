@@ -26,7 +26,7 @@ Make the burndown robust once real hours flow in, and repair existing production
 
 ### Definition of Done
 - [x] PHPUnit passes  
-- [ ] Verified against the real production dataset after a real sync (T040/T045)  
+- [x] Verified against the real production dataset after a real sync (owner sign-off 2026-10-24)  
 
 ### Dependencies
 - T038  
@@ -41,5 +41,5 @@ High
 - **2026-10-24**: Implemented and verified on seeded data.
 
 ---
-**Status**: Completed (production verification pending in T040/T045)  
+**Status**: Completed (production verified, owner sign-off 2026-10-24)  
 **Last Updated**: 2026-10-24

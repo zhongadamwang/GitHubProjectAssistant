@@ -3,7 +3,7 @@
 ## Change ID
 **Change ID**: REQ-CHG-001  
 **Date Created**: 2026-10-24  
-**Status**: Implemented — pending production verification (2026-10-24)  
+**Status**: Verified — owner sign-off 2026-10-24  
 **Priority**: High  
 **Requested By**: Project owner (live-site review of https://scrum.softercolor.com/, feedback #3)  
 **Change Type**: REQ-CHG (modifies R-002, R-004, R-005, R-006)

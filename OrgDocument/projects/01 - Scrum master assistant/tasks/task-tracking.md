@@ -2,7 +2,7 @@
 
 **Project**: PRJ-01 — Scrum Master Assistant  
 **Last Updated**: 2026-10-24  
-**Status**: Phases 1–6 complete — Phase 7 (post-release feedback) implemented locally; deploy and production verification pending
+**Status**: All phases complete — Phase 7 (post-release feedback) deployed, verified and signed off by the owner 2026-10-24
 
 ## Current Sprint: Phase 7 — Post-Release Feedback
 
@@ -14,12 +14,12 @@ Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../
 | T037 | Map GitHub Number Fields to Hours (Parser + Config) | Copilot | Completed | High | 0.5d | — | [task-dev-github-hours-field-mapping.md](task-dev-github-hours-field-mapping.md) |
 | T038 | Persist Synced Hours (GitHub wins), Read-Only Dashboard, Audit | Copilot | Completed | High | 1.5d | T037 | [task-dev-sync-hours-persistence.md](task-dev-sync-hours-persistence.md) |
 | T039 | Burndown Accuracy with Synced Hours | Copilot | Completed | High | 1d | T038 | [task-dev-burndown-accuracy.md](task-dev-burndown-accuracy.md) |
-| T040 | Hours Sync Tests, Docs, Production Backfill | Copilot | In Progress (production steps pending) | High | 0.5d | T038, T039 | [task-dev-hours-sync-tests-docs.md](task-dev-hours-sync-tests-docs.md) |
+| T040 | Hours Sync Tests, Docs, Production Backfill | Copilot | Completed | High | 0.5d | T038, T039 | [task-dev-hours-sync-tests-docs.md](task-dev-hours-sync-tests-docs.md) |
 | T041 | Iterations Endpoint + Current Iteration in Sync | Copilot | Completed | High | 1d | T037 (field name) | [task-dev-iterations-endpoint.md](task-dev-iterations-endpoint.md) |
 | T042 | Sprint Selector Wiring (Dashboard, Issues, Members) | Copilot | Completed | High | 0.5d | T041 | [task-dev-sprint-selector-frontend.md](task-dev-sprint-selector-frontend.md) |
 | T043 | Issues API Pagination, Filters, Sort, Totals | Copilot | Completed | Medium | 1d | — | [task-dev-issues-pagination-api.md](task-dev-issues-pagination-api.md) |
 | T044 | Issues View Pagination Controls + Page-Size Selector | Copilot | Completed | Medium | 1d | T043 | [task-dev-issues-pagination-ui.md](task-dev-issues-pagination-ui.md) |
-| T045 | Phase 7 Verification and Release | Copilot | In Progress (deploy + owner sign-off pending) | High | 0.5d | T040, T042, T044 | [task-dev-phase7-verification.md](task-dev-phase7-verification.md) |
+| T045 | Phase 7 Verification and Release | Copilot | Completed | High | 0.5d | T040, T042, T044 | [task-dev-phase7-verification.md](task-dev-phase7-verification.md) |
 
 > **Owner decisions (2026-10-24)**: fields `Estimate Hours` / `Remains Hours` / `Actual Hours` / `Iteration`; GitHub wins and the dashboard is read-only for hours; closed issues = 0 remaining; server-side pagination (10/25/50/100, default 25). All change records are Approved.
 
@@ -141,14 +141,11 @@ Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../
 
 ## Progress Summary
 - **Total Tasks**: 36 development tasks + 9 planning tasks completed
-- **Development Tasks Complete**: 36 / 36 (**100%**)
-- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅, Phase 6 ✅
-- **Phase 6 Progress**: T032 ✅, T033 ✅, T034 ✅, T035 ✅, T036 ✅
-- **Remaining**: Phase 7 — T037–T039 and T041–T044 completed 2026-10-24 (PHPUnit 128/128, smoke 22/22, local browser check); T040/T045 await deploy, a real sync and owner sign-off
-- **Live site**: https://scrum.softercolor.com/ — runs the T032 fixes; Phase 7 is not deployed yet
+- **Development Tasks Complete**: 36 / 36 (**100%**) plus 9 / 9 Phase 7 follow-up tasks (T037–T045)
+- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅, Phase 6 ✅, Phase 7 ✅
+- **Phase 7 Progress**: T037–T045 ✅ — change records REQ-CHG-001, REQ-CHG-002, REQ-ADD-001 Verified
+- **Remaining**: none — owner signed off the production verification on 2026-10-24 (PHPUnit 128/128, smoke 22/22)
+- **Live site**: https://scrum.softercolor.com/ — running Phase 7 (deploy run 40164736711)
 
 ## Next Actions
-1. **Deploy** — push to `main`; the pipeline runs migrations 009 and 010 and rebuilds the frontend
-2. **Real sync** — log in as admin, press **Sync Now**; confirm the three hour fields are NUMBER fields and `Iteration` is an ITERATION field (the sync imports hours, sprints and the current sprint)
-3. **Repair burndown** — on the server run `php cron/rebuild-burndown.php`; then check Dashboard (sprint selector + chart), Issues (paging, hours) and Members
-4. **Sign-off** — owner confirms the three feedback items on the live site; close T040/T045 and mark the change records Verified
+No open project tasks. New feedback should be logged as a change record under `artifacts/Changes/` and planned as Phase 8.
