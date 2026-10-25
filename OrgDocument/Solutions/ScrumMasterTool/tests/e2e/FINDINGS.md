@@ -61,3 +61,30 @@ Local run (PHP dev server + temp MySQL, 60 seeded issues, 4 sprints). Change rec
 - [x] `cron/rebuild-burndown.php` removes zero-estimate snapshots and captures today's snapshot
 - [x] **Production** (owner sign-off 2026-10-24): deployed, real "Sync Now", burndown rebuilt; hours / sprints / burndown / paging verified on https://scrum.softercolor.com/
 - [x] Real project field names and types confirmed (`Estimate Hours`, `Remains Hours`, `Actual Hours`, `Iteration`)
+
+## Phase 8 verification — admin GitHub accounts and multi-project (2026-10-25)
+
+Local run (PHP dev server + temp MySQL, 2 seeded projects for the UI checks, 10 × 1,000 issues for the sizing check). Change records: REQ-ADD-002, REQ-ADD-003. GitHub itself was not reachable with a valid token, so live GitHub paths are verified with a fake client in PHPUnit and with GitHub rejecting a dummy token in the browser.
+
+- [x] `vendor/bin/phpunit` — 319 tests, 0 failures (Phase 8 suite: account repository and vault, account API, project tracking API, sync orchestration, `.env` import, security)
+- [x] `tests/e2e/api-smoke.sh` — 42/42 (adds account/project endpoints, SSRF guard, form content type → 415, no token material in responses, per-project sync, member 403 matrix)
+- [x] Project switcher in the NavBar: Dashboard, Issues, Members and Sync follow it; choice remembered across reloads; filters, page, sprint list reset on switch; with no project a call-to-action (admins → "Set up GitHub", members → "ask an administrator")
+- [x] Admin → GitHub accounts: add account (token write-only; only `••••1234` shown), status badge from the connection test, edit/replace token, delete, audit log; GitHub rejecting the dummy token shows "invalid" and flags the account; token never present in the DOM, responses, database or audit log
+- [x] Admin → Projects: discover, track, untrack (archived, data kept) and re-track, delete data (type-the-name confirmation), per-project field mapping with validation against GitHub; the switcher updates after untracking
+- [x] Sync view: per-project "Sync Now"; GitHub errors shown inline (no extra generic "Server error" banner for 502/503 with an API message)
+- [x] **Upgrade rehearsal** on a Phase 7-shaped database (migrations 001–010, 1 project, 40 issues, 2 burndown snapshots, 1 iteration, 2 sync runs): `migrate.php` applied 011/012 only; project id, issues, burndown, iterations and history unchanged; the project became tracked; `cron/sync.php` before the import used the legacy `.env` values (deprecation notice logged); `cron/import-env-account.php` created the encrypted account and linked the existing project; a second run changed nothing; sync after the import (with `REPO_*` unset) used the stored account
+- [x] **Sizing check (system limitation: 10 projects × ~1,000 issues)** with 10 tracked projects / 10,000 issues: `GET /api/projects` 1.8 ms, issues page 3.7–3.8 ms, members 6.4 ms, burndown 1.7 ms, iterations 2.4 ms, sync history 1.6 ms (local PHP + MySQL). Sync duration depends on GitHub (about 10 GraphQL pages per 1,000-issue project) and was not measured live
+- [x] **Live GitHub query validation** (read-only, via `gh`): `repositoryOwner{__typename}` returns `User` / `Organization`; `LIST_OWNER_PROJECTS`, `FETCH_PROJECT_FIELDS` and `FETCH_PROJECT_ITEMS` pass GitHub's schema validation with both the `user(login:)` and `organization(login:)` roots. The `gh` token has no `read:project` scope, so project data was not fetched (GitHub answers `INSUFFICIENT_SCOPES`, which the app maps to the *insufficient scope* account status)
+- [ ] **Production** (owner): set `APP_KEY`, deploy, import/add the account, test the connection, track the project(s), run "Sync Now" per project, then remove `REPO_PAT` from the server `.env` — see `DEPLOYMENT.md`
+
+### Phase 8 findings
+
+| # | Severity | Area | Description | Status |
+|---|----------|------|-------------|--------|
+| 16 | Major | `RequireJsonMiddleware` | Body detection relied on the stream size, which is 0 for `php://input` on a real server, so form-encoded requests bypassed the JSON-only CSRF check (unit tests passed because they use in-memory streams). Found by the smoke run; now also uses `Content-Length` / `Transfer-Encoding` (regression test added) | Fixed |
+| 17 | Minor | `SyncController` | Sync responses and `/api/sync/history` exposed the absolute snapshot path to every signed-in user | Fixed (file name only) |
+| 18 | Minor | `api.js` | A 502/503 that carries an API message (GitHub rejected the token, `APP_KEY` missing) also raised a generic "Server error" banner | Fixed |
+| 19 | Minor | Admin projects view | The project switcher kept listing a project after it was untracked | Fixed |
+| 20 | Medium | `slim/slim` 4.15.1 | `composer audit`: CVE-2026-48157 (reflected XSS in the HTML error renderer) | Fixed (4.15.3) |
+| 21 | High | `.env.production` | Tracked in git and contains a real-looking `REPO_PAT` | **Open — owner action:** rotate the token, stop tracking secrets (see `security-checklist.md` P8-10) |
+| 22 | Minor | `tests/perf/benchmark.sh` | Failed on macOS (BSD `mktemp` template, empty array under `set -u`) | Fixed; its results table is still malformed (per-run lines leak into the table) — Phase 8 numbers are recorded by hand in `results.md` |

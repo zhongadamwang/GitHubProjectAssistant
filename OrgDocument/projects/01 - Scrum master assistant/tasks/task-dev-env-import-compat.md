@@ -12,19 +12,19 @@
 Upgrade existing deployments without data loss or downtime: move the `.env` GitHub settings into an account + tracked project, then stop depending on them.
 
 ### Acceptance Criteria
-- [ ] `POST /api/admin/github-accounts/import-env` (and `php cron/import-env-account.php`) creates an account from `REPO_ORG` + `REPO_PAT` (token encrypted), detects owner type, and links the existing `projects` row(s) for `REPO_ORG` / `REPO_PROJECT_NUMBER` as tracked; idempotent
-- [ ] Runtime fallback: if no account exists, `cron/sync.php` and Sync Now keep using the legacy `.env` values (with a logged deprecation notice) so an upgrade before importing does not break sync
-- [ ] After import the legacy values are ignored; documentation says they can be removed from the server `.env`
-- [ ] `APP_KEY` added to `.env.example`/`.env.production`; `DEPLOYMENT.md` gets the upgrade runbook (generate key → deploy → migrations → import → test connection → verify sync → remove `REPO_PAT`); the GitHub Actions workflow no longer needs a GitHub token secret and the deploy pipeline also fixes the `key_passphrase` → `passphrase` input warning
-- [ ] Existing issues, burndown, history and iterations remain attached to the same project id (verified on a copy of production data)
-- [ ] PHPUnit for import (idempotent, missing values, existing account) and fallback
+- [x] `POST /api/admin/github-accounts/import-env` (and `php cron/import-env-account.php`) creates an account from `REPO_ORG` + `REPO_PAT` (token encrypted), detects owner type, and links the existing `projects` row(s) for `REPO_ORG` / `REPO_PROJECT_NUMBER` as tracked; idempotent
+- [x] Runtime fallback: if no account exists, `cron/sync.php` and Sync Now keep using the legacy `.env` values (with a logged deprecation notice) so an upgrade before importing does not break sync
+- [x] After import the legacy values are ignored; documentation says they can be removed from the server `.env`
+- [x] `APP_KEY` added to `.env.example`/`.env.production`; `DEPLOYMENT.md` gets the upgrade runbook (generate key → deploy → migrations → import → test connection → verify sync → remove `REPO_PAT`); the GitHub Actions workflow no longer needs a GitHub token secret and the deploy pipeline also fixes the `key_passphrase` → `passphrase` input warning
+- [x] Existing issues, burndown, history and iterations remain attached to the same project id (verified on a copy of production data)
+- [x] PHPUnit for import (idempotent, missing values, existing account) and fallback
 
 ### Tasks/Subtasks
-- [ ] Import endpoint + CLI; fallback path; docs; workflow tweak
-- [ ] Upgrade rehearsal on a copy of the production database
+- [x] Import endpoint + CLI; fallback path; docs; workflow tweak
+- [x] Upgrade rehearsal on a copy of the production database
 
 ### Definition of Done
-- [ ] All acceptance criteria met; rehearsal documented  
+- [x] All acceptance criteria met; rehearsal documented  
 
 ### Dependencies
 - T048, T051  
@@ -35,6 +35,9 @@ Upgrade existing deployments without data loss or downtime: move the `.env` GitH
 ### Priority
 High  
 
+### Progress Updates
+- **2026-10-25**: Import endpoint + CLI, legacy fallback with deprecation notice, DEPLOYMENT runbook, workflow `passphrase` fix and upgrade rehearsal done. Note: `APP_KEY` was added to `.env.example` only — it was deliberately NOT added to the tracked `.env.production` (a real key must never be committed; set it on the server).
+
 ---
-**Status**: Not Started  
-**Last Updated**: 2026-10-24
+**Status**: Completed  
+**Last Updated**: 2026-10-25

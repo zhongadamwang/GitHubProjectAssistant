@@ -5,9 +5,10 @@
  * hour comparisons for the active project, optionally scoped to a sprint.
  * Includes trend charts (EfficiencyChart) and an iteration selector.
  */
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import EfficiencyChart from '../components/EfficiencyChart.vue'
+import NoProjectNotice from '../components/NoProjectNotice.vue'
 
 const store = useProjectStore()
 const selectedIteration = ref(null)
@@ -15,13 +16,20 @@ const selectedIteration = ref(null)
 const projectId = computed(() => store.activeProjectId)
 
 async function load(iteration = null) {
-  if (!store.projects.length) await store.fetchProjects()
-  if (projectId.value) {
+  if (!store.projectsLoaded) await store.fetchProjects()
+  const id = projectId.value
+  if (id) {
     // The sprint dropdown comes from the project's iteration list
-    if (!store.iterations.length) await store.fetchIterations(projectId.value)
-    await store.fetchMembers(projectId.value, iteration)
+    if (!store.iterations.length) await store.fetchIterations(id)
+    if (id === projectId.value) await store.fetchMembers(id, iteration)
   }
 }
+
+// Switching project resets the sprint choice (sprints differ per project)
+watch(projectId, () => {
+  selectedIteration.value = null
+  load()
+})
 
 onMounted(() => load())
 
@@ -49,7 +57,7 @@ function ratioLabel(m) {
 <template>
   <div class="page">
     <header class="page-header">
-      <h1>Member Efficiency</h1>
+      <h1>Member Efficiency<span v-if="store.activeProject" class="project-name"> — {{ store.activeProject.name }}</span></h1>
       <div class="controls">
         <label>
           Sprint
@@ -64,6 +72,9 @@ function ratioLabel(m) {
       </div>
     </header>
 
+    <NoProjectNotice v-if="store.projectsLoaded && !projectId" />
+
+    <template v-else>
     <div v-if="store.membersLoading" class="loading-bar" />
     <div v-if="store.membersError" class="error-banner">{{ store.membersError }}</div>
 
@@ -98,6 +109,7 @@ function ratioLabel(m) {
       </table>
       <p v-else-if="!store.membersLoading" class="empty">No efficiency data available.</p>
     </section>
+    </template>
   </div>
 </template>
 
@@ -120,4 +132,5 @@ td { padding: 0.55rem 0.75rem; font-size: 0.88rem; border-top: 1px solid #f1f1f1
 .ratio-badge.under    { background: #f8d7da; color: #721c24; }
 .ratio-badge.na       { background: #e9ecef; color: #6c757d; }
 .empty { text-align: center; color: #888; padding: 2rem; }
+.project-name { font-weight: 400; color: #555; }
 </style>

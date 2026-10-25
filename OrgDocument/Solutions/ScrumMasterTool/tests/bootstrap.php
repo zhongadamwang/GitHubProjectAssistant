@@ -39,6 +39,11 @@ if (file_exists($testEnvFile)) {
     echo "[WARN] No .env.test or .env found. Tests will use environment variables as-is.\n";
 }
 
+// Tests need a vault key; a fixed, non-secret one keeps encryption tests deterministic.
+if (empty($_ENV['APP_KEY'])) {
+    $_ENV['APP_KEY'] = base64_encode(str_repeat('k', 32));
+}
+
 // ---------------------------------------------------------------------------
 // 2. Configure PHP sessions for CLI
 //    session.use_cookies=0 allows PHP sessions to work without HTTP cookies.

@@ -4,9 +4,23 @@
  * @description Top navigation shown to authenticated users: links to every view
  * (Admin only for admins), the signed-in user's name and a logout button.
  */
+import { watch } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
+import { useProjectStore } from '../stores/projectStore.js'
 
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
+
+// Load the tracked projects once the user is signed in (also after a page reload)
+watch(
+  () => authStore.isAuthenticated,
+  (signedIn) => {
+    if (signedIn) projectStore.fetchProjects()
+  },
+  { immediate: true },
+)
+
+const onSelect = (event) => projectStore.selectProject(Number(event.target.value))
 </script>
 
 <template>
@@ -16,9 +30,15 @@ const authStore = useAuthStore()
       <router-link to="/issues">Issues</router-link>
       <router-link to="/members">Members</router-link>
       <router-link to="/sync">Sync</router-link>
-      <router-link v-if="authStore.isAdmin" to="/admin">Admin</router-link>
+      <router-link v-if="authStore.isAdmin" to="/admin" :class="{ 'router-link-exact-active': $route.path.startsWith('/admin') }">Admin</router-link>
     </div>
     <div class="user">
+      <label v-if="projectStore.projects.length" class="project-switcher">
+        <span class="sr-only">Project</span>
+        <select aria-label="Project" :value="projectStore.activeProjectId" @change="onSelect">
+          <option v-for="p in projectStore.projects" :key="p.id" :value="p.id">{{ p.name }}</option>
+        </select>
+      </label>
       <span>{{ authStore.user?.display_name ?? authStore.user?.email }}</span>
       <button type="button" @click="authStore.logout()">Log out</button>
     </div>
@@ -52,6 +72,22 @@ const authStore = useAuthStore()
   align-items: center;
   gap: 0.75rem;
   font-size: 0.9rem;
+}
+.project-switcher select {
+  max-width: 260px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #4361ee;
+  background: #24244a;
+  color: #fff;
+  font-size: 0.9rem;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 .user button {
   background: transparent;

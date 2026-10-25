@@ -24,7 +24,7 @@ use App\GraphQL\Queries;
  * cURL is used directly to avoid Guzzle/HTTPlug dependencies on cPanel
  * shared hosting (ADR-4).
  */
-final class GitHubGraphQLService implements GitHubClientInterface
+final class GitHubGraphQLService implements GitHubAccountClientInterface
 {
     /** GitHub GraphQL v4 endpoint. */
     private const DEFAULT_ENDPOINT = 'https://api.github.com/graphql';
@@ -44,9 +44,17 @@ final class GitHubGraphQLService implements GitHubClientInterface
     /** HTTP status codes considered transient (worth retrying). */
     private const RETRYABLE_STATUSES = [500, 502, 503, 504];
 
+    /** @var array{rate_remaining: ?int, token_expires_at: ?string, scopes: ?array<int,string>} */
+    private array $lastMeta = ['rate_remaining' => null, 'token_expires_at' => null, 'scopes' => null];
+
+    /**
+     * @param string $ownerType 'organization' (default) or 'user' — selects the GraphQL root field
+     *                          of owner-scoped queries.
+     */
     public function __construct(
         private readonly string $pat,
         private readonly string $endpoint = self::DEFAULT_ENDPOINT,
+        private readonly string $ownerType = 'organization',
     ) {
     }
 
@@ -66,7 +74,7 @@ final class GitHubGraphQLService implements GitHubClientInterface
      */
     public function query(string $queryName, array $variables = []): array
     {
-        $queryString = Queries::get($queryName);
+        $queryString = Queries::get($queryName, $this->ownerType);
         return $this->executeWithRetry($queryString, $variables);
     }
 
@@ -94,7 +102,7 @@ final class GitHubGraphQLService implements GitHubClientInterface
 
             $response = $this->query('FETCH_PROJECT_ITEMS', $variables);
 
-            $items       = $response['data']['organization']['projectV2']['items'] ?? [];
+            $items       = $response['data'][$this->ownerType]['projectV2']['items'] ?? [];
             $nodes       = $items['nodes']                                 ?? [];
             $pageInfo    = $items['pageInfo']                              ?? [];
             $hasNextPage = (bool) ($pageInfo['hasNextPage']                ?? false);
@@ -121,6 +129,61 @@ final class GitHubGraphQLService implements GitHubClientInterface
         } catch (GitHubApiException | RateLimitException) {
             return false;
         }
+    }
+
+    /** {@inheritdoc} */
+    public function detectOwnerType(string $owner): ?string
+    {
+        $response = $this->query('FETCH_OWNER_TYPE', ['owner' => $owner]);
+        $type     = $response['data']['repositoryOwner']['__typename'] ?? null;
+
+        return in_array($type, ['Organization', 'User'], true) ? $type : null;
+    }
+
+    /** {@inheritdoc} */
+    public function listOwnerProjects(string $owner): array
+    {
+        $projects = [];
+        $cursor   = null;
+
+        do {
+            $response = $this->query('LIST_OWNER_PROJECTS', ['owner' => $owner, 'after' => $cursor]);
+            $block    = $response['data'][$this->ownerType]['projectsV2'] ?? [];
+
+            foreach ($block['nodes'] ?? [] as $node) {
+                if (empty($node['id']) || !isset($node['number'])) {
+                    continue;
+                }
+                $projects[] = [
+                    'id'               => (string) $node['id'],
+                    'number'           => (int) $node['number'],
+                    'title'            => (string) ($node['title'] ?? ''),
+                    'closed'           => (bool) ($node['closed'] ?? false),
+                    'url'              => $node['url'] ?? null,
+                    'shortDescription' => $node['shortDescription'] ?? null,
+                ];
+            }
+
+            $hasNext = (bool) ($block['pageInfo']['hasNextPage'] ?? false);
+            $cursor  = $block['pageInfo']['endCursor'] ?? null;
+        } while ($hasNext && $cursor !== null);
+
+        return $projects;
+    }
+
+    /** {@inheritdoc} */
+    public function viewerLogin(): ?string
+    {
+        $response = $this->query('FETCH_VIEWER');
+        $login    = $response['data']['viewer']['login'] ?? null;
+
+        return is_string($login) && $login !== '' ? $login : null;
+    }
+
+    /** {@inheritdoc} */
+    public function lastMeta(): array
+    {
+        return $this->lastMeta;
     }
 
     // -------------------------------------------------------------------------
@@ -197,6 +260,9 @@ final class GitHubGraphQLService implements GitHubClientInterface
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
+            // Never follow redirects (a redirect could carry the bearer token elsewhere) and never log the request
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_VERBOSE        => false,
             CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
                 'Authorization: Bearer ' . $this->pat,
@@ -231,6 +297,12 @@ final class GitHubGraphQLService implements GitHubClientInterface
         // Check rate-limit header before looking at the body
         $remaining = $this->parseRateLimitRemaining($rawHeaders);
         $resetAt   = $this->parseRateLimitReset($rawHeaders);
+
+        $this->lastMeta = [
+            'rate_remaining'   => $remaining,
+            'token_expires_at' => $this->parseTokenExpiration($rawHeaders),
+            'scopes'           => $this->parseScopes($rawHeaders),
+        ];
 
         if ($remaining !== null && $remaining <= self::RATE_LIMIT_THRESHOLD) {
             throw new RateLimitException($remaining, $resetAt ?? (time() + 3600));
@@ -268,6 +340,35 @@ final class GitHubGraphQLService implements GitHubClientInterface
     // -------------------------------------------------------------------------
     // Internal — header parsing helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * 'github-authentication-token-expiration: 2026-11-30 12:00:00 UTC' → '2026-11-30 12:00:00'.
+     */
+    private function parseTokenExpiration(string $rawHeaders): ?string
+    {
+        if (!preg_match('/^github-authentication-token-expiration:\s*(.+?)\s*$/im', $rawHeaders, $m)) {
+            return null;
+        }
+
+        $ts = strtotime($m[1]);
+
+        return $ts === false ? null : gmdate('Y-m-d H:i:s', $ts);
+    }
+
+    /**
+     * 'x-oauth-scopes: read:project, repo' → ['read:project', 'repo'] (null when the header is absent,
+     * e.g. for fine-grained tokens).
+     *
+     * @return array<int,string>|null
+     */
+    private function parseScopes(string $rawHeaders): ?array
+    {
+        if (!preg_match('/^x-oauth-scopes:\s*(.*?)\s*$/im', $rawHeaders, $m)) {
+            return null;
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $m[1])), static fn(string $s): bool => $s !== ''));
+    }
 
     /**
      * Extract X-RateLimit-Remaining from raw HTTP response headers.

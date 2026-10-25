@@ -30,3 +30,23 @@ The following items were audited against the codebase before running live benchm
 ---
 
 <!-- Benchmark run results are appended below by benchmark.sh -->
+
+---
+
+## Phase 8 — multi-project sizing check (2026-10-25)
+
+**Environment**: local PHP 8.5 built-in server + MySQL 8, 10 tracked projects × 1,000 issues (10,000 issues), 5 timed requests after a warm-up. Documented system limitation: up to 10 projects of about 1,000 issues each.
+
+| Endpoint | Avg (ms) | Max (ms) | ≤ 200 ms? |
+|----------|----------|----------|-----------|
+| `GET /api/projects` | 1.8 | 2.2 | ✅ |
+| `GET /api/projects/{id}/issues?page=1&page_size=100` | 3.8 | 4.0 | ✅ |
+| `GET /api/projects/{id}/issues?page=5&page_size=25&sort=estimated_time&dir=desc` | 3.7 | 3.8 | ✅ |
+| `GET /api/projects/{id}/issues?status=open&assignee=alice&page_size=50` | 3.7 | 3.8 | ✅ |
+| `GET /api/projects/{id}/iterations` | 2.4 | 2.4 | ✅ |
+| `GET /api/projects/{id}/members` | 6.4 | 6.6 | ✅ |
+| `GET /api/projects/{id}/burndown?iteration=Sprint 1` | 1.7 | 1.9 | ✅ |
+| `GET /api/sync/history` and `?project_id={id}` | 1.6–1.7 | 2.0–2.2 | ✅ |
+| `GET /api/admin/github-accounts` | 1.7 | 2.0 | ✅ |
+
+Not measured: sync duration (dominated by GitHub's GraphQL latency, ~10 pages per 1,000-issue project) and the production host's request time limit. "Sync Now" is per project for that reason; the cron job syncs all projects sequentially.

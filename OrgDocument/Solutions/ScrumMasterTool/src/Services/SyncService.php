@@ -41,7 +41,10 @@ final class SyncService
     ];
 
     /**
-     * @param array<string,string> $fieldNames  Overrides for ResponseParser::DEFAULT_FIELD_NAMES
+     * @param array<string,string> $fieldNames        Overrides for ResponseParser::DEFAULT_FIELD_NAMES
+     * @param int|null             $projectId         Local projects.id when already known — failed runs are
+     *                                                then attributed to the project in sync_history
+     * @param int                  $snapshotRetention Keep at most this many snapshot files per directory (0 = keep all)
      */
     public function __construct(
         private readonly GitHubClientInterface $gitHub,
@@ -54,7 +57,17 @@ final class SyncService
         private readonly string                $snapshotDir,
         private readonly ?TimeLogRepository    $timeLogRepo = null,
         private readonly array                 $fieldNames  = [],
+        private readonly ?int                  $projectId   = null,
+        private readonly int                   $snapshotRetention = 0,
     ) {
+    }
+
+    /**
+     * The GitHub client used by this service (the orchestrator reads its rate-limit metadata).
+     */
+    public function client(): GitHubClientInterface
+    {
+        return $this->gitHub;
     }
 
     /**
@@ -88,14 +101,14 @@ final class SyncService
                 $this->projectNumber,
             );
         } catch (GitHubApiException | RateLimitException $e) {
-            $this->writeHistory(null, 'failed', 0, 0, '', $e->getMessage());
+            $this->writeHistory($this->projectId, 'failed', 0, 0, '', $e->getMessage());
             throw $e;
         }
 
         // ------------------------------------------------------------------
         // Step 3 — Parse
         // ------------------------------------------------------------------
-        $projectData = $projectRaw['data']['organization']['projectV2'] ?? [];
+        $projectData = ($projectRaw['data']['organization'] ?? $projectRaw['data']['user'] ?? [])['projectV2'] ?? [];
         $project     = ResponseParser::parseProject($projectData, $this->owner);
         $issues      = ResponseParser::parseIssueNodes($rawNodes, $this->fieldNames);
 
@@ -302,7 +315,8 @@ final class SyncService
             mkdir($this->snapshotDir, 0755, recursive: true);
         }
 
-        $filename = gmdate('Y-m-d_H-i') . '.json';
+        // Seconds in the name keep two runs within the same minute from overwriting each other
+        $filename = gmdate('Y-m-d_H-i-s') . '.json';
         $path     = $this->snapshotDir . DIRECTORY_SEPARATOR . $filename;
 
         $payload = json_encode(
@@ -311,8 +325,26 @@ final class SyncService
         );
 
         file_put_contents($path, $payload, LOCK_EX);
+        $this->pruneSnapshots();
 
         return $path;
+    }
+
+    /**
+     * Delete the oldest snapshot files beyond the retention count (names sort chronologically).
+     */
+    private function pruneSnapshots(): void
+    {
+        if ($this->snapshotRetention < 1) {
+            return;
+        }
+
+        $files = glob($this->snapshotDir . DIRECTORY_SEPARATOR . '*.json') ?: [];
+        sort($files);
+
+        foreach (array_slice($files, 0, max(0, count($files) - $this->snapshotRetention)) as $old) {
+            @unlink($old);
+        }
     }
 
     /**
@@ -333,7 +365,7 @@ final class SyncService
                 'issues_added'   => $added,
                 'issues_updated' => $updated,
                 'snapshot_file'  => $snapshotFile ?: null,
-                'error_message'  => $errorMessage ?: null,
+                'error_message'  => $errorMessage !== '' ? SecretRedactor::redact($errorMessage) : null,
             ]);
         } catch (\Throwable $e) {
             // Never let history write failures mask the original sync result

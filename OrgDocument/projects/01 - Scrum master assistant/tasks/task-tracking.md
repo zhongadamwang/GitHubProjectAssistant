@@ -1,8 +1,8 @@
 # Task Tracking — Scrum Master Assistant
 
 **Project**: PRJ-01 — Scrum Master Assistant  
-**Last Updated**: 2026-10-24  
-**Status**: Phases 1–7 complete — Phase 8 (admin configuration & multi-project) approved and in progress
+**Last Updated**: 2026-10-25  
+**Status**: Phases 1–7 complete — Phase 8 (admin configuration & multi-project) implemented and verified locally — awaiting production deployment and owner verification
 
 ## Current Sprint: Phase 8 — Admin Configuration & Multi-Project
 
@@ -11,16 +11,18 @@ Source: owner request 2026-10-24. Change records: [REQ-ADD-002](../artifacts/Cha
 ### Active Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Depends on | Task File |
 |---------|-------|----------|--------|----------|--------|------------|-----------|
-| T046 | Data Model: GitHub Accounts, Tracked Projects, Audit Log | TBD | Not Started | High | 1d | — | [task-dev-account-data-model.md](task-dev-account-data-model.md) |
-| T047 | Credential Vault (Token Encryption at Rest) | TBD | Not Started | High | 1d | — | [task-dev-credential-vault.md](task-dev-credential-vault.md) |
-| T048 | GitHub Account API, Client Factory, Owner-Generic Queries | TBD | Not Started | High | 2d | T046, T047 | [task-dev-github-account-api.md](task-dev-github-account-api.md) |
-| T049 | Admin UI: GitHub Accounts Settings | TBD | Not Started | High | 1.5d | T048 | [task-dev-github-account-admin-ui.md](task-dev-github-account-admin-ui.md) |
-| T050 | Project Tracking: Discover, Track/Untrack, Field Mapping | TBD | Not Started | High | 1.5d | T046, T048 | [task-dev-project-tracking.md](task-dev-project-tracking.md) |
-| T051 | Sync Orchestration: Per-Project, Cron Loop, Isolation, Rate Limits | TBD | Not Started | High | 2d | T046, T048, T050 | [task-dev-sync-orchestration.md](task-dev-sync-orchestration.md) |
-| T052 | Global Project Switcher | TBD | Not Started | High | 1.5d | T050, T051 | [task-dev-project-switcher.md](task-dev-project-switcher.md) |
-| T053 | Backward Compatibility: Import from `.env`, Deployment | TBD | Not Started | High | 1d | T048, T051 | [task-dev-env-import-compat.md](task-dev-env-import-compat.md) |
-| T054 | Credential Security Review and Hardening | TBD | Not Started | High | 1d | T048–T051 | [task-dev-credential-security-review.md](task-dev-credential-security-review.md) |
-| T055 | Phase 8 Verification and Release | TBD | Not Started | High | 1d | T046–T054 | [task-dev-phase8-verification.md](task-dev-phase8-verification.md) |
+| T046 | Data Model: GitHub Accounts, Tracked Projects, Audit Log | TBD | Completed | High | 1d | — | [task-dev-account-data-model.md](task-dev-account-data-model.md) |
+| T047 | Credential Vault (Token Encryption at Rest) | TBD | Completed | High | 1d | — | [task-dev-credential-vault.md](task-dev-credential-vault.md) |
+| T048 | GitHub Account API, Client Factory, Owner-Generic Queries | TBD | Completed | High | 2d | T046, T047 | [task-dev-github-account-api.md](task-dev-github-account-api.md) |
+| T049 | Admin UI: GitHub Accounts Settings | TBD | Completed | High | 1.5d | T048 | [task-dev-github-account-admin-ui.md](task-dev-github-account-admin-ui.md) |
+| T050 | Project Tracking: Discover, Track/Untrack, Field Mapping | TBD | Completed | High | 1.5d | T046, T048 | [task-dev-project-tracking.md](task-dev-project-tracking.md) |
+| T051 | Sync Orchestration: Per-Project, Cron Loop, Isolation, Rate Limits | TBD | Completed | High | 2d | T046, T048, T050 | [task-dev-sync-orchestration.md](task-dev-sync-orchestration.md) |
+| T052 | Global Project Switcher | TBD | Completed | High | 1.5d | T050, T051 | [task-dev-project-switcher.md](task-dev-project-switcher.md) |
+| T053 | Backward Compatibility: Import from `.env`, Deployment | TBD | Completed | High | 1d | T048, T051 | [task-dev-env-import-compat.md](task-dev-env-import-compat.md) |
+| T054 | Credential Security Review and Hardening | TBD | Completed (1 finding: owner action) | High | 1d | T048–T051 | [task-dev-credential-security-review.md](task-dev-credential-security-review.md) |
+| T055 | Phase 8 Verification and Release | TBD | In Progress (production verification pending) | High | 1d | T046–T054 | [task-dev-phase8-verification.md](task-dev-phase8-verification.md) |
+
+> **Implementation status (2026-10-25)**: T046–T054 done, 319 PHPUnit tests and 42/42 smoke checks passing; nothing is committed or deployed yet. **Open finding (owner action):** `.env.production` is tracked in git with a real-looking token — rotate it (security-checklist P8-10). Production steps: set `APP_KEY`, deploy, import/add the account, track projects, remove `REPO_PAT` (see DEPLOYMENT.md).
 
 > **Owner decisions (2026-10-25)**: several accounts; PAT now (App/OAuth later); `APP_KEY` as the one secret left in `.env`; untracking archives data; per-project field mapping; "Sync Now" = selected project; all users see all tracked projects (**future improvement**: per-project access control); sizing **≤ 10 projects × ≤ ~1,000 issues is a documented system limitation**. Both change records are Approved.
 

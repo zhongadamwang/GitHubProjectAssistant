@@ -37,7 +37,9 @@ instance.interceptors.response.use(
     } else if (status === 404) {
       dispatchAppError('The requested resource was not found.')
     } else if (status >= 500) {
-      dispatchAppError('Server error. Please try again later.')
+      // 502/503 with an API message (GitHub rejected the token, APP_KEY missing, …) is shown by the view itself
+      const explained = [502, 503].includes(status) && typeof error.response.data?.error === 'string'
+      if (!explained) dispatchAppError('Server error. Please try again later.')
     } else if (!error.response) {
       // Network error — no response received (offline, DNS failure, server down)
       dispatchAppError('Network error. Please check your connection and try again.')
@@ -76,11 +78,12 @@ export const getMe = () =>
 
 // ── Projects ──────────────────────────────────────────────────────────────
 /**
- * GET /api/projects — list all synced projects.
+ * GET /api/projects — list tracked projects (admins can include archived ones).
+ * @param {{includeArchived?: boolean}} [opts]
  * @returns {Promise<{projects: Array<Object>}>}
  */
-export const getProjects = () =>
-  unwrap(instance.get('/projects'))
+export const getProjects = ({ includeArchived = false } = {}) =>
+  unwrap(instance.get('/projects', { params: includeArchived ? { include_archived: 1 } : {} }))
 
 /**
  * GET /api/projects/:id — get a single project with issue counts.
@@ -139,18 +142,91 @@ export const getMembers = (projectId, iteration = null) => {
 
 // ── Sync ──────────────────────────────────────────────────────────────────
 /**
- * GET /api/sync/history — return the last 20 sync history records.
+ * GET /api/sync/history — latest sync history records (20), optionally for one project.
+ * @param {number} [projectId]  Local project id; omitted = all projects.
  * @returns {Promise<{data: Array<Object>}>}
  */
-export const getSyncHistory = () =>
-  unwrap(instance.get('/sync/history'))
+export const getSyncHistory = (projectId = 0) =>
+  unwrap(instance.get('/sync/history', { params: projectId ? { project_id: projectId } : {} }))
 
 /**
- * POST /api/sync/trigger — trigger a manual GitHub sync (admin only).
- * @returns {Promise<{status: string, issues_added: number, issues_updated: number, unchanged: number, errors: number, snapshot_file: string}>}
+ * POST /api/projects/:id/sync — sync ONE project now (admin only).
+ * @param {number} projectId
+ * @returns {Promise<{status: string, issues_added: number, issues_updated: number, unchanged: number, errors: number}>}
  */
-export const triggerSync = () =>
-  unwrap(instance.post('/sync/trigger'))
+export const syncProject = (projectId) =>
+  unwrap(instance.post(`/projects/${projectId}/sync`))
+
+// ── Admin / GitHub accounts ───────────────────────────────────────────────
+// The access token is only ever sent to the server (create / replace); no response contains it.
+
+/** @returns {Promise<{accounts: Array<Object>}>} */
+export const getGitHubAccounts = () =>
+  unwrap(instance.get('/admin/github-accounts'))
+
+/**
+ * @param {{label: string, owner_login: string, token: string, graphql_url?: string}} data
+ * @returns {Promise<{account: Object}>}
+ */
+export const createGitHubAccount = (data) =>
+  unwrap(instance.post('/admin/github-accounts', data))
+
+/**
+ * @param {number} id
+ * @param {{label?: string, graphql_url?: string, token?: string}} data  A token replaces the stored one.
+ * @returns {Promise<{account: Object}>}
+ */
+export const updateGitHubAccount = (id, data) =>
+  unwrap(instance.put(`/admin/github-accounts/${id}`, data))
+
+/** @param {number} id */
+export const deleteGitHubAccount = (id) =>
+  unwrap(instance.delete(`/admin/github-accounts/${id}`))
+
+/** @returns {Promise<{account: Object, result: {status: string, message: string}}>} */
+export const testGitHubAccount = (id) =>
+  unwrap(instance.post(`/admin/github-accounts/${id}/test`))
+
+/** @returns {Promise<{projects: Array<Object>}>} Projects the account can see on GitHub. */
+export const discoverProjects = (accountId) =>
+  unwrap(instance.get(`/admin/github-accounts/${accountId}/projects`))
+
+/** @returns {Promise<Object>} Result of moving the legacy .env settings into an account. */
+export const importEnvAccount = () =>
+  unwrap(instance.post('/admin/github-accounts/import-env'))
+
+/** @returns {Promise<{entries: Array<Object>}>} */
+export const getAuditLog = () =>
+  unwrap(instance.get('/admin/audit-log'))
+
+// ── Admin / Projects ──────────────────────────────────────────────────────
+/**
+ * @param {number} accountId
+ * @param {number} number  GitHub project number.
+ * @returns {Promise<{project: Object, warning?: string}>}
+ */
+export const trackProject = (accountId, number) =>
+  unwrap(instance.post('/admin/projects', { account_id: accountId, number }))
+
+/**
+ * @param {number} id
+ * @param {{field_mapping?: Object|null, is_tracked?: boolean}} data
+ * @returns {Promise<{project: Object}>}
+ */
+export const updateProject = (id, data) =>
+  unwrap(instance.put(`/admin/projects/${id}`, data))
+
+/** Stop tracking (archive; data is kept). */
+export const untrackProject = (id) =>
+  unwrap(instance.delete(`/admin/projects/${id}`))
+
+/** Permanently delete an archived project's data; `confirm` must equal the project name. */
+export const deleteProjectData = (id, confirm) =>
+  unwrap(instance.delete(`/admin/projects/${id}/data`, { data: { confirm } }))
+
+/** @returns {Promise<{mapping: Object, fields: Array<Object>, ok: boolean}>} */
+export const validateProjectFields = (id) =>
+  unwrap(instance.post(`/admin/projects/${id}/validate-fields`))
 
 // ── Admin / Users ─────────────────────────────────────────────────────────
 /**

@@ -2,7 +2,7 @@
 # =============================================================================
 # api-smoke.sh — ScrumMasterTool API smoke test (T032)
 #
-# Exercises all 13 REST endpoints against a running server instance.
+# Exercises the REST endpoints (including the Phase 8 account/project endpoints) against a running server instance.
 # Prints PASS / FAIL per endpoint and exits 1 if any assertion fails.
 #
 # Usage:
@@ -200,13 +200,67 @@ echo "--- Sync ---"
 STATUS=$(http_status "$ADMIN_COOKIE" GET /api/sync/history)
 assert_status "GET /api/sync/history" "200" "$STATUS"
 
-# Admin trigger — may return 200 (success) or 502 (no GitHub PAT in test)
+# Admin trigger — 200 (success), 409 (no account/project configured) or 502 (GitHub error)
 STATUS=$(http_status "$ADMIN_COOKIE" POST /api/sync/trigger)
-if [[ "$STATUS" == "200" || "$STATUS" == "502" ]]; then
-    pass "POST /api/sync/trigger (admin) → HTTP $STATUS (200=success, 502=API-error expected in test)"
+if [[ "$STATUS" == "200" || "$STATUS" == "409" || "$STATUS" == "502" ]]; then
+    pass "POST /api/sync/trigger (admin) → HTTP $STATUS (200=success, 409=not configured, 502=API-error expected in test)"
 else
-    fail "POST /api/sync/trigger (admin) → expected 200 or 502, got $STATUS"
+    fail "POST /api/sync/trigger (admin) → expected 200, 409 or 502, got $STATUS"
 fi
+
+# ---------------------------------------------------------------------------
+# GitHub accounts & multi-project (Phase 8) — no live GitHub needed
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- GitHub accounts and projects (Phase 8) ---"
+
+STATUS=$(http_status "$CLEAN_COOKIE" GET /api/admin/github-accounts)
+assert_status "GET /api/admin/github-accounts (unauthenticated)" "401" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" GET /api/admin/github-accounts)
+assert_status "GET /api/admin/github-accounts" "200" "$STATUS"
+
+# No token material may ever appear in a response
+BODY=$(curl -s -b "$ADMIN_COOKIE" "${BASE_URL}/api/admin/github-accounts")
+if echo "$BODY" | grep -qE 'token_ciphertext|token_nonce|ghp_|github_pat_'; then
+    fail "GET /api/admin/github-accounts leaks token material"
+else
+    pass "GET /api/admin/github-accounts exposes no token material"
+fi
+
+STATUS=$(post_json "$ADMIN_COOKIE" /api/admin/github-accounts '{"label":"","owner_login":"bad owner!","token":"x"}')
+assert_status "POST /api/admin/github-accounts (invalid data)" "422" "$STATUS"
+
+STATUS=$(post_json "$ADMIN_COOKIE" /api/admin/github-accounts \
+    '{"label":"x","owner_login":"acme","token":"ghp_0000000000000000000000000000000000","graphql_url":"https://127.0.0.1/graphql"}')
+assert_status "POST /api/admin/github-accounts (internal endpoint rejected, SSRF guard)" "422" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" POST /api/admin/github-accounts \
+    -H "Content-Type: application/x-www-form-urlencoded" -d "label=x&owner_login=acme&token=y")
+assert_status "POST /api/admin/github-accounts (form content type)" "415" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" GET /api/admin/audit-log)
+assert_status "GET /api/admin/audit-log" "200" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" GET /api/projects)
+assert_status "GET /api/projects (tracked projects)" "200" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" GET "/api/sync/history?project_id=${PROJECT_ID}")
+assert_status "GET /api/sync/history?project_id" "200" "$STATUS"
+
+STATUS=$(http_status "$ADMIN_COOKIE" POST /api/projects/999999/sync)
+assert_status "POST /api/projects/{unknown}/sync" "404" "$STATUS"
+
+# Per-project Sync Now: 200 (synced), 409 (needs attention / archived), 429 (rate limited) or 502 (GitHub error)
+STATUS=$(http_status "$ADMIN_COOKIE" POST "/api/projects/${PROJECT_ID}/sync")
+if [[ "$STATUS" == "200" || "$STATUS" == "409" || "$STATUS" == "429" || "$STATUS" == "502" ]]; then
+    pass "POST /api/projects/{id}/sync (admin) → HTTP $STATUS"
+else
+    fail "POST /api/projects/{id}/sync (admin) → expected 200, 409, 429 or 502, got $STATUS"
+fi
+
+STATUS=$(http_status "$ADMIN_COOKIE" POST /api/admin/projects/999999/validate-fields)
+assert_status "POST /api/admin/projects/{unknown}/validate-fields" "404" "$STATUS"
 
 # ---------------------------------------------------------------------------
 # Admin
@@ -250,6 +304,18 @@ if [[ -n "$MEMBER_EMAIL" ]]; then
 
         STATUS=$(http_status "$MEMBER_COOKIE" POST /api/sync/trigger)
         assert_status "POST /api/sync/trigger (member) → should be 403" "403" "$STATUS"
+
+        STATUS=$(http_status "$MEMBER_COOKIE" GET /api/projects)
+        assert_status "GET /api/projects (member)" "200" "$STATUS"
+
+        STATUS=$(http_status "$MEMBER_COOKIE" GET /api/admin/github-accounts)
+        assert_status "GET /api/admin/github-accounts (member) → should be 403" "403" "$STATUS"
+
+        STATUS=$(http_status "$MEMBER_COOKIE" POST "/api/projects/${PROJECT_ID}/sync")
+        assert_status "POST /api/projects/{id}/sync (member) → should be 403" "403" "$STATUS"
+
+        STATUS=$(http_status "$MEMBER_COOKIE" POST /api/admin/github-accounts/import-env)
+        assert_status "POST /api/admin/github-accounts/import-env (member) → should be 403" "403" "$STATUS"
     fi
 fi
 

@@ -3,7 +3,7 @@
 ## Change ID
 **Change ID**: REQ-ADD-002  
 **Date Created**: 2026-10-24  
-**Status**: Approved (owner decisions received 2026-10-25)  
+**Status**: Implemented (2026-10-25; verified locally — production verification pending)  
 **Priority**: High  
 **Requested By**: Project owner (2026-10-24: "allow admin to configure the Git account instead of saving the PAT in the .env file")  
 **Change Type**: REQ-ADD (new requirement; also changes deployment/configuration process)

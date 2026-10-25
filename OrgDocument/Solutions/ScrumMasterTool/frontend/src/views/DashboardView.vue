@@ -6,46 +6,49 @@
  * 30 seconds via dashboardStore. When the selected project or iteration changes,
  * the store is refreshed and polling restarted.
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '../stores/projectStore.js'
 import { useDashboardStore } from '../stores/dashboardStore.js'
 import BurndownChart from '../components/BurndownChart.vue'
 import SprintSelector from '../components/SprintSelector.vue'
 import HealthBadge from '../components/HealthBadge.vue'
+import NoProjectNotice from '../components/NoProjectNotice.vue'
 
 const projectStore = useProjectStore()
 const dashStore = useDashboardStore()
 
-const selectedProjectId = ref(null)
 const selectedIteration = ref(null)
+const projectId = computed(() => projectStore.activeProjectId)
 
-// Sprint labels of the selected project (from GET /api/projects/{id}/iterations)
+// Sprint labels of the active project (from GET /api/projects/{id}/iterations)
 const iterations = computed(() => projectStore.iterationNames)
 
 /**
- * Load a project: fetch its sprint list, preselect the current sprint (falling back
+ * Load the active project: fetch its sprint list, preselect the current sprint (falling back
  * to "Latest"), load that burndown, and (re)start polling for this project.
  */
-async function loadProject(projectId) {
+async function loadProject(id) {
   dashStore.stopPolling()
-  projectStore.activeProjectId = projectId
-  await projectStore.fetchIterations(projectId)
+  dashStore.points = []
+  dashStore.iteration = null
+  if (!id) return
+  await projectStore.fetchIterations(id)
+  if (id !== projectId.value) return // switched again while loading
   selectedIteration.value = projectStore.currentIteration
-  await dashStore.fetchBurndown(projectId, selectedIteration.value)
-  dashStore.startPolling(projectId, 30000)
+  await dashStore.fetchBurndown(id, selectedIteration.value)
+  if (id === projectId.value) dashStore.startPolling(id, 30000)
 }
 
 async function onIterationChange(iteration) {
   selectedIteration.value = iteration
-  await dashStore.fetchBurndown(selectedProjectId.value, iteration)
+  await dashStore.fetchBurndown(projectId.value, iteration)
 }
 
+watch(projectId, (id) => loadProject(id))
+
 onMounted(async () => {
-  await projectStore.fetchProjects()
-  if (projectStore.projects.length) {
-    selectedProjectId.value = projectStore.activeProjectId ?? projectStore.projects[0].id
-    await loadProject(selectedProjectId.value)
-  }
+  if (!projectStore.projectsLoaded) await projectStore.fetchProjects()
+  await loadProject(projectId.value)
 })
 
 onUnmounted(() => {
@@ -56,17 +59,8 @@ onUnmounted(() => {
 <template>
   <div class="page">
     <header class="page-header">
-      <h1>Dashboard</h1>
+      <h1>Dashboard<span v-if="projectStore.activeProject" class="project-name"> — {{ projectStore.activeProject.name }}</span></h1>
       <div class="controls">
-        <select
-          v-if="projectStore.projects.length > 0"
-          v-model="selectedProjectId"
-          @change="loadProject(selectedProjectId)"
-        >
-          <option v-for="p in projectStore.projects" :key="p.id" :value="p.id">
-            {{ p.title ?? p.name }}
-          </option>
-        </select>
         <SprintSelector
           :model-value="selectedIteration"
           :iterations="iterations"
@@ -77,6 +71,9 @@ onUnmounted(() => {
       </div>
     </header>
 
+    <NoProjectNotice v-if="projectStore.projectsLoaded && !projectId" />
+
+    <template v-else>
     <div v-if="dashStore.loading" class="loading-bar" />
 
     <div v-if="dashStore.error" class="error-banner">{{ dashStore.error }}</div>
@@ -84,6 +81,7 @@ onUnmounted(() => {
     <section class="chart-section">
       <BurndownChart :points="dashStore.points" />
     </section>
+    </template>
   </div>
 </template>
 
@@ -98,6 +96,7 @@ onUnmounted(() => {
   margin-bottom: 1.25rem;
 }
 h1 { margin: 0; font-size: 1.4rem; color: #1a1a2e; }
+.project-name { font-weight: 400; color: #555; }
 .controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 select {
   padding: 0.4rem 0.6rem;

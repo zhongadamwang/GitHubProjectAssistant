@@ -45,7 +45,7 @@ cp .env.production .env
 
 # Edit .env and update:
 # - Database credentials (DB_HOST, DB_NAME, DB_USER, DB_PASS)
-# - REPO_PAT (if different)
+# - APP_KEY (required — generate with `php cron/generate-app-key.php`; see "Admin-managed GitHub accounts")
 # - Verify APP_ENV=production
 # - Verify APP_DEBUG=false
 # - Verify APP_BASE_PATH is empty (for subdomain root)
@@ -121,6 +121,45 @@ After deploying this version:
    ```
    It deletes snapshots with no estimated hours and captures today's snapshot from the synced data.
 4. Open the Dashboard: the sprint selector lists the project's iterations; the chart should show a non-zero ideal line.
+
+## Admin-managed GitHub accounts and multiple projects (Phase 8)
+
+GitHub accounts and their access tokens are now configured in the admin area, not in `.env`.
+Tokens are stored encrypted (libsodium, falling back to AES-256-GCM) with `APP_KEY`, the only secret
+that stays in `.env`. Several accounts (organizations or users) and several projects are supported.
+
+### Supported size (system limitation)
+
+Up to **10 tracked projects of about 1,000 issues each**. Tracking more shows a warning but is not
+blocked; syncs may then exceed shared-hosting request limits or GitHub's hourly GraphQL quota.
+All signed-in users can see all tracked projects (per-project access control is a possible future improvement).
+
+### Upgrade runbook (existing installation)
+
+1. **Generate the key** on the server: `php cron/generate-app-key.php`, then add `APP_KEY=<value>` to the server `.env` (`chmod 600 .env`).
+   Back the key up somewhere safe: without it the stored tokens cannot be decrypted.
+2. **Deploy.** The pipeline runs `php database/migrate.php` (migrations 011 and 012: accounts, audit log, per-project tracking columns).
+   Existing projects keep their ids, issues, burndown and history, and become *tracked*.
+   Until the import is done, sync keeps using the legacy `REPO_PAT` / `REPO_ORG` / `REPO_PROJECT_NUMBER` values.
+3. **Import** the legacy settings (idempotent): `php cron/import-env-account.php`
+   or Admin → GitHub accounts → **Import from .env**. The existing project row is linked to the new account.
+4. **Test the connection** in Admin → GitHub accounts (status must be *ok*; token expiry and scopes are shown).
+5. **Verify sync**: press **Sync Now** for the project and check Sync Status, or run `php cron/sync.php`.
+6. **Remove** `REPO_PAT`, `REPO_ORG` and `REPO_PROJECT_NUMBER` from the server `.env`. Keep `REPO_FIELD_*` only if you rely on custom global field names.
+7. Add further accounts/projects in the admin area (Admin → GitHub accounts → *Discover projects* → *Track*).
+
+The cron entry stays the same (`php cron/sync.php`): it now syncs every tracked project one after another;
+a failing project does not stop the others and the exit code is 1 if any failed. "Sync Now" in the UI syncs the selected project only.
+
+### Rotating or losing `APP_KEY`
+
+- Rotate: `php cron/generate-app-key.php` → `php cron/rotate-app-key.php --old=<current> --new=<new>` → replace `APP_KEY` in `.env`. Re-encryption is atomic.
+- Lost key: tokens show status *needs_reentry*; enter each token again in Admin → GitHub accounts.
+
+### Deploy pipeline
+
+The GitHub Actions deploy needs only the SFTP/SSH secrets; it no longer needs any GitHub token.
+The SSH key passphrase is passed with the action's `passphrase` input.
 
 ## Quick Deploy Script
 

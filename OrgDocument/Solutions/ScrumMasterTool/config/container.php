@@ -17,23 +17,34 @@ declare(strict_types=1);
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BurndownController;
+use App\Controllers\GitHubAccountController;
 use App\Controllers\IssueController;
+use App\Controllers\ProjectAdminController;
 use App\Controllers\MemberController;
 use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
+use App\Middleware\RequireJsonMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Repositories\AuditLogRepository;
 use App\Repositories\BurndownRepository;
+use App\Repositories\GitHubAccountRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
 use App\Repositories\TimeLogRepository;
 use App\Repositories\UserRepository;
+use App\Services\AccountConnectionTester;
 use App\Services\AuthService;
 use App\Services\BurndownService;
+use App\Services\CredentialVault;
+use App\Services\EnvAccountImporter;
 use App\Services\EfficiencyService;
-use App\Services\GitHubGraphQLService;
-use App\Services\SyncService;
+use App\Services\GitHubClientFactory;
+use App\Services\GitHubClientFactoryInterface;
+use App\Services\GraphqlEndpointValidator;
+use App\Services\SyncOrchestrator;
+use App\Services\SyncServiceFactory;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -99,26 +110,28 @@ $builder->addDefinitions([
     BurndownRepository::class => static fn(ContainerInterface $c): BurndownRepository =>
         new BurndownRepository($c->get(PDO::class)),
 
+    GitHubAccountRepository::class => static fn(ContainerInterface $c): GitHubAccountRepository =>
+        new GitHubAccountRepository($c->get(PDO::class)),
+
+    AuditLogRepository::class => static fn(ContainerInterface $c): AuditLogRepository =>
+        new AuditLogRepository($c->get(PDO::class)),
+
     TimeLogRepository::class => static fn(ContainerInterface $c): TimeLogRepository =>
         new TimeLogRepository($c->get(PDO::class)),
 
     // -------------------------------------------------------------------------
     // Services
     // -------------------------------------------------------------------------
-    GitHubGraphQLService::class => static function (ContainerInterface $c): GitHubGraphQLService {
-        $github = $c->get('settings')['github'];
+    // Lazy: constructing the vault never fails; using it without APP_KEY does
+    CredentialVault::class => static fn(ContainerInterface $c): CredentialVault =>
+        new CredentialVault((string) $c->get('settings')['security']['app_key']),
 
-        if (empty($github['pat'])) {
-            throw new \RuntimeException(
-                'REPO_PAT must be set in .env to use GitHubGraphQLService.'
-            );
-        }
+    GitHubClientFactoryInterface::class => static fn(ContainerInterface $c): GitHubClientFactoryInterface =>
+        new GitHubClientFactory($c->get(CredentialVault::class)),
 
-        return new GitHubGraphQLService(
-            pat:      $github['pat'],
-            endpoint: $github['graphql_url'],
-        );
-    },
+    AccountConnectionTester::class => static fn(): AccountConnectionTester => new AccountConnectionTester(),
+
+    GraphqlEndpointValidator::class => static fn(): GraphqlEndpointValidator => new GraphqlEndpointValidator(),
 
     AuthService::class => static fn(ContainerInterface $c): AuthService =>
         new AuthService(
@@ -126,21 +139,37 @@ $builder->addDefinitions([
             $c->get('settings')['session'],
         ),
 
-    SyncService::class => static function (ContainerInterface $c): SyncService {
-        $github = $c->get('settings')['github'];
-        $sync   = $c->get('settings')['sync'];
+    SyncServiceFactory::class => static function (ContainerInterface $c): SyncServiceFactory {
+        $settings = $c->get('settings');
 
-        return new SyncService(
-            gitHub:           $c->get(GitHubGraphQLService::class),
-            projectRepo:      $c->get(ProjectRepository::class),
-            issueRepo:        $c->get(IssueRepository::class),
-            historyRepo:      $c->get(SyncHistoryRepository::class),
-            burndownService:  $c->get(BurndownService::class),
-            owner:            $github['org'],
-            projectNumber:    $github['project_number'],
-            snapshotDir:      $sync['snapshot_dir'],
-            timeLogRepo:      $c->get(TimeLogRepository::class),
-            fieldNames:       $github['fields'],
+        return new SyncServiceFactory(
+            $c->get(ProjectRepository::class),
+            $c->get(IssueRepository::class),
+            $c->get(SyncHistoryRepository::class),
+            $c->get(BurndownService::class),
+            $c->get(TimeLogRepository::class),
+            $c->get(GitHubClientFactoryInterface::class),
+            $settings['github']['fields'],
+            $settings['sync']['snapshot_dir'],
+            (int) $settings['sync']['snapshot_retention'],
+        );
+    },
+
+    SyncOrchestrator::class => static function (ContainerInterface $c): SyncOrchestrator {
+        $github = $c->get('settings')['github'];
+
+        return new SyncOrchestrator(
+            $c->get(ProjectRepository::class),
+            $c->get(GitHubAccountRepository::class),
+            $c->get(SyncHistoryRepository::class),
+            $c->get(SyncServiceFactory::class),
+            $c->get(AccountConnectionTester::class),
+            [
+                'pat'            => (string) $github['pat'],
+                'org'            => (string) $github['org'],
+                'project_number' => (int) $github['project_number'],
+                'graphql_url'    => (string) $github['graphql_url'],
+            ],
         );
     },
 
@@ -167,6 +196,44 @@ $builder->addDefinitions([
         ),
     IssueController::class => static fn(ContainerInterface $c): IssueController =>
         new IssueController($c->get(IssueRepository::class)),
+    GitHubAccountController::class => static fn(ContainerInterface $c): GitHubAccountController =>
+        new GitHubAccountController(
+            $c->get(GitHubAccountRepository::class),
+            $c->get(ProjectRepository::class),
+            $c->get(AuditLogRepository::class),
+            $c->get(CredentialVault::class),
+            $c->get(GitHubClientFactoryInterface::class),
+            $c->get(AccountConnectionTester::class),
+            $c->get(GraphqlEndpointValidator::class),
+            $c->get(EnvAccountImporter::class),
+        ),
+    EnvAccountImporter::class => static function (ContainerInterface $c): EnvAccountImporter {
+        $github = $c->get('settings')['github'];
+
+        return new EnvAccountImporter(
+            $c->get(GitHubAccountRepository::class),
+            $c->get(ProjectRepository::class),
+            $c->get(AuditLogRepository::class),
+            $c->get(CredentialVault::class),
+            $c->get(GitHubClientFactoryInterface::class),
+            $c->get(AccountConnectionTester::class),
+            [
+                'pat'            => (string) $github['pat'],
+                'org'            => (string) $github['org'],
+                'project_number' => (int) $github['project_number'],
+                'graphql_url'    => (string) $github['graphql_url'],
+            ],
+        );
+    },
+    ProjectAdminController::class => static fn(ContainerInterface $c): ProjectAdminController =>
+        new ProjectAdminController(
+            $c->get(ProjectRepository::class),
+            $c->get(GitHubAccountRepository::class),
+            $c->get(AuditLogRepository::class),
+            $c->get(GitHubClientFactoryInterface::class),
+            $c->get(AccountConnectionTester::class),
+            $c->get('settings')['github']['fields'],
+        ),
     AdminController::class   => static fn(ContainerInterface $c): AdminController =>
         new AdminController($c->get(UserRepository::class)),
 
@@ -178,8 +245,9 @@ $builder->addDefinitions([
 
     SyncController::class => static fn(ContainerInterface $c): SyncController =>
         new SyncController(
-            $c->get(SyncService::class),
             $c->get(SyncHistoryRepository::class),
+            $c->get(SyncOrchestrator::class),
+            $c->get(ProjectRepository::class),
         ),
 
     // -------------------------------------------------------------------------
@@ -191,6 +259,8 @@ $builder->addDefinitions([
             $c->get(ResponseFactoryInterface::class),
         ),
 
+    RequireJsonMiddleware::class => static fn(ContainerInterface $c): RequireJsonMiddleware =>
+        new RequireJsonMiddleware($c->get(ResponseFactoryInterface::class)),
     AdminMiddleware::class => static fn(ContainerInterface $c): AdminMiddleware =>
         new AdminMiddleware($c->get(ResponseFactoryInterface::class)),
 

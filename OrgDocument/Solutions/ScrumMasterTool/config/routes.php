@@ -24,19 +24,27 @@ declare(strict_types=1);
  *   GET   /api/projects/{id}/burndown
  *   GET   /api/projects/{id}/members
  *   GET   /api/sync/history
- *   POST  /api/sync/trigger       (admin)
+ *   POST  /api/sync/trigger       (admin; legacy alias — first tracked project)
+ *   POST  /api/projects/{id}/sync (admin; one project per request)
  *   GET   /api/admin/users        (admin)
  *   POST  /api/admin/users        (admin)
+ *   POST /api/admin/github-accounts/import-env (admin; legacy .env → account)
+ *   GET|POST /api/admin/github-accounts, PUT|DELETE …/{id}, POST …/{id}/test, GET …/{id}/projects (admin)
+ *   POST /api/admin/projects, PUT|DELETE …/{id}, DELETE …/{id}/data, POST …/{id}/validate-fields (admin)
+ *   GET   /api/admin/audit-log    (admin)
  */
 
 use App\Controllers\AdminController;
 use App\Controllers\AuthController;
 use App\Controllers\BurndownController;
+use App\Controllers\GitHubAccountController;
 use App\Controllers\IssueController;
 use App\Controllers\MemberController;
+use App\Controllers\ProjectAdminController;
 use App\Controllers\ProjectController;
 use App\Controllers\SyncController;
 use App\Middleware\AdminMiddleware;
+use App\Middleware\RequireJsonMiddleware;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -80,10 +88,28 @@ return static function (App $app): void {
     $app->group('/api', function (RouteCollectorProxy $group): void {
 
         $group->post('/sync/trigger',  [SyncController::class,  'trigger']);
+        $group->post('/projects/{id:[0-9]+}/sync', [SyncController::class, 'syncProject']);
         $group->get('/admin/users',    [AdminController::class, 'listUsers']);
         $group->post('/admin/users',   [AdminController::class, 'createUser']);
 
-    })->add(AdminMiddleware::class)
+        // GitHub accounts (tokens are write-only; see GitHubAccountController)
+        $group->get('/admin/github-accounts',                          [GitHubAccountController::class, 'list']);
+        $group->post('/admin/github-accounts',                         [GitHubAccountController::class, 'create']);
+        $group->post('/admin/github-accounts/import-env',              [GitHubAccountController::class, 'importEnv']);
+        $group->put('/admin/github-accounts/{id:[0-9]+}',              [GitHubAccountController::class, 'update']);
+        $group->delete('/admin/github-accounts/{id:[0-9]+}',           [GitHubAccountController::class, 'delete']);
+        $group->post('/admin/github-accounts/{id:[0-9]+}/test',        [GitHubAccountController::class, 'test']);
+        $group->get('/admin/github-accounts/{id:[0-9]+}/projects',     [GitHubAccountController::class, 'discover']);
+        // Tracked projects (REQ-ADD-003)
+        $group->post('/admin/projects',                                [ProjectAdminController::class, 'track']);
+        $group->put('/admin/projects/{id:[0-9]+}',                     [ProjectAdminController::class, 'update']);
+        $group->delete('/admin/projects/{id:[0-9]+}',                  [ProjectAdminController::class, 'untrack']);
+        $group->delete('/admin/projects/{id:[0-9]+}/data',             [ProjectAdminController::class, 'deleteData']);
+        $group->post('/admin/projects/{id:[0-9]+}/validate-fields',    [ProjectAdminController::class, 'validateFields']);
+        $group->get('/admin/audit-log',                                [GitHubAccountController::class, 'auditLog']);
+
+    })->add(RequireJsonMiddleware::class)
+      ->add(AdminMiddleware::class)
       ->add(AuthMiddleware::class);
 
 };

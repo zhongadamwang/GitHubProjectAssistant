@@ -15,13 +15,35 @@ function loadPageSize() {
   }
 }
 
+const ACTIVE_PROJECT_KEY = 'scrum.activeProjectId'
+
+function loadActiveProjectId() {
+  try {
+    const id = Number(localStorage.getItem(ACTIVE_PROJECT_KEY))
+    return Number.isInteger(id) && id > 0 ? id : null
+  } catch {
+    return null
+  }
+}
+
+function saveActiveProjectId(id) {
+  try {
+    if (id) localStorage.setItem(ACTIVE_PROJECT_KEY, String(id))
+    else localStorage.removeItem(ACTIVE_PROJECT_KEY)
+  } catch {
+    // Storage unavailable — the selection just isn't remembered
+  }
+}
+
 // Only the response to the most recent issues request is applied
 let issuesRequestSeq = 0
+let membersRequestSeq = 0
 
 export const useProjectStore = defineStore('project', {
   state: () => ({
     projects: [],
-    activeProjectId: null,
+    projectsLoaded: false,
+    activeProjectId: loadActiveProjectId(),
 
     // Iterations (sprints) of the active project: [{ name, is_current, ... }]
     iterations: [],
@@ -53,6 +75,8 @@ export const useProjectStore = defineStore('project', {
   }),
 
   getters: {
+    activeProject: (state) => state.projects.find((p) => p.id === state.activeProjectId) ?? null,
+
     iterationNames: (state) => state.iterations.map((i) => i.name),
 
     currentIteration: (state) => state.iterations.find((i) => i.is_current)?.name ?? null,
@@ -60,20 +84,51 @@ export const useProjectStore = defineStore('project', {
 
   actions: {
     /**
-     * Fetch all projects from the API and populate `state.projects`.
-     * Automatically sets `activeProjectId` to the first project if none is set.
+     * Fetch the tracked projects and make sure `activeProjectId` points at one of them:
+     * the remembered project if it still exists, otherwise the first one (or null).
      * @returns {Promise<void>}
      */
     async fetchProjects() {
       try {
         const data = await api.getProjects()
         this.projects = data.projects ?? data
-        if (this.projects.length && !this.activeProjectId) {
-          this.activeProjectId = this.projects[0].id
+        const known = this.projects.some((p) => p.id === this.activeProjectId)
+        if (!known) {
+          this.selectProject(this.projects[0]?.id ?? null)
         }
       } catch {
         // Error surfaced via Axios interceptor → ErrorBanner
+      } finally {
+        this.projectsLoaded = true
       }
+    },
+
+    /**
+     * Switch the whole app to another project: remembers the choice and clears everything
+     * that belongs to the previous project. Views watch `activeProjectId` and reload.
+     * @param {number|null} projectId
+     */
+    selectProject(projectId) {
+      if (projectId === this.activeProjectId && this.projects.length) return
+      this.stopPolling()
+      membersRequestSeq++
+      issuesRequestSeq++ // a response still in flight for the previous project must be ignored
+      this.issuesLoading = false
+      this.activeProjectId = projectId
+      saveActiveProjectId(projectId)
+
+      this.iterations = []
+      this.issues = []
+      this.issuesMeta = { ...this.issuesMeta, page: 1, total: 0, total_pages: 1 }
+      this.issuesTotals = { estimated: 0, remaining: 0, actual: 0 }
+      this.assignees = []
+      this.members = []
+      this.filterAssignee = ''
+      this.filterIteration = ''
+      this.filterStatus = 'all'
+      this.sortKey = 'id'
+      this.sortDir = 'asc'
+      this.page = 1
     },
 
     /**
@@ -192,15 +247,18 @@ export const useProjectStore = defineStore('project', {
      * @returns {Promise<void>}
      */
     async fetchMembers(projectId, iteration = null) {
+      const seq = ++membersRequestSeq
       this.membersLoading = true
       this.membersError = null
       try {
         const data = await api.getMembers(projectId, iteration)
+        if (seq !== membersRequestSeq) return
         this.members = data.members ?? data
       } catch (err) {
+        if (seq !== membersRequestSeq) return
         this.membersError = err.message ?? 'Failed to load member data.'
       } finally {
-        this.membersLoading = false
+        if (seq === membersRequestSeq) this.membersLoading = false
       }
     },
 

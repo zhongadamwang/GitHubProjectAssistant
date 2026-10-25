@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # tests/perf/benchmark.sh
-# Performance benchmark — measures TTFB for all 13 ScrumMasterTool API endpoints.
+# Performance benchmark — measures TTFB for the ScrumMasterTool API endpoints (incl. the Phase 8 account/project reads).
 #
 # Usage:
 #   chmod +x tests/perf/benchmark.sh
@@ -42,7 +42,7 @@ RUNS="${RUNS:-10}"
 WARMUP="${WARMUP:-2}"
 RESULTS_FILE="${RESULTS_FILE:-$(dirname "$0")/results.md}"
 
-COOKIE_JAR="$(mktemp /tmp/smt_bench_XXXXXX.txt)"
+COOKIE_JAR="$(mktemp /tmp/smt_bench_XXXXXX)"
 trap 'rm -f "$COOKIE_JAR"' EXIT
 
 # ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ bench_endpoint() {
     # Warmup runs (not measured)
     for ((i = 0; i < WARMUP; i++)); do
         curl -s -o /dev/null -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
-            -X "$method" "$url" "${extra_args[@]}" \
+            -X "$method" "$url" ${extra_args[@]+"${extra_args[@]}"} \
             -w '' 2>/dev/null || true
     done
 
@@ -72,7 +72,7 @@ bench_endpoint() {
     for ((i = 0; i < RUNS; i++)); do
         local t
         t=$(curl -s -o /dev/null -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
-            -X "$method" "$url" "${extra_args[@]}" \
+            -X "$method" "$url" ${extra_args[@]+"${extra_args[@]}"} \
             -w "%{time_starttransfer}" 2>/dev/null || echo "0")
         times+=("$t")
     done
@@ -237,6 +237,25 @@ RESULTS+=( "$(bench_endpoint \
     "$BASE_URL/api/admin/users" \
     -H 'Content-Type: application/json' \
     -d "{\"email\":\"$BENCH_USER_EMAIL\",\"display_name\":\"Bench User\",\"password\":\"Bench1234!\",\"role\":\"member\"}"
+)" )
+
+# ---------------------------------------------------------------------------
+# Phase 8 — GitHub accounts / multi-project reads
+# (POST /api/projects/{id}/sync is not benchmarked: its latency is GitHub's, not the app's)
+# ---------------------------------------------------------------------------
+RESULTS+=( "$(bench_endpoint \
+    "GET  /api/admin/github-accounts  (admin)" GET \
+    "$BASE_URL/api/admin/github-accounts"
+)" )
+
+RESULTS+=( "$(bench_endpoint \
+    "GET  /api/admin/audit-log  (admin)" GET \
+    "$BASE_URL/api/admin/audit-log"
+)" )
+
+RESULTS+=( "$(bench_endpoint \
+    "GET  /api/sync/history?project_id=$PROJECT_ID" GET \
+    "$BASE_URL/api/sync/history?project_id=$PROJECT_ID"
 )" )
 
 # ---------------------------------------------------------------------------

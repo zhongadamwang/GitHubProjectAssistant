@@ -18,9 +18,11 @@
 | Security Misconfiguration (A05) | 4 | 4 | 0 | 0 |
 | Security Logging & Monitoring (A09) | 2 | 2 | 0 | 0 |
 | Dependency Security | 1 | 1 | 0 | 0 |
-| **Total** | **17** | **17** | **0** | **0** |
+| Phase 8 — GitHub account credentials (P8) | 10 | 9 | 1 | 0 |
+| **Total** | **27** | **26** | **1** | **0** |
 
-**Result: PASS — no open fail items.**
+**Result (Phase 1–7 review, 2026-04-06): PASS.**
+**Phase 8 review (2026-10-25): 9 of 10 PASS; 1 open finding — P8-10 (`.env.production` tracked in git with a token), which needs an owner action (rotate the token and untrack the file).**
 
 ---
 
@@ -38,7 +40,7 @@
 |---|---|
 | **Status** | ✅ PASS |
 | **File** | `.gitignore`, `.env.example`, `config/settings.php` |
-| **Finding** | `REPO_PAT` is read from `$_ENV['REPO_PAT']` (populated from `.env` at runtime). `.gitignore` lists `.env` and `.env.test` as excluded. `.env` is never committed to source control. |
+| **Finding** | *(Superseded by Phase 8 — see P8-1.)* Until Phase 8 `REPO_PAT` was read from `.env`. GitHub tokens are now entered in the admin UI and stored encrypted in the database; `REPO_PAT` is only a legacy fallback until `cron/import-env-account.php` has been run. |
 
 ### A02-3 — Database credentials storage
 | | |
@@ -160,6 +162,78 @@
 
 ---
 
+## Phase 8 — GitHub account credentials (T054, 2026-10-25)
+
+Scope: `GitHubAccountController`, `ProjectAdminController`, `EnvAccountImporter`, `CredentialVault`, `KeyRotationService`, `GitHubClientFactory`, `GitHubGraphQLService`, `SyncOrchestrator`, `SyncController`, `RequireJsonMiddleware`.
+Automated evidence: `tests/Integration/Phase8/SecurityTest.php` (+ `AccountApiTest`, `ProjectAdminApiTest`, `CredentialVaultTest`).
+
+### P8-1 — Token storage and key handling
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | `src/Services/CredentialVault.php`, `src/Services/KeyRotationService.php`, `cron/generate-app-key.php`, `cron/rotate-app-key.php` |
+| **Finding** | Tokens are encrypted with libsodium secretbox (AES-256-GCM fallback) using `APP_KEY` (32 random bytes, base64) and a fresh nonce per token; only the last 4 characters are stored for display. `APP_KEY` is the only secret left in `.env`. Generation, backup, rotation (atomic) and loss recovery (`needs_reentry`) are documented in `DEPLOYMENT.md`; `.env` must be `chmod 600`. Test: stored value is ciphertext and decrypts only with the key. |
+
+### P8-2 — No token or ciphertext in any output
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | all account/project/sync endpoints, audit log, sync history, error log |
+| **Finding** | `SecurityTest::test_no_response_log_or_table_exposes_a_token_or_ciphertext` exercises every endpoint (including GitHub failures whose message echoes the token and the `.env` import) and scans all responses, the PHP error log and the audit/history/project/account tables for the tokens and the stored ciphertext. API payloads expose only `has_token`, `token_hint` and status. `SecretRedactor` strips token-shaped strings (`ghp_…`, `github_pat_…`, `Bearer …`) from stored/returned GitHub error messages (mutation-checked: the test fails without it). |
+
+### P8-3 — Authorization
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | `config/routes.php` |
+| **Finding** | Every `/api/admin/*` route and `POST /api/projects/{id}/sync` / `POST /api/sync/trigger` requires session + admin: unauthenticated → 401, member → 403 (data-provider matrices in `AccountApiTest`, `ProjectAdminApiTest`, `EnvImportTest`, `SyncOrchestrationTest`). Non-admins cannot see archived projects. Admin-only responses mean account existence is not disclosed to other users. |
+
+### P8-4 — Input validation
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Finding** | Owner login (GitHub login pattern), label (≤100), token (charset/length), field-mapping keys (whitelist) and names (≤100), project number and the delete-data confirmation are validated server-side (422). All SQL uses prepared statements. |
+
+### P8-5 — SSRF protection for the configurable GraphQL endpoint
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | `src/Services/GraphqlEndpointValidator.php`, `src/Services/GitHubClientFactory.php`, `src/Services/GitHubGraphQLService.php` |
+| **Finding** | https only, no credentials in the URL, port 443, no localhost/internal names, no private/reserved/loopback/link-local IPs, and a resolved name must be public. The check runs when an account is saved **and again every time a client is built** for a non-default endpoint (DNS-rebinding window). cURL never follows redirects (`CURLOPT_FOLLOWLOCATION=false`), so the bearer token cannot be forwarded elsewhere; verbose logging is off. |
+
+### P8-6 — Rate limiting and abuse
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Finding** | Connection tests and project discovery are limited to 10 per minute per admin (DB-backed, survives shared hosting's per-request PHP). Sync runs are per project, one request at a time in the UI; the cron job stops using an account when its GitHub quota drops below a floor. |
+
+### P8-7 — CSRF posture
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | `src/Services/AuthService.php`, `src/Middleware/RequireJsonMiddleware.php` |
+| **Finding** | The session cookie is `HttpOnly`, `Secure` (production) and `SameSite=Strict`, so cross-site requests carry no session. As a second layer, state-changing `/api/admin/*` and sync requests that include a body must use `Content-Type: application/json` (otherwise 415), which a cross-site HTML form cannot send. No CSRF token is used; this posture is deliberate and tested. |
+
+### P8-8 — Audit log
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Files** | `src/Repositories/AuditLogRepository.php`, `GET /api/admin/audit-log` |
+| **Finding** | Account created/updated/token-replaced/tested/deleted/discovered/imported and project tracked/updated/untracked/data-deleted are recorded with actor, action, entity and non-secret detail (secret-looking keys are stripped before storage). Admins can read the latest 100 entries (Admin → GitHub accounts → Audit log). |
+
+### P8-9 — Information exposure in API responses
+| | |
+|---|---|
+| **Status** | ✅ PASS |
+| **Finding** | Sync responses and `/api/sync/history` returned the absolute server path of the snapshot file (visible to every signed-in user). Fixed: only the file name is returned (`SyncOutcome::toArray`, `SyncController::history`; tested). `composer audit` reported `slim/slim` CVE-2026-48157 (reflected XSS in the HTML error renderer, medium); fixed by updating to 4.15.3 — audit now clean. |
+
+### P8-10 — Secrets committed to the repository
+| | |
+|---|---|
+| **Status** | ❌ OPEN (owner action required) |
+| **File** | `.env.production` (tracked by git) |
+| **Finding** | `.env.production` is committed and contains a `REPO_PAT` value that looks like a real GitHub token (and other environment values). A token in git history must be treated as compromised. **Action:** revoke/rotate that token on GitHub, add the new one through Admin → GitHub accounts, then remove the secrets from `.env.production` (or untrack the file and keep only `.env.example`). Rewriting git history is optional once the token is revoked. |
+
 ## Dependency Security
 
 ### DEP-1 — Composer package audit
@@ -182,6 +256,9 @@ These items require attention when deploying to production (cannot be verified l
 | `APP_ENV=production` in production `.env` | Required so CORS does not reflect arbitrary origins. |
 | HTTP rate limiting on `POST /api/sync/trigger` | Configure at the web-server/reverse-proxy layer (e.g., `LimitRequestBody` in `.htaccess`, or Nginx `limit_req_zone`). The application enforces admin-only access; rate limiting is a hosting-layer concern. |
 | `composer audit` before each deploy | Re-run to catch newly published CVEs in dependencies. |
+| `APP_KEY` set on the server (Phase 8) | Generate with `php cron/generate-app-key.php`, store only in the server `.env` (`chmod 600`), back it up separately. Without it the admin UI cannot save tokens and syncs report "needs attention". |
+| Legacy `REPO_PAT` removed (Phase 8) | After `php cron/import-env-account.php` and a successful test, delete `REPO_PAT`, `REPO_ORG`, `REPO_PROJECT_NUMBER` from the server `.env`. |
+| Rotate the token committed in `.env.production` (P8-10) | Revoke it on GitHub and stop tracking secrets in git. |
 
 ---
 

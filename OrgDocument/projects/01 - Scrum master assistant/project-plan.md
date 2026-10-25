@@ -5,7 +5,7 @@
 **Start Date**: 2026-04-02  
 **Target Completion**: 2026-04-30 (~20 working days with parallelization)  
 **Last Updated**: 2026-10-24  
-**Status**: ✅ Phases 0–7 complete (36 original tasks + T037–T045, signed off 2026-10-24) — 🔄 Phase 8 (admin configuration & multi-project, T046–T055) planned  
+**Status**: ✅ Phases 0–7 complete (36 original tasks + T037–T045, signed off 2026-10-24) — 🔄 Phase 8 (admin configuration & multi-project, T046–T055) implemented, awaiting production verification  
 
 ## Executive Summary
 
@@ -15,7 +15,7 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 **Calendar Time**: ~20 working days (with parallel execution of independent phases)  
 **Team Size**: Optimized for 1–2 developers  
 
-**Completion**: 36 / 36 original development tasks and 9 / 9 Phase 7 follow-up tasks complete; 10 Phase 8 tasks (T046–T055) planned  
+**Completion**: 36 / 36 original development tasks and 9 / 9 Phase 7 follow-up tasks complete; 9 / 10 Phase 8 tasks (T046–T054) complete locally; T055 production verification pending  
 
 ## Project Phases
 
@@ -135,7 +135,7 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 - [x] **T044** — Issues view pagination controls and page-size selector — *2026-10-24*
 - [x] **T045** — Phase 7 verification and release — *2026-10-24 (PHPUnit 128/128, smoke 22/22, production verified, owner sign-off)*
 
-### Phase 8: Admin Configuration & Multi-Project 🔄 In Progress (requirements approved 2026-10-25)
+### Phase 8: Admin Configuration & Multi-Project 🔄 Implemented locally 2026-10-25 — production verification pending
 **Source**: Owner request 2026-10-24 — configure the GitHub account in the app instead of `.env`, and support multiple GitHub projects with project selection  
 **Dependencies**: Phase 7  
 **Tasks**: T046–T055 (~13.5 days)  
@@ -157,16 +157,16 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 **Known limitation**: designed and tested for **≤ 10 tracked projects with ≤ ~1,000 issues each**; beyond that cron runs may exceed host limits or GitHub's hourly quota (documented in T055).  
 **Future improvement**: per-project access control (user ↔ project membership).
 
-- [ ] **T046** — Data model: GitHub accounts, tracked projects, audit log
-- [ ] **T047** — Credential vault (token encryption at rest)
-- [ ] **T048** — GitHub account API, client factory, owner-generic queries
-- [ ] **T049** — Admin UI: GitHub accounts settings
-- [ ] **T050** — Project tracking: discover, track/untrack, field mapping
-- [ ] **T051** — Sync orchestration: per-project sync, cron loop, isolation, rate limits
-- [ ] **T052** — Global project switcher
-- [ ] **T053** — Backward compatibility: import from `.env`, deployment changes
-- [ ] **T054** — Credential security review and hardening
-- [ ] **T055** — Phase 8 verification and release
+- [x] **T046** — Data model: GitHub accounts, tracked projects, audit log
+- [x] **T047** — Credential vault (token encryption at rest)
+- [x] **T048** — GitHub account API, client factory, owner-generic queries
+- [x] **T049** — Admin UI: GitHub accounts settings
+- [x] **T050** — Project tracking: discover, track/untrack, field mapping
+- [x] **T051** — Sync orchestration: per-project sync, cron loop, isolation, rate limits
+- [x] **T052** — Global project switcher
+- [x] **T053** — Backward compatibility: import from `.env`, deployment changes
+- [x] **T054** — Credential security review and hardening
+- [ ] **T055** — Phase 8 verification and release (local verification, rehearsal, docs done; production deploy + owner sign-off pending)
 
 ## Timeline (Gantt Overview)
 

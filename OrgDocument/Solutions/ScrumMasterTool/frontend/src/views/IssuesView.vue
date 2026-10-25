@@ -6,19 +6,26 @@
  * here. Filtering, sorting and paging are applied by the API through projectStore;
  * the current page is re-fetched every 60 seconds.
  */
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { useProjectStore, PAGE_SIZES } from '../stores/projectStore.js'
 import PaginationBar from '../components/PaginationBar.vue'
+import NoProjectNotice from '../components/NoProjectNotice.vue'
 
 const store = useProjectStore()
 const projectId = computed(() => store.activeProjectId)
 
+async function load(id) {
+  store.stopPolling()
+  if (!id) return
+  await Promise.all([store.fetchIterations(id), store.fetchIssues(id)])
+  if (id === projectId.value) store.startPolling(id, 60000)
+}
+
+watch(projectId, (id) => load(id))
+
 onMounted(async () => {
-  if (!store.projects.length) await store.fetchProjects()
-  if (projectId.value) {
-    await Promise.all([store.fetchIterations(projectId.value), store.fetchIssues(projectId.value)])
-    store.startPolling(projectId.value, 60000)
-  }
+  if (!store.projectsLoaded) await store.fetchProjects()
+  await load(projectId.value)
 })
 
 onUnmounted(() => store.stopPolling())
@@ -34,9 +41,13 @@ const hours = (value) => Number(value ?? 0).toFixed(1)
 <template>
   <div class="page">
     <header class="page-header">
-      <h1>Issues</h1>
+      <h1>Issues<span v-if="store.activeProject" class="project-name"> — {{ store.activeProject.name }}</span></h1>
       <div v-if="store.issuesLoading" class="loading-badge">Refreshing…</div>
     </header>
+
+    <NoProjectNotice v-if="store.projectsLoaded && !projectId" />
+
+    <template v-else>
 
     <!-- Filters -->
     <div class="filters">
@@ -130,6 +141,7 @@ const hours = (value) => Number(value ?? 0).toFixed(1)
       @update:page="store.setPage(projectId, $event)"
       @update:page-size="store.setPageSize(projectId, $event)"
     />
+    </template>
   </div>
 </template>
 
@@ -137,6 +149,7 @@ const hours = (value) => Number(value ?? 0).toFixed(1)
 .page { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 .page-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 h1 { margin: 0; font-size: 1.4rem; color: #1a1a2e; }
+.project-name { font-weight: 400; color: #555; }
 .loading-badge {
   font-size: 0.8rem;
   background: #e9f0ff;

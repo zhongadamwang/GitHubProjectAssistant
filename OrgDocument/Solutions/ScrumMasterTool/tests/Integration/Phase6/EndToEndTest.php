@@ -485,19 +485,18 @@ final class EndToEndTest extends IntegrationTestCase
         $this->assertContains('failed', $statuses);
     }
 
-    public function test_sync_trigger_as_admin_returns_200_or_502(): void
+    public function test_sync_trigger_as_admin_returns_200_409_or_502(): void
     {
-        // POST /api/sync/trigger calls SyncService::run() which contacts GitHub.
-        // In the test environment there is no live PAT, so the service may throw
-        // GitHubApiException → SyncController returns 502.
+        // POST /api/sync/trigger syncs the first tracked project. With no GitHub account or
+        // tracked project it returns 409 (needs configuration); a failing GitHub call returns 502.
         // The critical assertion is that we do NOT get 401 or 403.
         $this->loginAsAdmin();
         $response = $this->request('POST', '/api/sync/trigger');
 
         $this->assertContains(
             $response->getStatusCode(),
-            [200, 502],
-            'Admin sync trigger should return 200 (success) or 502 (API error), not auth failure',
+            [200, 409, 502],
+            'Admin sync trigger should return 200, 409 (not configured) or 502 (API error), not auth failure',
         );
     }
 

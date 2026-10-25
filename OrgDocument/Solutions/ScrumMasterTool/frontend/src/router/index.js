@@ -38,6 +38,18 @@ const routes = [
     component: () => import('../views/AdminView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
+  {
+    path: '/admin/github',
+    name: 'AdminGitHub',
+    component: () => import('../views/AdminGitHubView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/projects',
+    name: 'AdminProjects',
+    component: () => import('../views/AdminProjectsView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ]
 
 const router = createRouter({

@@ -8,6 +8,7 @@
  */
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
+import AdminTabs from '../components/AdminTabs.vue'
 import * as api from '../services/api.js'
 
 const authStore = useAuthStore()
@@ -82,6 +83,7 @@ onMounted(fetchUsers)
     <header class="page-header">
       <h1>User Management</h1>
     </header>
+    <AdminTabs />
 
     <div v-if="loading" class="loading-bar" />
 

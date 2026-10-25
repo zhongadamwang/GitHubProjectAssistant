@@ -12,21 +12,21 @@
 A "Settings → GitHub accounts" area for admins to add, edit, test and delete accounts and replace tokens without ever seeing them again.
 
 ### Acceptance Criteria
-- [ ] New admin-only route/view (`/admin/github`) linked from the Admin area; non-admins are redirected as for `/admin`
-- [ ] Account list: label, owner, type, endpoint, status badge (ok / invalid / expired / insufficient scope / unreachable / needs re-entry), last verified, token hint (`••••abcd`), tracked-project count
-- [ ] Add/edit form with password-type token input (never pre-filled), inline validation, helper text listing the required token permissions (classic and fine-grained)
-- [ ] Buttons: **Test connection** (shows result message), **Replace token**, **Delete** (confirmation; shows the 409 reason when projects are still tracked)
-- [ ] "Import from .env" button appears only when `.env` has legacy `REPO_*` values and no account exists (calls T048/T053 endpoint)
-- [ ] The token is cleared from component state immediately after submit; no token in the URL, console or error banner
-- [ ] Browser-verified: add → test → replace → delete, error states, non-admin access
+- [x] New admin-only route/view (`/admin/github`) linked from the Admin area; non-admins are redirected as for `/admin`
+- [x] Account list: label, owner, type, endpoint, status badge (ok / invalid / expired / insufficient scope / unreachable / needs re-entry), last verified, token hint (`••••abcd`), tracked-project count
+- [x] Add/edit form with password-type token input (never pre-filled), inline validation, helper text listing the required token permissions (classic and fine-grained)
+- [x] Buttons: **Test connection** (shows result message), **Replace token**, **Delete** (confirmation; shows the 409 reason when projects are still tracked)
+- [x] "Import from .env" button appears only when `.env` has legacy `REPO_*` values and no account exists (calls T048/T053 endpoint)
+- [x] The token is cleared from component state immediately after submit; no token in the URL, console or error banner
+- [x] Browser-verified: add → test → replace → delete, error states, non-admin access
 
 ### Tasks/Subtasks
-- [ ] `GitHubAccountsView.vue`, form component, API service functions, store
-- [ ] Admin navigation entry; styles consistent with existing views
-- [ ] Manual checklist in `tests/e2e/FINDINGS.md`
+- [x] `GitHubAccountsView.vue`, form component, API service functions, store
+- [x] Admin navigation entry; styles consistent with existing views
+- [x] Manual checklist in `tests/e2e/FINDINGS.md`
 
 ### Definition of Done
-- [ ] All acceptance criteria met; `npm run build` clean  
+- [x] All acceptance criteria met; `npm run build` clean  
 
 ### Dependencies
 - T048  
@@ -37,6 +37,9 @@ A "Settings → GitHub accounts" area for admins to add, edit, test and delete a
 ### Priority
 High  
 
+### Progress Updates
+- **2026-10-25**: Admin → GitHub accounts view complete; verified in the browser (token write-only, status badges, audit log, import from .env).
+
 ---
-**Status**: Not Started  
-**Last Updated**: 2026-10-24
+**Status**: Completed  
+**Last Updated**: 2026-10-25

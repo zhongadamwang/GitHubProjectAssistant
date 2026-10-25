@@ -1,29 +1,41 @@
 <script setup>
 /**
  * @component SyncView
- * @description GitHub sync management view. Shows sync history and — for admin
- * users — provides a manual trigger button. Uses SyncStatus component to show
- * the age/status of the last run.
+ * @description GitHub sync management. Lists the tracked projects with their last sync result,
+ * shows the sync history of the active project and — for admins — syncs ONE project at a time
+ * ("Sync Now" per project; the cron job syncs all of them).
  */
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
+import { useProjectStore } from '../stores/projectStore.js'
 import SyncStatus from '../components/SyncStatus.vue'
+import NoProjectNotice from '../components/NoProjectNotice.vue'
 import * as api from '../services/api.js'
 
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
 
 const history = ref([])
 const loading = ref(false)
-const triggerLoading = ref(false)
+const syncingId = ref(null)
 const triggerMsg = ref(null)
 
+const projectId = computed(() => projectStore.activeProjectId)
 const latestSync = computed(() => history.value[0] ?? null)
 
+// Timestamps from the API are UTC without a zone marker
+const when = (value) => (value ? new Date(String(value).replace(' ', 'T') + 'Z').toLocaleString() : '—')
+
 async function fetchHistory() {
+  const id = projectId.value
+  if (!id) {
+    history.value = []
+    return
+  }
   loading.value = true
   try {
-    const data = await api.getSyncHistory()
-    history.value = (data.data ?? data.history ?? data).slice(0, 20)
+    const data = await api.getSyncHistory(id)
+    if (id === projectId.value) history.value = (data.data ?? data.history ?? data).slice(0, 20)
   } catch {
     // silently fail — status component handles unknowns
   } finally {
@@ -31,25 +43,33 @@ async function fetchHistory() {
   }
 }
 
-async function handleTrigger() {
-  triggerLoading.value = true
+async function handleSync(project) {
+  syncingId.value = project.id
   triggerMsg.value = null
   try {
-    await api.triggerSync()
-    triggerMsg.value = { type: 'success', text: 'Sync triggered successfully.' }
-    await fetchHistory()
+    const r = await api.syncProject(project.id)
+    triggerMsg.value = {
+      type: 'success',
+      text: `${project.name}: synced — ${r.issues_added ?? 0} added, ${r.issues_updated ?? 0} updated.`,
+    }
   } catch (err) {
     triggerMsg.value = {
       type: 'error',
-      text: err.response?.data?.error ?? 'Sync trigger failed.',
+      text: `${project.name}: ${err.response?.data?.error ?? 'Sync failed.'}`,
     }
   } finally {
-    triggerLoading.value = false
-    setTimeout(() => { triggerMsg.value = null }, 4000)
+    syncingId.value = null
+    await Promise.all([projectStore.fetchProjects(), fetchHistory()])
+    setTimeout(() => { triggerMsg.value = null }, 6000)
   }
 }
 
-onMounted(fetchHistory)
+watch(projectId, fetchHistory)
+
+onMounted(async () => {
+  await projectStore.fetchProjects()
+  await fetchHistory()
+})
 </script>
 
 <template>
@@ -61,26 +81,65 @@ onMounted(fetchHistory)
           :last-sync-at="latestSync?.synced_at ?? null"
           :last-status="latestSync?.status ?? null"
         />
-        <button
-          v-if="authStore.isAdmin"
-          :disabled="triggerLoading"
-          class="btn-sync"
-          @click="handleTrigger"
-        >
-          <span v-if="triggerLoading">Syncing…</span>
-          <span v-else>Sync Now</span>
-        </button>
       </div>
     </header>
 
+    <NoProjectNotice v-if="projectStore.projectsLoaded && !projectStore.projects.length" />
+
+    <template v-else>
     <div v-if="triggerMsg" :class="['msg-banner', triggerMsg.type]">
       {{ triggerMsg.text }}
     </div>
 
+    <section class="table-section projects">
+      <h2>Projects</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Account</th>
+            <th>Last sync</th>
+            <th>Result</th>
+            <th v-if="authStore.isAdmin"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="p in projectStore.projects"
+            :key="p.id"
+            :class="{ active: p.id === projectId }"
+          >
+            <td>
+              <a href="#" @click.prevent="projectStore.selectProject(p.id)">{{ p.name }}</a>
+            </td>
+            <td>
+              {{ p.account_label ?? 'Legacy .env' }}
+              <span v-if="p.account_status && p.account_status !== 'ok'" class="status-badge failed">{{ p.account_status }}</span>
+            </td>
+            <td>{{ when(p.last_sync_at) }}</td>
+            <td>
+              <span v-if="p.last_sync_status" class="status-badge" :class="p.last_sync_status">{{ p.last_sync_status.replace('_', ' ') }}</span>
+              <span v-else>—</span>
+            </td>
+            <td v-if="authStore.isAdmin" class="actions">
+              <button
+                :disabled="syncingId !== null"
+                class="btn-sync"
+                @click="handleSync(p)"
+              >
+                <span v-if="syncingId === p.id">Syncing…</span>
+                <span v-else>Sync Now</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
     <section class="summary" v-if="latestSync">
       <dl>
         <dt>Last Sync</dt>
-        <dd>{{ new Date(latestSync.synced_at).toLocaleString() }}</dd>
+        <dd>{{ when(latestSync.synced_at) }}</dd>
         <dt>GraphQL Points Used</dt>
         <dd>{{ latestSync.points_used ?? '—' }}</dd>
         <dt>Result</dt>
@@ -91,7 +150,7 @@ onMounted(fetchHistory)
     <div v-if="loading" class="loading-bar" />
 
     <section class="table-section">
-      <h2>History</h2>
+      <h2>History<span v-if="projectStore.activeProject"> — {{ projectStore.activeProject.name }}</span></h2>
       <table v-if="history.length">
         <thead>
           <tr>
@@ -105,7 +164,7 @@ onMounted(fetchHistory)
         </thead>
         <tbody>
           <tr v-for="row in history" :key="row.id">
-            <td>{{ new Date(row.synced_at).toLocaleString() }}</td>
+            <td>{{ when(row.synced_at) }}</td>
             <td>{{ row.issues_added }}</td>
             <td>{{ row.issues_updated }}</td>
             <td>{{ row.issues_removed }}</td>
@@ -118,6 +177,7 @@ onMounted(fetchHistory)
       </table>
       <p v-else class="empty">No sync history yet.</p>
     </section>
+    </template>
   </div>
 </template>
 
@@ -127,6 +187,9 @@ onMounted(fetchHistory)
 h1 { margin: 0; font-size: 1.4rem; color: #1a1a2e; }
 h2 { font-size: 1rem; margin: 0 0 0.75rem; color: #333; }
 .header-right { display: flex; align-items: center; gap: 0.75rem; }
+.projects { margin-bottom: 1.25rem; }
+.projects tr.active td { background: #f4f6ff; }
+.actions { text-align: right; }
 .btn-sync {
   padding: 0.45rem 1rem;
   background: #4361ee; color: #fff;
@@ -149,6 +212,7 @@ th { padding: 0.6rem 0.75rem; text-align: left; font-size: 0.82rem; font-weight:
 td { padding: 0.55rem 0.75rem; font-size: 0.88rem; border-top: 1px solid #f1f1f1; }
 .status-badge { font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; text-transform: capitalize; }
 .status-badge.success, .status-badge.ok { background: #d4edda; color: #155724; }
-.status-badge.failed, .status-badge.error { background: #f8d7da; color: #721c24; }
+.status-badge.failed, .status-badge.error, .status-badge.needs_attention, .status-badge.needs_reentry, .status-badge.invalid, .status-badge.expired { background: #f8d7da; color: #721c24; }
+.status-badge.partial, .status-badge.rate_limited { background: #fff3cd; color: #856404; }
 .empty { text-align: center; color: #888; padding: 2rem; }
 </style>

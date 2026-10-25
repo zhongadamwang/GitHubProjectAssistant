@@ -6,11 +6,22 @@ A GitHub-integrated Scrum dashboard for tracking sprint burndown, issue time est
 
 - **Sprint Burndown Chart** — ideal vs. actual remaining-effort line chart, updated every 15 minutes from GitHub
 - **Issue Hours (read-only)** — estimated / remaining / actual hours are synced from GitHub Project number fields; the Issues list is server-side paginated (10/25/50/100 rows) with filters and sorting
+- **Multiple GitHub projects** — admins add GitHub accounts (organizations or users) with their access tokens in the admin area, choose which projects to track, and everybody switches projects from the top bar
 - **Sprint Selector** — the Dashboard lists the project's GitHub iterations (current sprint preselected)
 - **Member Efficiency Analysis** — grouped bar chart comparing estimated vs. actual effort by team member
 - **Sync Monitoring** — sync history table, status indicator (ok / stale / error), manual "Sync Now" trigger for admins
 - **User Management** — admin panel to create and list team members
+- **GitHub account administration** — tokens are stored encrypted (not in `.env`), tested from the UI, rotated by replacing them, and every change is audited
 - **Auto-Refresh** — dashboard polls every 30 s; issues list polls every 60 s
+
+---
+
+## System limitations
+
+- **Size**: the supported size is **up to 10 tracked projects of about 1,000 issues each**. More is allowed (a warning is shown) but may exceed shared-hosting request limits or GitHub's hourly GraphQL quota.
+- **Access**: all signed-in users can see all tracked projects (per-project access control is a possible future improvement).
+- **Authentication to GitHub**: personal access tokens only (a GitHub App / OAuth flow is a possible later phase).
+- **Sync**: the cron job syncs every tracked project one after another; "Sync Now" syncs the selected project only.
 
 ---
 
@@ -64,7 +75,8 @@ cd <your-repo>/OrgDocument/Solutions/ScrumMasterTool
 
 # 2. Copy the environment template and fill in values
 cp .env.example .env
-# Open .env and set DB_*, REPO_PAT, REPO_ORG, REPO_PROJECT_NUMBER
+# Open .env and set DB_*; generate APP_KEY with:  php cron/generate-app-key.php
+# GitHub tokens are NOT stored in .env — add them later in the app (Admin → GitHub accounts)
 
 # 3. Install PHP dependencies
 composer install
@@ -128,7 +140,9 @@ nano .env                       # fill in production values (see comments in .en
 chmod 600 .env                  # restrict permissions
 ```
 
-Set `APP_ENV=production` and `SESSION_SECURE=true` for production.
+Set `APP_ENV=production` and `SESSION_SECURE=true` for production, and set `APP_KEY` (generate it with `php cron/generate-app-key.php`; back it up — it encrypts the stored GitHub tokens).
+
+After the first login, open **Admin → GitHub accounts** to add the GitHub account and token, then **Admin → Projects** to discover and track projects. Upgrading from an installation that still has `REPO_PAT` in `.env`: see the upgrade runbook in [DEPLOYMENT.md](DEPLOYMENT.md#admin-managed-github-accounts-and-multiple-projects-phase-8).
 
 ### Step 4 — Run Migrations
 
@@ -235,11 +249,13 @@ Also verify `SESSION_DOMAIN` matches the hostname you are accessing (leave blank
 
 ### GitHub sync returns HTTP 401
 
-**Cause**: The GitHub Personal Access Token has expired or is missing required scopes.  
+**Cause**: The GitHub Personal Access Token has expired, was revoked, or is missing required scopes. The account then shows status *invalid*/*expired* in **Admin → GitHub accounts**, and the project shows *needs attention* on the Sync page.  
 **Fix**:
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens**
 2. Regenerate the token and ensure it has `read:project`, `read:org`, and `read:user` scopes
-3. Update `GITHUB_TOKEN` in `.env` on the server (and re-run `php cron/sync.php` manually to verify)
+3. In **Admin → GitHub accounts** choose **Edit**, paste the new token and save (the connection is tested immediately); then press **Sync Now** for the project
+
+**Token shows "needs reentry"**: the stored token cannot be decrypted (`APP_KEY` changed or lost) — enter the token again as above.
 
 ---
 

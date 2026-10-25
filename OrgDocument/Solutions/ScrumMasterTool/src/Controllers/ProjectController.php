@@ -24,15 +24,22 @@ final class ProjectController
     }
 
     /**
-     * GET /api/projects
+     * GET /api/projects[?include_archived=1 (admins)]
      *
      * Response 200:
-     * { "projects": [ {...}, ... ] }
+     * { "projects": [ { id, name, github_owner, project_number, current_iteration,
+     *                   account_id, account_label, account_status, is_tracked, archived_at,
+     *                   field_mapping, last_sync_status, last_sync_at, ... }, ... ] }
      */
     public function listProjects(Request $request, Response $response): Response
     {
+        // Archived (untracked) projects are only listed for admins who ask for them
+        $user            = $request->getAttribute('auth_user');
+        $includeArchived = $user !== null && $user->isAdmin()
+            && filter_var($request->getQueryParams()['include_archived'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         try {
-            $projects = $this->projectRepo->findAll();
+            $projects = $this->projectRepo->findForApi($includeArchived);
         } catch (\PDOException) {
             $response->getBody()->write(json_encode(['error' => 'Database error.'], JSON_THROW_ON_ERROR));
             return $response->withStatus(500);

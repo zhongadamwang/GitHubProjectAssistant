@@ -228,23 +228,76 @@ final class Queries
         GRAPHQL;
 
     /**
+     * Tells whether a login belongs to an organization or a user.
+     *
+     * Variables : $owner : String!
+     * Returns   : data.repositoryOwner.__typename ('Organization' | 'User'), or null when unknown
+     */
+    public const FETCH_OWNER_TYPE = <<<'GRAPHQL'
+        query FetchOwnerType($owner: String!) {
+          repositoryOwner(login: $owner) {
+            __typename
+            login
+          }
+        }
+        GRAPHQL;
+
+    /**
+     * Lists the Projects (v2) visible to the token for an owner (paged, 50 per page).
+     *
+     * Variables : $owner : String!, $after : String
+     * Returns   : data.organization.projectsV2 (or data.user.projectsV2) { pageInfo, nodes[] { id number title closed url shortDescription } }
+     */
+    public const LIST_OWNER_PROJECTS = <<<'GRAPHQL'
+        query ListOwnerProjects($owner: String!, $after: String) {
+          organization(login: $owner) {
+            projectsV2(first: 50, after: $after) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                id
+                number
+                title
+                closed
+                url
+                shortDescription
+              }
+            }
+          }
+        }
+        GRAPHQL;
+
+    /**
      * Returns the GraphQL query string for the given query name.
      *
-     * @param  string $name  One of: FETCH_VIEWER, FETCH_PROJECT_FIELDS, FETCH_PROJECT_ITEMS
+     * Owner-scoped queries are written for organizations; for a user account the
+     * root field `organization(login: $owner)` is swapped for `user(login: $owner)`.
+     *
+     * @param  string $name       One of: FETCH_VIEWER, FETCH_OWNER_TYPE, FETCH_PROJECT_FIELDS,
+     *                            FETCH_PROJECT_ITEMS, LIST_OWNER_PROJECTS
+     * @param  string $ownerType  'organization' (default) or 'user'
      * @return string
      * @throws \InvalidArgumentException if the query name is not defined
      */
-    public static function get(string $name): string
+    public static function get(string $name, string $ownerType = 'organization'): string
     {
-        return match ($name) {
+        $query = match ($name) {
             'FETCH_VIEWER'          => self::FETCH_VIEWER,
+            'FETCH_OWNER_TYPE'      => self::FETCH_OWNER_TYPE,
             'FETCH_PROJECT_FIELDS'  => self::FETCH_PROJECT_FIELDS,
             'FETCH_PROJECT_ITEMS'   => self::FETCH_PROJECT_ITEMS,
+            'LIST_OWNER_PROJECTS'   => self::LIST_OWNER_PROJECTS,
             default                 => throw new \InvalidArgumentException(
                 "Unknown GraphQL query: '{$name}'. "
-                . "Valid names: FETCH_VIEWER, FETCH_PROJECT_FIELDS, FETCH_PROJECT_ITEMS"
+                . "Valid names: FETCH_VIEWER, FETCH_OWNER_TYPE, FETCH_PROJECT_FIELDS, FETCH_PROJECT_ITEMS, LIST_OWNER_PROJECTS"
             ),
         };
+
+        return $ownerType === 'user'
+            ? str_replace('organization(login: $owner)', 'user(login: $owner)', $query)
+            : $query;
     }
 
     /**
@@ -258,6 +311,8 @@ final class Queries
     {
         return match ($name) {
             'FETCH_VIEWER'         => [],
+            'FETCH_OWNER_TYPE'     => ['owner' => 'String!'],
+            'LIST_OWNER_PROJECTS'  => ['owner' => 'String!', 'after' => 'String'],
             'FETCH_PROJECT_FIELDS' => ['owner' => 'String!', 'number' => 'Int!'],
             'FETCH_PROJECT_ITEMS'  => ['owner' => 'String!', 'number' => 'Int!', 'after' => 'String'],
             default                => throw new \InvalidArgumentException(
