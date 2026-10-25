@@ -23,7 +23,7 @@ async function fetchHistory() {
   loading.value = true
   try {
     const data = await api.getSyncHistory()
-    history.value = (data.history ?? data).slice(0, 20)
+    history.value = (data.data ?? data.history ?? data).slice(0, 20)
   } catch {
     // silently fail — status component handles unknowns
   } finally {

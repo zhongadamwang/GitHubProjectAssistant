@@ -58,6 +58,8 @@ abstract class IntegrationTestCase extends TestCase
         parent::setUp();
 
         // Clear users table and seed a fresh admin before every test
+        // time_logs.changed_by references users with ON DELETE RESTRICT
+        static::$pdo->exec('DELETE FROM `time_logs`');
         static::$pdo->exec('DELETE FROM `users`');
         $this->seedAdmin(
             static::$adminEmail,

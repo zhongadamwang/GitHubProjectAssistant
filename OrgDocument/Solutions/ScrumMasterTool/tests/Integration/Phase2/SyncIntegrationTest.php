@@ -6,9 +6,11 @@ namespace Tests\Integration\Phase2;
 
 use App\Exceptions\GitHubApiException;
 use App\Services\GitHubClientInterface;
+use App\Repositories\BurndownRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\ProjectRepository;
 use App\Repositories\SyncHistoryRepository;
+use App\Services\BurndownService;
 use App\Services\SyncService;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -293,14 +295,17 @@ final class SyncIntegrationTest extends TestCase
 
     private function makeSyncService(?GitHubClientInterface $stub = null): SyncService
     {
+        $issueRepo = new IssueRepository(self::$pdo);
+
         return new SyncService(
-            gitHub:        $stub ?? new GitHubGraphQLServiceStub($this->fixture),
-            projectRepo:   new ProjectRepository(self::$pdo),
-            issueRepo:     new IssueRepository(self::$pdo),
-            historyRepo:   new SyncHistoryRepository(self::$pdo),
-            owner:         'testowner',
-            projectNumber: 1,
-            snapshotDir:   $this->snapshotDir,
+            gitHub:          $stub ?? new GitHubGraphQLServiceStub($this->fixture),
+            projectRepo:     new ProjectRepository(self::$pdo),
+            issueRepo:       $issueRepo,
+            historyRepo:     new SyncHistoryRepository(self::$pdo),
+            burndownService: new BurndownService(new BurndownRepository(self::$pdo), $issueRepo),
+            owner:           'testowner',
+            projectNumber:   1,
+            snapshotDir:     $this->snapshotDir,
         );
     }
 

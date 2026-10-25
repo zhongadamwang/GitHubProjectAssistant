@@ -5,8 +5,8 @@
  * estimated, remaining, and actual hours.  Performs an optimistic update via
  * projectStore and reverts on API error.
  *
- * @prop {Object} issue  Full issue row from the API (must have id, estimated_hours,
- *   remaining_hours, actual_hours).
+ * @prop {Object} issue  Full issue row from the API (must have id, estimated_time,
+ *   remaining_time, actual_time).
  * @emits saved  Emitted after a successful API write so the parent can re-fetch
  *   or trigger polling.
  */
@@ -23,18 +23,18 @@ const props = defineProps({
 const emit = defineEmits(['saved'])
 const store = useProjectStore()
 
-const estimated = ref(props.issue.estimated_hours ?? 0)
-const remaining = ref(props.issue.remaining_hours ?? 0)
-const actual    = ref(props.issue.actual_hours ?? 0)
+const estimated = ref(props.issue.estimated_time ?? 0)
+const remaining = ref(props.issue.remaining_time ?? 0)
+const actual    = ref(props.issue.actual_time ?? 0)
 
 const flashClass = ref('')
 
 async function save() {
   try {
     await store.saveIssueTime(props.issue.id, {
-      estimated_hours: Number(estimated.value),
-      remaining_hours: Number(remaining.value),
-      actual_hours:    Number(actual.value),
+      estimated_time: Number(estimated.value),
+      remaining_time: Number(remaining.value),
+      actual_time:    Number(actual.value),
     })
     flashClass.value = 'flash-success'
     emit('saved', props.issue.id)
@@ -43,9 +43,9 @@ async function save() {
     // Restore previous values from store (optimistic rollback already done)
     const reverted = store.issues.find((i) => i.id === props.issue.id)
     if (reverted) {
-      estimated.value = reverted.estimated_hours ?? 0
-      remaining.value = reverted.remaining_hours ?? 0
-      actual.value    = reverted.actual_hours ?? 0
+      estimated.value = reverted.estimated_time ?? 0
+      remaining.value = reverted.remaining_time ?? 0
+      actual.value    = reverted.actual_time ?? 0
     }
   } finally {
     setTimeout(() => { flashClass.value = '' }, 800)

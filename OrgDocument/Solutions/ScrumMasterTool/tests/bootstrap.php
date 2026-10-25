@@ -16,6 +16,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Buffer bootstrap output so PHP does not mark headers as sent — otherwise
+// session_start()/session_name() fail in every test.
+ob_start();
+
 // ---------------------------------------------------------------------------
 // 1. Load .env.test (falls back to .env if .env.test is absent)
 // ---------------------------------------------------------------------------
@@ -41,7 +45,10 @@ if (file_exists($testEnvFile)) {
 //    session.use_only_cookies=0 allows the session ID to be passed in other ways.
 // ---------------------------------------------------------------------------
 ini_set('session.use_cookies',      '0');
-ini_set('session.use_only_cookies', '0');
+// Disabling use_only_cookies is deprecated since PHP 8.4
+if (PHP_VERSION_ID < 80400) {
+    ini_set('session.use_only_cookies', '0');
+}
 ini_set('session.use_strict_mode',  '0');
 
 // ---------------------------------------------------------------------------
@@ -75,13 +82,12 @@ try {
 $migrateScript = __DIR__ . '/../database/migrate.php';
 if (file_exists($migrateScript)) {
     $phpBin  = PHP_BINARY;
-    // Pass DB_DATABASE/DB_USERNAME/DB_PASSWORD so migrate.php gets the correct variables
-    // regardless of which .env key names are used.
+    // Pass the DB_* names that migrate.php reads so it targets the test database.
     $envPrefix = 'DB_HOST=' . escapeshellarg($host)
         . ' DB_PORT=' . escapeshellarg($port)
-        . ' DB_DATABASE=' . escapeshellarg($dbname)
-        . ' DB_USERNAME=' . escapeshellarg($user)
-        . ' DB_PASSWORD=' . escapeshellarg($pass);
+        . ' DB_NAME=' . escapeshellarg($dbname)
+        . ' DB_USER=' . escapeshellarg($user)
+        . ' DB_PASS=' . escapeshellarg($pass);
     $cmd = $envPrefix . ' ' . escapeshellarg($phpBin) . ' ' . escapeshellarg($migrateScript);
     exec($cmd, $migrationLines, $exitCode);
     $migrationOutput = implode("\n", $migrationLines);
@@ -91,3 +97,5 @@ if (file_exists($migrateScript)) {
     }
     echo "[OK] Migrations applied.\n";
 }
+
+fwrite(STDOUT, (string) ob_get_clean());

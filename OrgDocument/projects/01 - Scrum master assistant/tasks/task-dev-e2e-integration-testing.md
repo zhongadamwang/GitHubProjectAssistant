@@ -24,24 +24,24 @@ Validate the complete application stack end-to-end: from GitHub sync → DB stor
 
 ### Tasks/Subtasks
 - [x] Write `tests/e2e/api-smoke.sh` — `curl` script covering all 13 endpoints with expected HTTP status assertions; requires `TEST_BASE_URL`, `TEST_ADMIN_EMAIL`, `TEST_ADMIN_PASSWORD` env vars  
-- [ ] Run smoke script against local dev instance; fix any endpoint-level regressions found  
+- [x] Run smoke script against local dev instance; fix any endpoint-level regressions found *(2026-10-24: 20/20 PASS)*  
 - [x] PHPUnit Phase6 E2E suite created in `tests/Integration/Phase6/EndToEndTest.php`; added to `phpunit.xml`  
-- [ ] Manually exercise Vue frontend: login → dashboard (burndown chart renders) → issues (inline edit works) → members (bar chart renders) → sync status (history table populates) → admin view (user list loads)  
-- [ ] Verify 30-second auto-refresh: leave dashboard open for 60 seconds and confirm network tab shows re-fetch at ~30s intervals  
-- [ ] Test session expiry: manually clear PHP session storage on server; confirm unauthenticated API calls return 401 and frontend redirects to `/login`  
+- [x] Manually exercise Vue frontend: login → dashboard (burndown chart renders) → issues (inline edit works) → members (bar chart renders) → sync status (history table populates) → admin view (user list loads)  
+- [x] Verify 30-second auto-refresh: leave dashboard open for 60 seconds and confirm network tab shows re-fetch at ~30s intervals  
+- [x] Test session expiry: manually clear PHP session storage on server; confirm unauthenticated API calls return 401 and frontend redirects to `/login`  
 - [x] Test admin-only POST `/api/sync/trigger` as member → confirm 403 (covered in EndToEndTest)  
-- [ ] Test `PUT /api/issues/{id}/time` survives a sync: run sync after updating time; re-check values unchanged  
+- [x] Test `PUT /api/issues/{id}/time` survives a sync: run sync after updating time; re-check values unchanged *(covered by `SyncIntegrationTest::testLocalTimeFieldsPreservedOnResync`)*  
 - [x] Create `tests/e2e/FINDINGS.md` with severity tracking and manual test checklist  
-- [ ] Fix all blocker-severity findings before marking T032 complete  
+- [x] Fix all blocker-severity findings before marking T032 complete  
 
 ### Definition of Done
 - [x] All acceptance criteria met  
 - [x] `tests/e2e/api-smoke.sh` created — run against a live instance to verify exit 0  
 - [x] `tests/Integration/Phase6/EndToEndTest.php` created and registered in `phpunit.xml`  
 - [x] `tests/e2e/FINDINGS.md` created (manual test checklist pending execution)  
-- [ ] `composer test` exits 0 (pending execution against test DB)  
-- [ ] `api-smoke.sh` exits 0 against a running instance (pending execution)  
-- [ ] No blocker-severity findings open  
+- [x] `vendor/bin/phpunit` exits 0 — 121 tests, 353 assertions, 0 failures (2026-10-24)  
+- [x] `api-smoke.sh` exits 0 against a running instance — 20 passed, 0 failed (2026-10-24)  
+- [x] No blocker-severity findings open  
 
 ### Dependencies
 - All Phase 1 tasks (T001–T006): backend + auth + DB  
@@ -68,7 +68,8 @@ High — This is the entry gate for T033–T036; all polish and hardening tasks 
 
 ### Progress Updates
 - **2026-04-06**: Created `tests/Integration/Phase6/EndToEndTest.php` (30 tests covering auth lifecycle, member/admin access control, all 13 endpoint smoke, time update flow, burndown integrity, efficiency integrity, sync history). Created `tests/e2e/api-smoke.sh` (curl-based; covers all 13 endpoints + member 403 checks + logout flow). Created `tests/e2e/FINDINGS.md` with severity table and manual verification checklist. Added "Phase6 E2E" suite to `phpunit.xml`. Manual frontend verification and live smoke-script execution remain pending.
+- **2026-10-24**: Executed automated verification and the manual browser checklist. Fixed 16 findings (see `tests/e2e/FINDINGS.md`) — 9 backend/test-harness issues and 7 frontend issues (router/session race on refresh, blank charts, API field-name mismatches in Issues/Members/Sync/Admin, missing navigation). Final: PHPUnit 121 tests pass, smoke script 20/20, all UI flows verified in browser (login, dashboard chart, inline edit, members chart, sync history, admin create-user, 30s auto-refresh, session-expiry redirect, member role guard, logout).
 
 ---
-**Status**: In Progress  
-**Last Updated**: 2026-04-06
+**Status**: Completed  
+**Last Updated**: 2026-10-24

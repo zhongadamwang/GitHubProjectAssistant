@@ -18,6 +18,15 @@ declare(strict_types=1);
 // Bootstrap — load .env if not already set
 // ---------------------------------------------------------------------------
 $envFile = dirname(__DIR__) . '/.env';
+
+// Explicit process environment (e.g. from tests/bootstrap.php) takes precedence over .env
+foreach (['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS'] as $envKey) {
+    $envVal = getenv($envKey);
+    if ($envVal !== false) {
+        $_ENV[$envKey] = $envVal;
+    }
+}
+
 if (file_exists($envFile) && class_exists(\Dotenv\Dotenv::class)) {
     $dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__));
     $dotenv->load();

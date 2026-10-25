@@ -14,7 +14,7 @@ import { Chart, registerables } from 'chart.js'
 Chart.register(...registerables)
 
 const props = defineProps({
-  // Array of { login, estimated, actual }
+  // Array of { member, estimated, actual }
   members: {
     type: Array,
     default: () => []
@@ -35,7 +35,7 @@ function buildChart() {
   chartInstance = new Chart(canvasRef.value, {
     type: 'bar',
     data: {
-      labels: props.members.map((m) => m.login),
+      labels: props.members.map((m) => m.member),
       datasets: [
         {
           label: 'Estimated (h)',
@@ -62,7 +62,8 @@ function buildChart() {
 }
 
 onMounted(buildChart)
-watch(() => props.members, buildChart, { deep: true })
+// flush: 'post' — the canvas is rendered with v-if, so it only exists after the DOM update
+watch(() => props.members, buildChart, { deep: true, flush: 'post' })
 onUnmounted(() => {
   if (chartInstance) {
     chartInstance.destroy()

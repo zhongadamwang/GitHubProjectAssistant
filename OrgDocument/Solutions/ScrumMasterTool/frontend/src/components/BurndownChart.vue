@@ -82,7 +82,8 @@ function buildChart() {
 }
 
 onMounted(buildChart)
-watch(() => props.points, buildChart, { deep: true })
+// flush: 'post' — the canvas is rendered with v-if, so it only exists after the DOM update
+watch(() => props.points, buildChart, { deep: true, flush: 'post' })
 onUnmounted(() => {
   if (chartInstance) {
     chartInstance.destroy()

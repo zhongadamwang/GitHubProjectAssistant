@@ -3,7 +3,7 @@
 
   "project_fields_response": {
     "data": {
-      "user": {
+      "organization": {
         "projectV2": {
           "id": "PVT_kwTest01",
           "title": "Sprint Board",

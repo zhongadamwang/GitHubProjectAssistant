@@ -17,6 +17,8 @@ const projectId = computed(() => store.activeProjectId)
 async function load(iteration = null) {
   if (!store.projects.length) await store.fetchProjects()
   if (projectId.value) {
+    // The sprint dropdown is derived from the issue list
+    if (!store.issues.length) await store.fetchIssues(projectId.value)
     await store.fetchMembers(projectId.value, iteration)
   }
 }
@@ -81,8 +83,8 @@ function ratioLabel(m) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="m in store.members" :key="m.login">
-            <td>{{ m.login }}</td>
+          <tr v-for="m in store.members" :key="m.member">
+            <td>{{ m.member }}</td>
             <td>{{ (m.estimated ?? 0).toFixed(1) }}</td>
             <td>{{ (m.actual ?? 0).toFixed(1) }}</td>
             <td>
@@ -90,7 +92,7 @@ function ratioLabel(m) {
                 {{ ratioLabel(m) }}
               </span>
             </td>
-            <td>{{ m.issue_count ?? 0 }}</td>
+            <td>{{ m.issues_count ?? 0 }}</td>
           </tr>
         </tbody>
       </table>

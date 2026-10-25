@@ -73,22 +73,22 @@ const sortIndicator = (key) => {
       <table>
         <thead>
           <tr>
-            <th @click="store.setSort('number')">#{{ sortIndicator('number') }}</th>
+            <th @click="store.setSort('id')"># {{ sortIndicator('id') }}</th>
             <th @click="store.setSort('title')">Title{{ sortIndicator('title') }}</th>
             <th @click="store.setSort('assignee')">Assignee{{ sortIndicator('assignee') }}</th>
-            <th @click="store.setSort('state')">Status{{ sortIndicator('state') }}</th>
+            <th @click="store.setSort('status')">Status{{ sortIndicator('status') }}</th>
             <th @click="store.setSort('iteration')">Sprint{{ sortIndicator('iteration') }}</th>
             <th>Est / Rem / Act (h)</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="issue in store.filteredIssues" :key="issue.id">
-            <td>{{ issue.number }}</td>
+            <td>{{ issue.id }}</td>
             <td class="title-cell">{{ issue.title }}</td>
             <td>{{ issue.assignee ?? '—' }}</td>
             <td>
-              <span class="status-badge" :class="issue.state === 'CLOSED' ? 'closed' : 'open'">
-                {{ issue.state === 'CLOSED' ? 'Closed' : 'Open' }}
+              <span class="status-badge" :class="issue.status === 'closed' ? 'closed' : 'open'">
+                {{ issue.status === 'closed' ? 'Closed' : 'Open' }}
               </span>
             </td>
             <td>{{ issue.iteration ?? '—' }}</td>

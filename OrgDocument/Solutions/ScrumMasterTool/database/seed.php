@@ -22,6 +22,15 @@ declare(strict_types=1);
 // Bootstrap — load .env if available
 // ---------------------------------------------------------------------------
 $envFile = dirname(__DIR__) . '/.env';
+
+// Explicit process environment takes precedence over .env
+foreach (['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS'] as $envKey) {
+    $envVal = getenv($envKey);
+    if ($envVal !== false) {
+        $_ENV[$envKey] = $envVal;
+    }
+}
+
 if (file_exists($envFile) && class_exists(\Dotenv\Dotenv::class)) {
     $dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__));
     $dotenv->load();
@@ -78,12 +87,12 @@ if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
 // ---------------------------------------------------------------------------
 $host     = $_ENV['DB_HOST']     ?? getenv('DB_HOST')     ?: '127.0.0.1';
 $port     = $_ENV['DB_PORT']     ?? getenv('DB_PORT')     ?: '3306';
-$dbname   = $_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: '';
-$username = $_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: '';
-$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$dbname   = $_ENV['DB_NAME']     ?? getenv('DB_NAME')     ?: '';
+$username = $_ENV['DB_USER']     ?? getenv('DB_USER')     ?: '';
+$password = $_ENV['DB_PASS']     ?? getenv('DB_PASS')     ?: '';
 
 if (empty($dbname) || empty($username)) {
-    fwrite(STDERR, "ERROR: DB_DATABASE and DB_USERNAME must be set in the environment.\n");
+    fwrite(STDERR, "ERROR: DB_NAME and DB_USER must be set in the environment.\n");
     exit(1);
 }
 

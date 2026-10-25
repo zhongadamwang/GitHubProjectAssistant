@@ -95,7 +95,7 @@ onMounted(fetchUsers)
             <th>Display Name</th>
             <th>Role</th>
             <th>GitHub Username</th>
-            <th>Last Login</th>
+            <th>Created</th>
           </tr>
         </thead>
         <tbody>
@@ -106,7 +106,7 @@ onMounted(fetchUsers)
               <span class="role-badge" :class="u.role">{{ u.role }}</span>
             </td>
             <td>{{ u.github_username ?? '—' }}</td>
-            <td>{{ u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never' }}</td>
+            <td>{{ u.created_at ? new Date(u.created_at.replace(' ', 'T')).toLocaleString() : '—' }}</td>
           </tr>
         </tbody>
       </table>

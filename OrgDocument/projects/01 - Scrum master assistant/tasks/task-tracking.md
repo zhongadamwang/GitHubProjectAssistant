@@ -2,14 +2,14 @@
 
 **Project**: PRJ-01 — Scrum Master Assistant  
 **Last Updated**: 2026-04-08  
-**Status**: Phase 6 In Progress — 1 Task Remaining (T032)  
+**Status**: Phase 6 Complete — all tasks done
 
 ## Current Sprint: Phase 6 — Polish & Validation
 
 ### Active Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Task File |
 |---------|-------|----------|--------|----------|--------|-----------|
-| T032 | End-to-End Integration Testing | TBD | In Progress | High | 1d | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
+| T032 | End-to-End Integration Testing | Copilot | Completed | High | 1d | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
 
 > **Blocker**: `php database/migrate.php` exits code 1 — MySQL must be running locally to execute smoke script and PHPUnit suite.
 
@@ -61,7 +61,7 @@
 ### Active Sprint — Phase 6: Polish & Validation
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
 |---------|-------|--------|----------|--------------|-----------|
-| T032 | End-to-End Integration Testing | 1d | High | All Phase 1–5 | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
+| ~~T032~~ | ~~End-to-End Integration Testing~~ | ~~1d~~ | ~~High~~ | ~~All Phase 1–5~~ | ~~[task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md)~~ |
 
 ### Backlog — Phase 6: Polish & Validation
 | Task ID | Title | Effort | Priority | Dependencies | Task File |
@@ -125,17 +125,12 @@
 
 ## Progress Summary
 - **Total Tasks**: 36 development tasks + 9 planning tasks completed
-- **Development Tasks Complete**: 35 / 36 (**97%**)
-- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅
-- **Phase 6 Progress**: T033 ✅, T034 ✅, T035 ✅, T036 ✅ | T032 🔄 In Progress
-- **Remaining**: T032 (E2E integration test execution blocked on local MySQL)
-- **Critical Path**: Restore local MySQL → run `database/migrate.php` → execute `tests/e2e/api-smoke.sh` → run PHPUnit Phase6 suite → T032 complete → project done
+- **Development Tasks Complete**: 36 / 36 (**100%**)
+- **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅, Phase 6 ✅
+- **Phase 6 Progress**: T032 ✅, T033 ✅, T034 ✅, T035 ✅, T036 ✅
+- **Remaining**: none — T032 closed 2026-10-24 (PHPUnit 121/121, smoke 20/20, manual browser checklist passed)
 
 ## Next Actions
-1. **Fix MySQL** — start MySQL locally (`mysql.server start` or via Homebrew services) and re-run `php database/migrate.php` to confirm clean migration
-2. **Seed DB** — run `php database/seed.php` to create admin user
-3. **Start PHP dev server** — `php -S localhost:8080 -t public/` from `ScrumMasterTool/`
-4. **Run smoke script** — `bash tests/e2e/api-smoke.sh` (requires `TEST_BASE_URL`, `TEST_ADMIN_EMAIL`, `TEST_ADMIN_PASSWORD` env vars set)
-5. **Run PHPUnit** — `composer test` — confirm Phase6 E2E suite exits 0
-6. **Manually verify frontend** — follow `tests/e2e/FINDINGS.md` checklist
-7. **Mark T032 complete** — close out project
+1. **Deploy** — push to `main` so the GitHub Actions pipeline rebuilds the frontend and deploys (includes the 2026-10-24 frontend/API fixes)
+2. **Verify production** — load the site, log in, check dashboard chart, issues edit, sync history
+3. **Run a real sync** — set the real `REPO_PAT`/`REPO_ORG`/`REPO_PROJECT_NUMBER` and trigger Sync Now on the live instance

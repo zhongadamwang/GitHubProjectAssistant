@@ -255,12 +255,14 @@ final class EndToEndTest extends IntegrationTestCase
             'email'        => 'dup@example.com',
             'password'     => 'Secure5678!',
             'display_name' => 'Dup User',
+            'role'         => 'member',
         ]);
         // Create again — should conflict
         $response = $this->request('POST', '/api/admin/users', [
             'email'        => 'dup@example.com',
             'password'     => 'Secure5678!',
             'display_name' => 'Dup User',
+            'role'         => 'member',
         ]);
 
         $this->assertSame(409, $response->getStatusCode());
@@ -311,7 +313,7 @@ final class EndToEndTest extends IntegrationTestCase
             ['GET',  '/api/sync/history',                            200, null],
             ['GET',  '/api/admin/users',                             200, null],
             ['POST', '/api/admin/users',                             201,
-                ['email' => 'smoke13@test.local', 'password' => 'Smoke1234!', 'display_name' => 'Smoke']],
+                ['email' => 'smoke13@test.local', 'password' => 'Smoke1234!', 'display_name' => 'Smoke', 'role' => 'member']],
         ];
 
         foreach ($specs as [$method, $path, $expected, $body]) {
@@ -441,15 +443,13 @@ final class EndToEndTest extends IntegrationTestCase
         $this->assertArrayHasKey('actual', $point);
     }
 
-    public function test_burndown_for_nonexistent_project_returns_200_empty(): void
+    public function test_burndown_for_nonexistent_project_returns_404(): void
     {
-        // BurndownController returns empty points (not 404) when project has no data
         $this->loginAsAdmin();
         $response = $this->request('GET', '/api/projects/999999/burndown');
 
-        $this->assertSame(200, $response->getStatusCode());
-        $body = $this->json($response);
-        $this->assertIsArray($body['points']);
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertArrayHasKey('error', $this->json($response));
     }
 
     // =========================================================================
@@ -519,6 +519,23 @@ final class EndToEndTest extends IntegrationTestCase
         $body = $this->json($response);
         $this->assertNotEmpty($body['data']);
         $this->assertSame('success', $body['data'][0]['status']);
+    }
+
+    public function test_sync_history_without_project_id_includes_all_projects_and_failed_runs(): void
+    {
+        $stmt = static::$pdo->prepare(
+            'INSERT INTO `sync_history` (project_id, status, error_message) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$this->projectId, 'success', '']);
+        $stmt->execute([null, 'failed', 'GitHub API returned HTTP 401']);
+
+        $this->loginAsAdmin();
+        $response = $this->request('GET', '/api/sync/history');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $statuses = array_column($this->json($response)['data'], 'status');
+        $this->assertContains('success', $statuses);
+        $this->assertContains('failed', $statuses);
     }
 
     public function test_sync_trigger_as_admin_returns_200_or_502(): void

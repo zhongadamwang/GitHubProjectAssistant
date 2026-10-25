@@ -62,23 +62,29 @@ final class SyncHistoryRepository
     }
 
     /**
-     * Return the most recent sync history records for a project, newest first.
+     * Return the latest sync history rows, newest first.
+     * A $projectId <= 0 means "all projects", which also includes failed runs
+     * that were logged before a project could be resolved (project_id NULL).
      *
-     * @param  int  $projectId  Local `projects.id`
+     * @param  int  $projectId
      * @param  int  $limit
      * @return array<int,array<string,mixed>>
      */
     public function findLatest(int $projectId, int $limit = 20): array
     {
+        $where = $projectId > 0 ? 'WHERE `project_id` = ?' : '';
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM `sync_history`
-              WHERE `project_id` = ?
-              ORDER BY `synced_at` DESC
-              LIMIT ?'
+            "SELECT * FROM `sync_history`
+              {$where}
+              ORDER BY `synced_at` DESC, `id` DESC
+              LIMIT ?"
         );
         // PDO requires explicit int binding for LIMIT with EMULATE_PREPARES=false
-        $stmt->bindValue(1, $projectId, PDO::PARAM_INT);
-        $stmt->bindValue(2, $limit,     PDO::PARAM_INT);
+        $i = 1;
+        if ($projectId > 0) {
+            $stmt->bindValue($i++, $projectId, PDO::PARAM_INT);
+        }
+        $stmt->bindValue($i, $limit, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll();

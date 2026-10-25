@@ -217,7 +217,7 @@ STATUS=$(post_json "$ADMIN_COOKIE" /api/admin/users \
 assert_status "POST /api/admin/users (create)" "201" "$STATUS"
 
 STATUS=$(post_json "$ADMIN_COOKIE" /api/admin/users \
-    "{\"email\":\"${UNIQUE_EMAIL}\",\"password\":\"Smoke5678!\",\"display_name\":\"Smoke User\"}")
+    "{\"email\":\"${UNIQUE_EMAIL}\",\"password\":\"Smoke5678!\",\"display_name\":\"Smoke User\",\"role\":\"member\"}")
 assert_status "POST /api/admin/users (duplicate email)" "409" "$STATUS"
 
 STATUS=$(post_json "$ADMIN_COOKIE" /api/admin/users \

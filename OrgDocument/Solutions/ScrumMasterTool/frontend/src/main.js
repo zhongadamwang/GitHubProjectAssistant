@@ -8,10 +8,11 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
-app.use(router)
 
-// Restore session state before mounting to avoid flash-of-unauthenticated-content
+// Restore session state before installing the router: installing it triggers the
+// initial navigation, whose guard needs to know whether the user is authenticated.
 const authStore = useAuthStore()
 authStore.fetchMe().finally(() => {
+  app.use(router)
   app.mount('#app')
 })

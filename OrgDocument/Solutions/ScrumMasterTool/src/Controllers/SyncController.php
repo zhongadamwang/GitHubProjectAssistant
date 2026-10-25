@@ -27,8 +27,9 @@ final class SyncController
     /**
      * GET /api/sync/history
      *
-     * Returns the last 20 sync history records for the configured project,
-     * sorted newest first.
+     * Returns the last 20 sync history records, newest first. Pass `?project_id=N`
+     * to restrict them to one project; without it, all projects (and failed runs
+     * not tied to a project) are included.
      *
      * Response 200:
      * {
@@ -37,8 +38,7 @@ final class SyncController
      */
     public function history(Request $request, Response $response): Response
     {
-        // project_id=0 is a safe fallback when no row exists yet; the repo
-        // returns an empty array which is valid JSON.
+        // project_id=0 means "all projects"
         $params    = $request->getQueryParams();
         $projectId = (int) ($params['project_id'] ?? 0);
 

@@ -11,7 +11,7 @@ use Tests\Integration\IntegrationTestCase;
  * Covers:
  *  - AuthMiddleware: unauthenticated requests to protected routes → 401
  *  - AdminMiddleware: authenticated member requests to admin routes → 403
- *  - Admin authenticated requests to admin routes → pass through (501 from placeholder)
+ *  - Admin authenticated requests to admin routes → pass through the guards
  *  - All 13 routes are reachable (correct HTTP method + path registered)
  */
 final class MiddlewareTest extends IntegrationTestCase
@@ -91,7 +91,7 @@ final class MiddlewareTest extends IntegrationTestCase
     }
 
     // =========================================================================
-    // Admin user passes admin guard (gets 501 from placeholder controller)
+    // Admin user passes admin guard (reaches the real controller)
     // =========================================================================
 
     /**
@@ -105,11 +105,12 @@ final class MiddlewareTest extends IntegrationTestCase
 
         $response = $this->request($method, $path);
 
-        // 501 means middleware passed and the placeholder controller responded
-        $this->assertSame(
-            501,
+        // Controllers are implemented, so any status other than 401/403 means
+        // both middleware guards let the admin through.
+        $this->assertNotContains(
             $response->getStatusCode(),
-            "Route {$method} {$path} should reach placeholder (501) for admin user",
+            [401, 403],
+            "Route {$method} {$path} should pass the auth/admin guards for an admin user",
         );
     }
 
@@ -117,14 +118,13 @@ final class MiddlewareTest extends IntegrationTestCase
     // Authenticated user passes auth guard on protected routes
     // =========================================================================
 
-    public function test_authenticated_user_reaches_projects_placeholder(): void
+    public function test_authenticated_user_reaches_projects_endpoint(): void
     {
         $this->loginAsAdmin();
 
         $response = $this->request('GET', '/api/projects');
 
-        // 501 = middleware passed, placeholder controller responded
-        $this->assertSame(501, $response->getStatusCode());
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     // =========================================================================

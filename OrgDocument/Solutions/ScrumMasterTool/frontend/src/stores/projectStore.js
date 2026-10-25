@@ -20,7 +20,7 @@ export const useProjectStore = defineStore('project', {
     filterAssignee: '',
     filterIteration: '',
     filterStatus: 'all',
-    sortKey: 'number',
+    sortKey: 'id',
     sortDir: 'asc',
 
     // Polling
@@ -39,7 +39,7 @@ export const useProjectStore = defineStore('project', {
       }
       if (state.filterStatus !== 'all') {
         list = list.filter((i) =>
-          state.filterStatus === 'open' ? i.state !== 'CLOSED' : i.state === 'CLOSED'
+          state.filterStatus === 'open' ? i.status !== 'closed' : i.status === 'closed'
         )
       }
 
@@ -61,9 +61,9 @@ export const useProjectStore = defineStore('project', {
 
     // Column totals
     totals: (state) => ({
-      estimated: state.issues.reduce((s, i) => s + (i.estimated_hours ?? 0), 0),
-      remaining: state.issues.reduce((s, i) => s + (i.remaining_hours ?? 0), 0),
-      actual:    state.issues.reduce((s, i) => s + (i.actual_hours ?? 0), 0),
+      estimated: state.issues.reduce((s, i) => s + (i.estimated_time ?? 0), 0),
+      remaining: state.issues.reduce((s, i) => s + (i.remaining_time ?? 0), 0),
+      actual:    state.issues.reduce((s, i) => s + (i.actual_time ?? 0), 0),
     }),
   },
 
@@ -97,7 +97,13 @@ export const useProjectStore = defineStore('project', {
       this.issuesError = null
       try {
         const data = await api.getIssues(projectId)
-        this.issues = data.issues ?? data
+        // MySQL DECIMAL columns are serialised as strings — coerce to numbers
+        this.issues = (data.issues ?? data).map((i) => ({
+          ...i,
+          estimated_time: Number(i.estimated_time ?? 0),
+          remaining_time: Number(i.remaining_time ?? 0),
+          actual_time:    Number(i.actual_time ?? 0),
+        }))
       } catch (err) {
         this.issuesError = err.message ?? 'Failed to load issues.'
       } finally {
