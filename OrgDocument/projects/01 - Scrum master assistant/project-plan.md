@@ -5,7 +5,7 @@
 **Start Date**: 2026-04-02  
 **Target Completion**: 2026-04-30 (~20 working days with parallelization)  
 **Last Updated**: 2026-10-24  
-**Status**: ✅ Complete — all 36 development tasks done (T032 closed 2026-10-24)  
+**Status**: ✅ Phases 0–6 complete (36 / 36 tasks) — 🔄 Phase 7 (post-release feedback, T037–T045) planned  
 
 ## Executive Summary
 
@@ -15,7 +15,7 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 **Calendar Time**: ~20 working days (with parallel execution of independent phases)  
 **Team Size**: Optimized for 1–2 developers  
 
-**Completion**: 36 / 36 development tasks complete (**100%**)  
+**Completion**: 36 / 36 original development tasks complete (**100%**); 9 follow-up tasks (T037–T045) planned from live-site feedback  
 
 ## Project Phases
 
@@ -104,6 +104,37 @@ Build a GitHub-integrated Scrum project management dashboard deployed on cPanel 
 
 > **T032 status (2026-10-24)**: complete — migrations, PHPUnit suite, smoke script and the manual browser checklist all pass.
 
+### Phase 7: Post-Release Feedback 🔄 Planned
+**Source**: Owner's live-site review of https://scrum.softercolor.com/ on 2026-10-24  
+**Dependencies**: Phase 6  
+**Tasks**: T037–T045 (~7.5 days) — status: Approved, ready to start  
+**Change records**: [REQ-CHG-001](artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md) · [REQ-CHG-002](artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md) · [REQ-ADD-001](artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md)  
+
+| # | Feedback | Change | Tasks | Priority |
+|---|----------|--------|-------|----------|
+| 3 | Estimate / remaining / actual hours are not synced; burndown is affected | REQ-CHG-001 | T037 field mapping → T038 persist + change detection + audit → T039 burndown accuracy → T040 tests/docs/backfill | High |
+| 1 | Dashboard sprint dropdown only shows "Latest" — should list the project's iterations | REQ-CHG-002 | T041 iterations endpoint + current iteration → T042 selector wiring | High |
+| 2 | Issues list needs pagination with a page-size dropdown | REQ-ADD-001 | T043 API pagination → T044 UI controls | Medium |
+| — | Release gate | all | T045 verification and release | High |
+
+**Suggested order**: T037 → T038 → T039 (hours/burndown first — the dashboard is not trustworthy without it); T041/T042 and T043/T044 can run in parallel with them; T040 and T045 close the phase.
+
+**Owner decisions (2026-10-24)** — all three change records are now **Approved**:
+1. GitHub fields: `Estimate Hours`, `Remains Hours`, `Actual Hours`; iteration field `Iteration`.
+2. **GitHub wins; the dashboard is read-only for hours** (inline editor and `PUT /api/issues/{id}/time` are retired in T038).
+3. Closed issues count as 0 remaining in the burndown.
+4. Issues pagination is server-side, page sizes 10/25/50/100, default 25.
+
+- [ ] **T037** — Map GitHub number fields to hours (parser + config)
+- [ ] **T038** — Persist synced hours, change detection, audit
+- [ ] **T039** — Burndown accuracy with synced hours (baseline, closed issues, rebuild)
+- [ ] **T040** — Hours sync tests, docs, production backfill
+- [ ] **T041** — Iterations endpoint + current iteration in sync
+- [ ] **T042** — Sprint selector wiring (Dashboard, Issues, Members)
+- [ ] **T043** — Issues API server-side pagination, filters, sort, totals
+- [ ] **T044** — Issues view pagination controls and page-size selector
+- [ ] **T045** — Phase 7 verification and release
+
 ## Timeline (Gantt Overview)
 
 ```
@@ -151,3 +182,9 @@ Week 4 (Days 18-20):Phase 6 █████████████████�
 - [Collaboration Diagrams](artifacts/Analysis/collaboration-diagrams.md)
 - [Technical Architecture](artifacts/Analysis/technical-architecture.md)
 - [Task Breakdown](artifacts/Analysis/task-breakdown.md)
+
+## Related Changes
+
+- [REQ-CHG-001](artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md) - Sync time-tracking hours from GitHub Project fields; GitHub wins, dashboard read-only (High, Approved)
+- [REQ-CHG-002](artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md) - Dashboard sprint selector lists project iterations (High, Approved)
+- [REQ-ADD-001](artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md) - Issues pagination with page-size selector (Medium, Approved)

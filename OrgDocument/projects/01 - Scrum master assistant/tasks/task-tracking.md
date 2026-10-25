@@ -1,18 +1,34 @@
 # Task Tracking — Scrum Master Assistant
 
 **Project**: PRJ-01 — Scrum Master Assistant  
-**Last Updated**: 2026-04-08  
-**Status**: Phase 6 Complete — all tasks done
+**Last Updated**: 2026-10-24  
+**Status**: Phases 1–6 complete — Phase 7 (post-release feedback) planned
 
-## Current Sprint: Phase 6 — Polish & Validation
+## Current Sprint: Phase 7 — Post-Release Feedback
+
+Source: owner's live-site review (2026-10-24). Change records: [REQ-CHG-001](../artifacts/Changes/2026-10-24-REQ-CHG-001-sync-hours-from-github.md), [REQ-CHG-002](../artifacts/Changes/2026-10-24-REQ-CHG-002-dashboard-sprint-selector-iterations.md), [REQ-ADD-001](../artifacts/Changes/2026-10-24-REQ-ADD-001-issues-pagination.md).
 
 ### Active Tasks
+| Task ID | Title | Assignee | Status | Priority | Effort | Depends on | Task File |
+|---------|-------|----------|--------|----------|--------|------------|-----------|
+| T037 | Map GitHub Number Fields to Hours (Parser + Config) | TBD | Ready | High | 0.5d | — | [task-dev-github-hours-field-mapping.md](task-dev-github-hours-field-mapping.md) |
+| T038 | Persist Synced Hours (GitHub wins), Read-Only Dashboard, Audit | TBD | Not Started | High | 1.5d | T037 | [task-dev-sync-hours-persistence.md](task-dev-sync-hours-persistence.md) |
+| T039 | Burndown Accuracy with Synced Hours | TBD | Not Started | High | 1d | T038 | [task-dev-burndown-accuracy.md](task-dev-burndown-accuracy.md) |
+| T040 | Hours Sync Tests, Docs, Production Backfill | TBD | Not Started | High | 0.5d | T038, T039 | [task-dev-hours-sync-tests-docs.md](task-dev-hours-sync-tests-docs.md) |
+| T041 | Iterations Endpoint + Current Iteration in Sync | TBD | Not Started | High | 1d | T037 (field name) | [task-dev-iterations-endpoint.md](task-dev-iterations-endpoint.md) |
+| T042 | Sprint Selector Wiring (Dashboard, Issues, Members) | TBD | Not Started | High | 0.5d | T041 | [task-dev-sprint-selector-frontend.md](task-dev-sprint-selector-frontend.md) |
+| T043 | Issues API Pagination, Filters, Sort, Totals | TBD | Not Started | Medium | 1d | — | [task-dev-issues-pagination-api.md](task-dev-issues-pagination-api.md) |
+| T044 | Issues View Pagination Controls + Page-Size Selector | TBD | Not Started | Medium | 1d | T043 | [task-dev-issues-pagination-ui.md](task-dev-issues-pagination-ui.md) |
+| T045 | Phase 7 Verification and Release | TBD | Not Started | High | 0.5d | T040, T042, T044 | [task-dev-phase7-verification.md](task-dev-phase7-verification.md) |
+
+> **Owner decisions (2026-10-24)**: fields `Estimate Hours` / `Remains Hours` / `Actual Hours` / `Iteration`; GitHub wins and the dashboard is read-only for hours; closed issues = 0 remaining; server-side pagination (10/25/50/100, default 25). All change records are Approved.
+
+## Previous Sprint: Phase 6 — Polish & Validation (complete)
+
+### Phase 6 Tasks
 | Task ID | Title | Assignee | Status | Priority | Effort | Task File |
 |---------|-------|----------|--------|----------|--------|-----------|
 | T032 | End-to-End Integration Testing | Copilot | Completed | High | 1d | [task-dev-e2e-integration-testing.md](task-dev-e2e-integration-testing.md) |
-
-> **Blocker**: `php database/migrate.php` exits code 1 — MySQL must be running locally to execute smoke script and PHPUnit suite.
-
 
 
 
@@ -128,9 +144,10 @@
 - **Development Tasks Complete**: 36 / 36 (**100%**)
 - **Phases Complete**: Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅, Phase 6 ✅
 - **Phase 6 Progress**: T032 ✅, T033 ✅, T034 ✅, T035 ✅, T036 ✅
-- **Remaining**: none — T032 closed 2026-10-24 (PHPUnit 121/121, smoke 20/20, manual browser checklist passed)
+- **Remaining**: Phase 7 — 9 follow-up tasks (T037–T045, ~7.5 days) from the 2026-10-24 live-site feedback; change records approved
+- **Live site**: https://scrum.softercolor.com/ — deployed 2026-10-24 (T032 fixes)
 
 ## Next Actions
-1. **Deploy** — push to `main` so the GitHub Actions pipeline rebuilds the frontend and deploys (includes the 2026-10-24 frontend/API fixes)
-2. **Verify production** — load the site, log in, check dashboard chart, issues edit, sync history
-3. **Run a real sync** — set the real `REPO_PAT`/`REPO_ORG`/`REPO_PROJECT_NUMBER` and trigger Sync Now on the live instance
+1. **Start T037 → T038 → T039** — hours sync, read-only dashboard and burndown accuracy (highest impact); no owner decisions outstanding
+2. **In parallel**: T041/T042 (sprint selector) and T043/T044 (pagination)
+3. **Close with T040 and T045** — tests, docs, production backfill (needs real `REPO_*` settings and the `REPO_FIELD_*` names on the server), owner sign-off
