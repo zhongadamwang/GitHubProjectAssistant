@@ -18,11 +18,11 @@
 | Security Misconfiguration (A05) | 4 | 4 | 0 | 0 |
 | Security Logging & Monitoring (A09) | 2 | 2 | 0 | 0 |
 | Dependency Security | 1 | 1 | 0 | 0 |
-| Phase 8 — GitHub account credentials (P8) | 10 | 9 | 1 | 0 |
-| **Total** | **27** | **26** | **1** | **0** |
+| Phase 8 — GitHub account credentials (P8) | 10 | 10 | 0 | 0 |
+| **Total** | **27** | **27** | **0** | **0** |
 
 **Result (Phase 1–7 review, 2026-04-06): PASS.**
-**Phase 8 review (2026-10-25): 9 of 10 PASS; 1 open finding — P8-10 (`.env.production` tracked in git with a token), which needs an owner action (rotate the token and untrack the file).**
+**Phase 8 review (2026-10-25): 9 of 10 PASS; P8-10 (secrets in tracked `.env.production`) is fixed in the repository but still needs owner action: revoke the old GitHub token and change the database password.**
 
 ---
 
@@ -230,9 +230,9 @@ Automated evidence: `tests/Integration/Phase8/SecurityTest.php` (+ `AccountApiTe
 ### P8-10 — Secrets committed to the repository
 | | |
 |---|---|
-| **Status** | ❌ OPEN (owner action required) |
+| **Status** | ✅ FIXED in repo — ⚠ owner must rotate the exposed secrets |
 | **File** | `.env.production` (tracked by git) |
-| **Finding** | `.env.production` is committed and contains a `REPO_PAT` value that looks like a real GitHub token (and other environment values). A token in git history must be treated as compromised. **Action:** revoke/rotate that token on GitHub, add the new one through Admin → GitHub accounts, then remove the secrets from `.env.production` (or untrack the file and keep only `.env.example`). Rewriting git history is optional once the token is revoked. |
+| **Finding** | `.env.production` was committed with a real-looking `REPO_PAT` **and the production database password** (`DB_PASS`/`DB_PASSWORD`). **Fixed:** the file is now a secret-free template (blank password/key fields, no legacy GitHub values, `SESSION_SECURE=true`). The old values remain in git history, so they must be treated as compromised. **Owner action:** (1) revoke the old GitHub token and use the new one stored through Admin → GitHub accounts; (2) change the MySQL password for `scrum_user` in cPanel and update the server `.env`. Rewriting git history is optional once both are rotated. |
 
 ## Dependency Security
 
@@ -258,7 +258,7 @@ These items require attention when deploying to production (cannot be verified l
 | `composer audit` before each deploy | Re-run to catch newly published CVEs in dependencies. |
 | `APP_KEY` set on the server (Phase 8) | Generate with `php cron/generate-app-key.php`, store only in the server `.env` (`chmod 600`), back it up separately. Without it the admin UI cannot save tokens and syncs report "needs attention". |
 | Legacy `REPO_PAT` removed (Phase 8) | After `php cron/import-env-account.php` and a successful test, delete `REPO_PAT`, `REPO_ORG`, `REPO_PROJECT_NUMBER` from the server `.env`. |
-| Rotate the token committed in `.env.production` (P8-10) | Revoke it on GitHub and stop tracking secrets in git. |
+| Rotate secrets that were committed in `.env.production` (P8-10) | Revoke the old GitHub token and change the database password; the file is now a secret-free template. |
 
 ---
 

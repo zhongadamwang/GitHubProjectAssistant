@@ -86,5 +86,5 @@ Local run (PHP dev server + temp MySQL, 2 seeded projects for the UI checks, 10 
 | 18 | Minor | `api.js` | A 502/503 that carries an API message (GitHub rejected the token, `APP_KEY` missing) also raised a generic "Server error" banner | Fixed |
 | 19 | Minor | Admin projects view | The project switcher kept listing a project after it was untracked | Fixed |
 | 20 | Medium | `slim/slim` 4.15.1 | `composer audit`: CVE-2026-48157 (reflected XSS in the HTML error renderer) | Fixed (4.15.3) |
-| 21 | High | `.env.production` | Tracked in git and contains a real-looking `REPO_PAT` | **Open — owner action:** rotate the token, stop tracking secrets (see `security-checklist.md` P8-10) |
+| 21 | High | `.env.production` | Tracked in git with a real-looking `REPO_PAT` and the production DB password | File sanitized into a template. **Owner action:** revoke the old token and change the DB password (values remain in git history) — see `security-checklist.md` P8-10 |
 | 22 | Minor | `tests/perf/benchmark.sh` | Failed on macOS (BSD `mktemp` template, empty array under `set -u`) | Fixed; its results table is still malformed (per-run lines leak into the table) — Phase 8 numbers are recorded by hand in `results.md` |
