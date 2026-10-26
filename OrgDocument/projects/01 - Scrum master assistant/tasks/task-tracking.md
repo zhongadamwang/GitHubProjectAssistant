@@ -2,7 +2,7 @@
 
 **Project**: PRJ-01 — Scrum Master Assistant  
 **Last Updated**: 2026-10-25  
-**Status**: Phases 1–7 complete — Phase 8 (admin configuration & multi-project) implemented and verified locally — awaiting production deployment and owner verification
+**Status**: Phases 1–7 complete — Phase 8 (admin configuration & multi-project) complete — signed off by owner 2026-10-25
 
 ## Current Sprint: Phase 8 — Admin Configuration & Multi-Project
 
@@ -19,10 +19,10 @@ Source: owner request 2026-10-24. Change records: [REQ-ADD-002](../artifacts/Cha
 | T051 | Sync Orchestration: Per-Project, Cron Loop, Isolation, Rate Limits | TBD | Completed | High | 2d | T046, T048, T050 | [task-dev-sync-orchestration.md](task-dev-sync-orchestration.md) |
 | T052 | Global Project Switcher | TBD | Completed | High | 1.5d | T050, T051 | [task-dev-project-switcher.md](task-dev-project-switcher.md) |
 | T053 | Backward Compatibility: Import from `.env`, Deployment | TBD | Completed | High | 1d | T048, T051 | [task-dev-env-import-compat.md](task-dev-env-import-compat.md) |
-| T054 | Credential Security Review and Hardening | TBD | Completed (1 finding: owner action) | High | 1d | T048–T051 | [task-dev-credential-security-review.md](task-dev-credential-security-review.md) |
-| T055 | Phase 8 Verification and Release | TBD | In Progress (production verification pending) | High | 1d | T046–T054 | [task-dev-phase8-verification.md](task-dev-phase8-verification.md) |
+| T054 | Credential Security Review and Hardening | TBD | Completed | High | 1d | T048–T051 | [task-dev-credential-security-review.md](task-dev-credential-security-review.md) |
+| T055 | Phase 8 Verification and Release | TBD | Completed | High | 1d | T046–T054 | [task-dev-phase8-verification.md](task-dev-phase8-verification.md) |
 
-> **Implementation status (2026-10-25)**: T046–T054 done, 319 PHPUnit tests and 42/42 smoke checks passing; nothing is committed or deployed yet. **Open finding (owner action):** `.env.production` is tracked in git with a real-looking token — rotate it (security-checklist P8-10). Production steps: set `APP_KEY`, deploy, import/add the account, track projects, remove `REPO_PAT` (see DEPLOYMENT.md).
+> **Sign-off (2026-10-25)**: T046–T055 complete; deployed and verified in production by the owner (APP_KEY set, account imported, projects tracked, sync and cron working, `REPO_PAT` removed, exposed GitHub token revoked and DB password rotated). 319 PHPUnit tests, 42/42 smoke checks.
 
 > **Owner decisions (2026-10-25)**: several accounts; PAT now (App/OAuth later); `APP_KEY` as the one secret left in `.env`; untracking archives data; per-project field mapping; "Sync Now" = selected project; all users see all tracked projects (**future improvement**: per-project access control); sizing **≤ 10 projects × ≤ ~1,000 issues is a documented system limitation**. Both change records are Approved.
 

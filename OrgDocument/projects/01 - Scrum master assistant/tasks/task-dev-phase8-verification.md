@@ -17,16 +17,16 @@ Release gate for Phase 8: full regression, end-to-end multi-project scenario, up
 - [x] Upgrade rehearsal: production-like copy upgraded via the T053 runbook; data intact — on a Phase 7-shaped database (see FINDINGS.md); a copy of the real production database was not used
 - [x] `tests/perf/benchmark.sh` re-run — all endpoints < 200 ms with several projects; a cron run for the expected number of projects stays within host limits — 10 projects × 1,000 issues: every read endpoint < 10 ms locally; sync duration depends on GitHub and is not measured
 - [x] Manual browser checklist recorded in `tests/e2e/FINDINGS.md`
-- [ ] Deployed via GitHub Actions; production verified by the owner (account configured in the UI, `REPO_PAT` removed from the server `.env`, two projects visible and syncing)
-- [ ] Change documents set to **Verified**; project plan and tracker updated
+- [x] Deployed via GitHub Actions; production verified by the owner (account configured in the UI, `REPO_PAT` removed from the server `.env`, two projects visible and syncing)
+- [x] Change documents set to **Verified**; project plan and tracker updated
 - [x] `README.md` / `DEPLOYMENT.md` state the system limitation (≤ 10 tracked projects, ≤ ~1,000 issues each) and list per-project access control as a planned improvement
 
 ### Tasks/Subtasks
 - [x] Update smoke script, E2E tests, `FINDINGS.md`
-- [ ] Rehearsal, benchmark, deploy, production verification, owner sign-off
+- [x] Rehearsal, benchmark, deploy, production verification, owner sign-off
 
 ### Definition of Done
-- [ ] Owner confirms both requirements on https://scrum.softercolor.com/  
+- [x] Owner confirms both requirements on https://scrum.softercolor.com/  
 
 ### Dependencies
 - T046–T054  
@@ -37,6 +37,9 @@ Release gate for Phase 8: full regression, end-to-end multi-project scenario, up
 ### Priority
 High  
 
+### Progress Updates
+- **2026-10-25**: Deployed (d4c9588, fd62382). Owner verified on production: `APP_KEY` set, account imported and tested, projects tracked, Sync Now and cron working, `REPO_PAT` removed, old GitHub token revoked and DB password rotated. Owner signed off.
+
 ---
-**Status**: In Progress — awaiting production deployment and owner verification  
+**Status**: Completed  
 **Last Updated**: 2026-10-25

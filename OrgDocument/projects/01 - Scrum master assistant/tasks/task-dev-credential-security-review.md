@@ -27,7 +27,7 @@ Dedicated review of everything that touches GitHub tokens and admin configuratio
 - [x] Documentation updates
 
 ### Definition of Done
-- [ ] Checklist items PASS; no open High/Critical findings (P8-10 `.env.production` token — owner must rotate it)  
+- [x] Checklist items PASS; no open High/Critical findings (P8-10 fixed; owner rotated the token and DB password 2026-10-25)  
 
 ### Dependencies
 - T048, T049, T050, T051  
@@ -42,5 +42,5 @@ High
 - **2026-10-25**: Review done; automated leak/CSRF/SSRF/authorization tests added; fixes: token redaction, endpoint re-validation at use time, no redirects, JSON-only admin requests, no server paths in API output, Slim 4.15.3 security update. **Open finding P8-10 (owner action):** `.env.production` is tracked in git and contains a real-looking token — rotate it.
 
 ---
-**Status**: Completed (one finding awaiting owner action)  
+**Status**: Completed  
 **Last Updated**: 2026-10-25
